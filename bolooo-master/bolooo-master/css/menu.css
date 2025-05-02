@@ -1,0 +1,155 @@
+/* Reset dasar */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+    background: url('img/logo/Latar-belakang.jpg') no-repeat center center/cover;
+    background-color: #000; /* Background hitam */
+    color: #fff; /* Warna teks putih */
+  }
+  
+
+
+
+
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1a1a1a;
+    padding: 10px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+  
+  .back-button {
+    background-color: #e74c3c;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .back-button:hover {
+    background-color: #c0392b;
+  }
+  
+  .logo {
+    width: 50px;
+    height: auto;
+  }
+  
+  .menu-container {
+    display: flex;
+    flex-wrap: wrap; /* Membuat item turun ke baris berikutnya */
+    justify-content: center;
+    gap: 20px; /* Jarak antar item */
+    max-width: 1200px;
+    margin: 20px auto;
+  }
+  
+  .menu-item {
+    background-color: #1a1a1a; /* Warna container */
+    border-radius: 10px;
+    padding: 20px;
+    width: 22%; /* Lebar item 22% agar cukup 4 menu per baris */
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s;
+  }
+  
+  .menu-item:hover {
+    transform: scale(1.05); /* Animasi zoom saat hover */
+  }
+  
+  .menu-item img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover; /* Menyesuaikan ukuran gambar */
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .menu-item h3 {
+    color: #e74c3c; /* Warna merah untuk judul menu */
+    margin-bottom: 10px;
+  }
+  
+  .menu-item p {
+    margin: 5px 0;
+  }
+  
+  .menu-item strong {
+    color: #f1c40f; /* Warna kuning untuk kalori dan harga */
+  }
+  
+  .ingredients {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: center;
+    margin: 10px 0;
+  }
+  
+  .ingredients span {
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.9em;
+  }
+  
+  .order-button {
+    background-color: #e74c3c;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .order-button:hover {
+    background-color: #c0392b;
+  }
+
+  /* Media query untuk perangkat dengan lebar kurang dari 768px */
+@media (max-width: 768px) {
+  .menu-container {
+    gap: 10px; /* Kurangi jarak antar item */
+  }
+
+  .menu-item {
+    width: 45%; /* Ubah lebar menjadi 2 menu per baris */
+  }
+
+  .menu-item img {
+    height: 120px; /* Sesuaikan tinggi gambar */
+  }
+
+  .order-button {
+    padding: 8px 15px; /* Sesuaikan ukuran tombol */
+  }
+}
+
+/* Media query untuk perangkat dengan lebar kurang dari 480px */
+@media (max-width: 480px) {
+  .menu-item {
+    width: 100%; /* Ubah lebar menjadi 1 menu per baris */
+    padding: 15px; /* Kurangi padding untuk menyesuaikan ukuran layar */
+  }
+
+  .menu-item img {
+    height: 100px; /* Sesuaikan tinggi gambar */
+  }
+
+  .order-button {
+    padding: 6px 12px; /* Sesuaikan ukuran tombol */
+  }
+}

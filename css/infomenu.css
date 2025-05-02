@@ -1,0 +1,134 @@
+/* Global Styles */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #000;
+    color: #fff;
+    line-height: 1.6;
+  }
+  
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  /* Header Styles */
+  header h1 {
+    font-size: 2.5em;
+    color: #fc1b1b;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  /* Menu Container */
+  .menu-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  
+  .menu-image {
+    flex: 1;
+    background-color: #333;
+    padding: 20px;
+    border-radius: 10px;
+  }
+  
+  .menu-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    border: 5px solid #000000;
+  }
+  
+  .menu-description {
+    flex: 1;
+    font-size: 1.2em;
+    text-align: justify;
+  }
+  
+  /* Buttons */
+  .action-buttons {
+    text-align: center;
+  }
+  
+  .icon-button {
+    margin: 10px 5px;
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: bold;
+    color: #fff;
+    background-color: #333;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .icon-button:hover {
+    background-color: #FFD700;
+    color: #000;
+  }
+  
+  .icon-button.active {
+    color: #fff;
+  }
+  
+  .icon-button.disabled {
+    background-color: #888;
+    color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  /* Footer */
+  footer {
+    margin-top: 30px;
+    text-align: center;
+    padding: 10px;
+    font-size: 0.9em;
+    background-color: #111;
+    color: #fff;
+  }
+  
+  footer a {
+    color: #FFD700;
+    text-decoration: none;
+  }
+  
+  footer a:hover {
+    text-decoration: underline;
+  }
+  
+  #cart-button {
+    margin-top: 20px; /* Jarak antara tombol Favorit dan Keranjang */
+    background-color: #ffa200; /* Warna tombol awal */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  #cart-button i {
+    margin-right: 8px; /* Jarak ikon dengan teks */
+  }
+  
+  #cart-button:hover {
+    background-color: #fecb35; /* Warna saat tombol di-hover */
+  }
+  
+  #cart-button:active {
+    background-color: #d9850f; /* Warna saat tombol diklik */
+  }
+  

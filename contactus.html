@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us | Bolooo</title>
+  <link rel="icon" type="image/x-icon" href="../img/logo/logo-alt.png" />
+  <link rel="stylesheet" href="responsive.css">
+  <link rel="stylesheet" href="navbar.css">
+  <link rel="stylesheet" href="navbar2.css">
+  <link rel="stylesheet" href="style.css">
+  <link
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+  rel="stylesheet"
+/>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+    body {
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #000000;
+    }
+
+    .latar {
+      background-image: url('orangtelepon.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: scroll;
+      box-sizing: content-box;
+    }
+
+    .foto {
+      text-align: center;
+      padding: 30px 20px;
+      background: radial-gradient(circle, rgba(28, 31, 60, 0.857) 20%, rgba(28, 31, 60, 0.611) 80%);
+    }
+
+    .foto h1 {
+      font-size: 3rem;
+      text-align: center;
+      margin-top: 100px;
+      color: rgb(190, 180, 180);
+      text-shadow: #000000 0 7px 4px;
+    }
+
+    .foto p {
+      font-size: 1.5rem;
+      max-width: 800px;
+      text-align: center;
+      margin: 10px auto;
+      margin-bottom: 80px;
+      color: rgb(247, 226, 226);
+      text-shadow: #000000 0 2px 2px;
+    }
+
+    .contact-section {
+      padding: 60px 20px;
+      text-align: center;
+      background-color: #191818b9;
+    }
+
+    .contact-options {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      padding: 40px 20px;
+      background-color: rgb(0, 0, 0);
+    }
+
+    .contact-card {
+      background-color: #0d0d0d;
+      border: 1px solid #726e6e;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      max-width: 300px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .contact-card img {
+      width: 60px;
+      margin-bottom: 15px;
+    }
+
+    .contact-card h3 {
+      margin: 0 0 10px;
+      font-size: 1.2rem;
+      color: #b2b6bb;
+    }
+
+    .contact-card p {
+      font-size: 0.9rem;
+      margin: 0 0 20px;
+      color: #b2b6bb;
+    }
+
+    .contact-card a {
+      display: inline-block;
+      font-size: 0.9rem;
+      color: #9d9d9d;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .contact-card button {
+      background-color: #a3552fdc;
+      border: none;
+      color: rgb(0, 0, 0);
+      padding: 15px 15px;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .contact-card button:hover {
+      background-color: #71381a;
+    }
+
+    .global-contact {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 60px 20px;
+      background-color: #191818b9;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .map {
+      max-width: 500px;
+      margin-right: 20px;
+      flex: 1;
+    }
+
+    .office-details {
+      max-width: 400px;
+      flex: 1;
+    }
+
+    .office-details h3 {
+
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+      color: rgb(190, 180, 180);
+      text-shadow: #000000 0 7px 4px;
+    }
+
+    .office-details p {
+      color: rgb(190, 180, 180);
+      text-shadow: #000000 0 7px 4px;
+      font-size: 1rem;
+      margin: 5px 0;
+      margin-left: 104px;
+    }
+
+    .office-details a {
+      color: #001F3F;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .office-details a:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .contact-container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #393535ac;
+      box-shadow: 0 4px 6px rgba(144, 144, 144, 0.99);
+      border-radius: 10px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      color: #f3f3f3;
+      text-align: center;
+      font-size: 2rem;
+    }
+
+    /* Contact Info Section */
+    .contact-info {
+      margin-bottom: 40px;
+    }
+
+    .contact-info p {
+      margin: 10px 0 20px;
+      color: #000000;
+      font-size: 1rem;
+    }
+
+    .info-box {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .info-item {
+      flex: 1 1 calc(33% - 20px);
+      padding: 20px;
+      background-color: #010101;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-item h3 {
+      margin-bottom: 10px;
+      color: #bfbfbf;
+    }
+
+    .info-item p {
+      margin: 0;
+      color: #b2b6bb;
+    }
+
+    /* Contact Form Section */
+    .contact-form {
+      margin-bottom: 40px;
+      color: #e0d8d8;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      color: rgb(255, 255, 255);
+    }
+
+    label {
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #ffffff;
+    }
+
+    input,
+    textarea {
+      padding: 10px;
+      font-size: 1rem;
+      border: 1px solid #000000;
+      border-radius: 5px;
+      color: #f3f3f3;
+      font-weight: bold;
+      background-color: #191818;
+      width: 98%;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      color: #fff;
+      background-color: #713838;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+
+    .reservation {
+      padding: var(--sectionPadding);
+    }
+
+    .reservation-items {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 3rem;
+    }
+
+    .opening-time,
+    .social-media,
+    .reservation-info {
+      margin-top: 10px;
+      font-size: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .reservation-item-info h3 {
+      margin-bottom: 1.2rem;
+    }
+
+    .reservation-item-info p {
+      margin-bottom: 0.5rem;
+    }
+
+    .contact-info-social {
+      display: flex;
+      margin-left: 32px;
+      margin-top: 20px;
+      padding: 10px;
+      gap: 1.5rem;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <nav id="nav-desktop">
+      <div class="nav large-container">
+        <ul>
+          <li data-aos="fade-down" data-aos-duration="500">
+            <a href="index.html">Home</a>
+          </li>
+          <li data-aos="fade-down" data-aos-duration="500" data-aos-delay="100">
+            <a href="AboutUs.html">About</a>
+          </li>
+          <li data-aos="fade-down" data-aos-duration="500" data-aos-delay="200">
+            <a href="Makanan.html">Menu</a>
+          </li>
+          <li data-aos="fade-down" data-aos-duration="500" data-aos-delay="400">
+            <a href="#reservation">Reservasi</a>
+          </li>
+        </ul>
+
+        <img src="img/logo/logo2.png" data-aos="fade-down" data-aos-duration="500" data-aos-delay="300" alt="logo"
+          width="150px" height="75px" />
+
+        <ul>
+          <li data-aos="fade-down" data-aos-duration="500" data-aos-delay="500">
+            <a href="#location">Lokasi</a>
+          </li>
+          <li data-aos="fade-down" data-aos-duration="500" data-aos-delay="600">
+            <a href="findJobs.html">Karir</a>
+          </li>
+          <li data-aos="fade-down" data-aos-duration="500" data-aos-delay="700">
+            <a href="findJobs.html">
+              <i class="fas fa-shopping-cart"></i>
+            </a>
+          </li>
+
+          <!-- Notification -->
+          <li class="notification-dropdown" data-aos="fade-down" data-aos-duration="500" data-aos-delay="800">
+            <a href="#">
+              <i class="fas fa-bell"></i>
+              <span class="notification-badge">3</span>
+            </a>
+            <div class="dropdown-content">
+              <div class="notification-item">
+                <img src="img/notification/1.avif" alt="Promo Tahun Baru" />
+                <div class="notification-text">
+                  <h4>Promo Tahun Baru</h4>
+                  <p>Diskon hingga 50% untuk semua menu!</p>
+                </div>
+              </div>
+              <div class="notification-item">
+                <img src="img/notification/sate-goreng.jpg" alt="Promo Makan Hemat" />
+                <div class="notification-text">
+                  <h4>Menu Baru Wajib Coba!</h4>
+                  <p>Rasakan kenikmatan sate goreng ayam!</p>
+                </div>
+              </div>
+              <div class="notification-item">
+                <img src="img/notification/4.webp" alt="Reservasi Spesial" />
+                <div class="notification-text">
+                  <h4>Jam Operasional Baru</h4>
+                  <p>Sekarang kami buka hingga pukul 21:00!</p>
+                </div>
+              </div>
+            </div>
+          </li>
+
+          <!-- User -->
+          <li class="user-dropdown" data-aos="fade-down" data-aos-duration="500" data-aos-delay="900">
+            <a href="#">
+              <i class="fas fa-user"></i>
+            </a>
+            <div class="dropdown-content-user">
+              <div class="user-info">
+                <img src="fotozufar.jpg" alt="User Profile" />
+                <div class="user-name">ahmadzufar</div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <a href="account.html" class="dropdown-item">
+                <i class="fas fa-user-cog"></i>
+                <p> Akun Saya</p>
+              </a>
+              <a href="orders.html" class="dropdown-item">
+                <i class="fas fa-box"></i>
+                <p> Pesanan Saya</p>
+              </a>
+              <a href="reservations.html" class="dropdown-item">
+                <i class="fas fa-calendar-alt"></i>
+                <p> Reservasi Saya</p>
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="signout.html" class="dropdown-item logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <p> Sign Out</p>
+              </a>
+            </div>
+          </li>
+
+
+        </ul>
+      </div>
+    </nav>
+
+    <nav id="nav-mobile">
+      <div class="nav-mobile">
+        <div class="nav large-container">
+          <img src="img/logo/logo-alt.png" data-aos="fade-down" data-aos-duration="500" data-aos-delay="200"
+            alt="logo-alt" width="50px" height="50px" />
+          <div id="burger-navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-mobile-main">
+        <div>
+          <a href="index.html">Home</a>
+        </div>
+        <div>
+          <a href="about.html">About Us</a>
+        </div>
+        <div>
+          <a href="Makanan.html">Menu</a>
+        </div>
+        <div>
+          <a href="#reservation">Reservation</a>
+        </div>
+        <div>
+          <a href="#location">Location</a>
+        </div>
+        <div>
+          <a href="findJobs.html">Find Jobs</a>
+        </div>
+      </div>
+    </nav>
+    <section>
+      <div class="latar">
+        <div class="foto"
+          style="display: flex; align-items: center; justify-content: center; padding: 20px; text-align: left;">
+          <div>
+            <h1>Hubungi Kami</h1>
+            <p>Ada pertanyaan atau butuh bantuan? Hubungi kami melalui formulir di bawah ini atau menggunakan detail kontak yang tersedia.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <div class="contact-options">
+      <div class="contact-card">
+        <img src="phone.svg" alt="Phone Icon">
+        <h3>Berbicara Dengan Penjual</h3>
+        <p>Tertarik dengan layanan kami? Angkat telepon untuk mengobrol dengan anggota tim penjualan kami.</p>
+        <a href="tel:+622139504705">+62 812 1548 6311</a>
+        <br>
+      </div>
+      <div class="contact-card">
+        <img src="chat.svg" alt="Support Icon">
+        <h3>Hubungi Dukungan Pelanggan</h3>
+        <p>Butuh bantuan? Jangan khawatir kami siap membantu Anda.</p>
+        <button><a href="https://wa.me/6281215486311?">Hubungi Dukungan</a></button>
+        <div class="social-media">
+          <div class="contact-info-social">
+            <a href="https://facebook.com"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                viewBox="0 0 24 24">
+                <path fill="#fff"
+                  d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z" />
+              </svg></a>
+
+            <a href="https://instagram.com"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                viewBox="0 0 24 24">
+                <path fill="#fff"
+                  d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+              </svg></a>
+
+            <a href="https://x.com"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <path fill="#fff"
+                  d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
+              </svg></a>
+
+            <a href="https://youtube.com"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                viewBox="0 0 24 24">
+                <path fill="#fff"
+                  d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z" />
+              </svg></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="contact-container">
+      <section class="contact-info">
+        <div class="info-box">
+          <div class="info-item">
+            <h3>Email</h3>
+            <p>BOLOOO.food@gmail.com</p>
+          </div>
+          <div class="info-item">
+            <h3>Alamat</h3>
+            <p>Jl. Sukapura No.76, Cipagalo, Kec. Bojongsoang, Kabupaten Bandung, Jawa Barat 40287</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="contact-form">
+        <h2>Kirimkan Pesan Kepada Kami</h2>
+        <form id="contactForm">
+          <div class="form-group">
+            <label for="name">Nama Lengkap</label>
+            <input type="text" id="name" name="name" placeholder="Nama Lengkap Kamu" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Alamat Email</label>
+            <input type="email" id="email" name="email" placeholder="Alamat Email Kamu" required>
+          </div>
+          <div class="form-group">
+            <label for="message">Pesan</label>
+            <textarea id="message" name="message" placeholder="Pesan Yang Ingin Disampaikan" rows="5" required></textarea>
+          </div>
+          <button type="submit">Kirim</button>
+        </form>
+      </section>
+    </div>
+    <section class="contact-section">
+      <h2>Lokasi Kami</h2>
+    </section>
+    <section class="global-contact">
+      <iframe
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3960.3451772161493!2d107.63457970960292!3d-6.968543368201405!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e9b22a7c041d%3A0xf61de0f3037c02f0!2sSate%20Solo%20Pak%20Komar!5e0!3m2!1sid!2sid!4v1736059430537!5m2!1sid!2sid"
+        width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <div class="office-details">
+        <h3>Sate Solo Pak Komar</h3>
+        <p>Jl. Sukapura No.76, Cipagalo,<br>Kec. Bojongsoang,<br> Kabupaten Bandung, Jawa Barat 40287</p>
+        <p><strong>Telepon</strong></p>
+        <p>+62 HUBSPOT<br>(+62 812 1548 6311)</p>
+        <p>Fax: +62 895 812 5820</p>
+      </div>
+    </section>
+    <!-- Footer -->
+    <footer>
+      <div class="footer-info">
+        <div class="footer-info-items main-container">
+          <div data-aos="fade-up">
+            <h3>Selamat Datang di BOLOOO</h3>
+            <p>Tempat setiap gigitan bercerita</p>
+            <p>
+              Masuki tempat berlindung kami yang nyaman, di mana kehangatan
+              keramahan yang tulus mengundang Anda untuk bersantai dan menikmati
+              momen kenikmatan yang menyenangkan.
+            </p>
+          </div>
+          <div data-aos="fade-up" data-aos-delay="100">
+            <h3>Kunjungi Kami</h3>
+            <p>
+              Jl. Sukapura No.76, Cipagalo, Kec. Bojongsoang, Kabupaten Bandung,
+              Jawa Barat 40287
+            </p>
+
+            <h3>Hubungi Kami</h3>
+            <p>
+              6281215486311<br />
+              BOLOOO.food@gmail.com
+            </p>
+          </div>
+
+          <div data-aos="fade-up" data-aos-delay="200">
+            <h3>Unduh Aplikasi</h3>
+            <div>
+              <a href="formPemesanan.html">
+                <img
+                  src="Google Play.jpg"
+                  alt="Google Play"
+                  width="150px"
+                  height="45px"
+              /></a>
+            </div>
+
+            <div>
+              <a href="formPemesanan.html">
+                <img
+                  src="App Store.jpg"
+                  alt="App Store"
+                  width="150px"
+                  height="45px"
+              /></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-copyright">
+        <div class="footer-items large-container">
+          <div class="footer-left">&copy; 2024 BOLOOO. All Rights Reserved</div>
+
+          <div class="footer-mid">
+            <img
+              src="img/logo/logo.png"
+              alt="logo"
+              width="150px"
+              height="100px"
+            />
+          </div>
+
+          <div class="footer-right">Rasakan Bedanya</div>
+        </div>
+      </div>
+    </footer>
+    <script src="script.js"></script>
+    <script>
+
+      // Script to handle form submission
+      document.getElementById('contactForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        // Collect form data
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const message = document.getElementById('message').value;
+
+        // Simulate form submission
+        alert(`Terima kasih, ${name}!, ${email}!, ${message} Pesan Anda telah dikirim. Kami akan segera menghubungi Anda kembali.`);
+
+        // Reset form fields
+        this.reset();
+      });
+
+      // Form Reservation
+
+      const form = document.querySelector("#reservation-item-form");
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const tableName = document.querySelector("#table_name").value;
+        const tableSize = document.querySelector("#table_capacity").value;
+        const date = document.querySelector("#order_date").value;
+        const order = document.querySelector("#order").value;
+
+        const orderText = `Halo, saya ingin reservasi meja untuk ${tableSize} orang, atas nama ${tableName} pada tanggal/waktu ${date}
+  
+  Order: 
+  ${order || "*Pesan di tempat"}
+  `;
+
+        window.location.replace(`https://wa.me/6281215486311?text=${orderText}`);
+      });
+
+      // Mobile Navigation
+      const hamburger = document.querySelector("#burger-navigation");
+      const mobileNavigation = document.querySelector(".nav-mobile-main");
+
+      hamburger.addEventListener("click", function () {
+        hamburger.classList.toggle("open");
+        mobileNavigation.classList.toggle("menu-active");
+      });
+
+       
+    </script>
+</body>
+
+</html>

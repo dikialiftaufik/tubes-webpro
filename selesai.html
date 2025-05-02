@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pembayaran Selesai</title>
+  <link rel="stylesheet" href="css/css/konfirmasi.css">
+</head>
+<body>
+  
+  <nav class="navbar">
+    <img id="logo" class="logo" src="img/logo/logo.png" alt="Logo">
+  </nav>
+
+ 
+  <div class="container">
+    <div class="payment-complete">
+      <h1>Pembayaran Anda Telah Berhasil!</h1>
+      <p>Terima kasih telah bertransaksi dengan kami. Pembayaran Anda telah diterima.</p>
+      <button id="homeButton" class="home-button">Kembali ke Beranda</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("homeButton").addEventListener("click", function() {
+      window.location.href = "index.html";  
+    });
+  </script>
+</body>
+</html>

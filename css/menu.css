@@ -1,0 +1,328 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: url("img/background") no-repeat center center/cover;
+  background-color: #000;
+  color: #fff;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1a1a1a;
+  padding: 10px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.back-button {
+  background-color: #e74c3c;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.back-button:hover {
+  background-color: #c0392b;
+}
+
+.logo {
+  width: 50px;
+  height: auto;
+}
+
+.menu-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 20px auto;
+}
+
+.menu-item {
+  background-color: #1a1a1a;
+  border-radius: 10px;
+  padding: 20px;
+  width: 22%;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s;
+}
+
+.menu-item:hover {
+  transform: scale(1.05);
+}
+
+.menu-item img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.menu-item h3 {
+  color: #e74c3c;
+  margin-bottom: 10px;
+}
+
+.menu-item p {
+  margin: 5px 0;
+}
+
+.menu-item strong {
+  color: #f1c40f;
+}
+
+.ingredients {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.ingredients span {
+  background-color: #333;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.9em;
+}
+
+.order-button {
+  background-color: #e74c3c;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.order-button:hover {
+  background-color: #c0392b;
+}
+
+@media (max-width: 768px) {
+  .menu-container {
+    gap: 10px;
+  }
+
+  .menu-item {
+    width: 45%;
+  }
+
+  .menu-item img {
+    height: 120px;
+  }
+
+  .order-button {
+    padding: 8px 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .menu-item {
+    width: 100%;
+    padding: 15px;
+  }
+
+  .menu-item img {
+    height: 100px;
+  }
+
+  .order-button {
+    padding: 6px 12px;
+  }
+}
+
+.daging-ayam {
+  background-color: #fffdfb;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.daging-Sapi {
+  background-color: #8b4513;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.daging-kambing {
+  background-color: #5d4037;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.nasi {
+  background-color: #f8e7a0;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.bumbu-kacang {
+  background-color: #d2691e;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.kecap {
+  background-color: #6a1b9a;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.lada-bubuk {
+  background-color: #6b8e23;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.Santan {
+  background-color: #f5f5f5;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.rempah {
+  background-color: #9e9d24;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.acar {
+  background-color: #336633;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.Sambal-bawang {
+  background-color: #ff0000;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.Lalapan {
+  background-color: #f2545b;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.Tulang-kambing {
+  background-color: #a52a2a;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.jeroan-kambing {
+  background-color: #9e2727;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.Lalapan {
+  background-color: #f2545b;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}

@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/responsive.css" />
+    <link rel="stylesheet" href="css/navbar.css" />
+    <title>Keranjang Makanan</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #000;
+        color: white;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      header {
+        background-color: #333;
+        width: 100%;
+        padding: 20px;
+        text-align: center;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 2em;
+      }
+
+      .keranjang-container {
+        width: 80%;
+        margin: 30px 0;
+      }
+
+      ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      li {
+        background-color: #555;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .quantity-controls {
+        display: flex;
+        align-items: center;
+      }
+
+      button {
+        margin: 0 5px;
+        background-color: #555;
+        color: white;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #777;
+      }
+
+      button.remove-btn {
+        background-color: #e03e00;
+      }
+
+      button.remove-btn:hover {
+        background-color: #d03300;
+      }
+
+      .keranjang-footer {
+        width: 80%;
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      #checkout-button {
+        background-color: #ff4500;
+        color: white;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.2em;
+      }
+
+      #checkout-button:hover {
+        background-color: #e03e00;
+      }
+
+      footer {
+        background-color: #333;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+      }
+
+      .total-info {
+        margin-top: 20px;
+        font-size: 1.2em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Keranjang Makanan</h1>
+      </header>
+
+      <main class="keranjang-container">
+        <ul id="keranjang-list"></ul>
+      </main>
+
+      <div class="total-info" id="total-info">
+        <p>Total Makanan: <span id="total-quantity">0</span></p>
+        <p>Total Harga: Rp <span id="total-price">0</span></p>
+      </div>
+
+      <div class="keranjang-footer">
+        <button id="checkout-button" onclick="checkout()">Checkout</button>
+      </div>
+    </div>
+
+    <footer>
+      <p>
+        &copy; 2024 Keranjang Makanan |
+        <a href="index.html">Kembali ke Beranda</a>
+      </p>
+    </footer>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const keranjangList = document.getElementById("keranjang-list");
+        const totalQuantityElement = document.getElementById("total-quantity");
+        const totalPriceElement = document.getElementById("total-price");
+        let keranjangItems =
+          JSON.parse(localStorage.getItem("keranjang")) || [];
+
+        // Fungsi untuk memperbarui tampilan keranjang
+        function updateKeranjang() {
+          keranjangList.innerHTML = "";
+          let totalQuantity = 0;
+          let totalPrice = 0;
+
+          if (keranjangItems.length === 0) {
+            keranjangList.innerHTML = "<li>Keranjang Anda kosong</li>";
+          } else {
+            keranjangItems.forEach((item, index) => {
+              const li = document.createElement("li");
+              li.innerHTML = `
+                            <span>${item.name} (Rp ${item.price})</span>
+                            <div class="quantity-controls">
+                                <button onclick="kurangiJumlah(${index})">-</button>
+                                <span>${item.quantity}</span>
+                                <button onclick="tambahJumlah(${index})">+</button>
+                                <button class="remove-btn" onclick="hapusItem(${index})">Hapus</button>
+                            </div>
+                        `;
+              keranjangList.appendChild(li);
+
+              totalQuantity += item.quantity;
+              totalPrice += item.price * item.quantity;
+            });
+          }
+
+          totalQuantityElement.textContent = totalQuantity;
+          totalPriceElement.textContent = totalPrice;
+        }
+
+        // Fungsi untuk mengurangi jumlah item
+        window.kurangiJumlah = function (index) {
+          if (keranjangItems[index].quantity > 1) {
+            keranjangItems[index].quantity--;
+          } else {
+            keranjangItems.splice(index, 1);
+          }
+          localStorage.setItem("keranjang", JSON.stringify(keranjangItems));
+          updateKeranjang();
+        };
+
+        // Fungsi untuk menambah jumlah item
+        window.tambahJumlah = function (index) {
+          keranjangItems[index].quantity++;
+          localStorage.setItem("keranjang", JSON.stringify(keranjangItems));
+          updateKeranjang();
+        };
+
+        // Fungsi untuk menghapus item
+        window.hapusItem = function (index) {
+          keranjangItems.splice(index, 1);
+          localStorage.setItem("keranjang", JSON.stringify(keranjangItems));
+          updateKeranjang();
+        };
+
+        // Fungsi untuk checkout
+        window.checkout = function () {
+          if (keranjangItems.length === 0) {
+            alert("Keranjang Anda kosong!");
+          } else {
+            const itemsDetail = keranjangItems
+              .map((item) => `${item.name} (${item.quantity})`)
+              .join(", ");
+            alert("Checkout berhasil! Anda membeli: " + itemsDetail);
+
+            // Simpan data pesanan sementara ke localStorage
+            localStorage.setItem("pesanan", JSON.stringify(keranjangItems));
+
+            // Kosongkan keranjang setelah checkout
+            keranjangItems = [];
+            localStorage.setItem("keranjang", JSON.stringify(keranjangItems));
+
+            // Arahkan ke halaman pembayaran
+            window.location.href = "lamanpembayaran.html";
+          }
+        };
+
+        updateKeranjang();
+      });
+    </script>
+  </body>
+</html>

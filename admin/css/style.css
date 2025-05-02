@@ -1,0 +1,349 @@
+@import url("https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+/* 1) Reset dasar */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html,
+body {
+  height: 100%;
+}
+
+/* 2) Grid shell */
+body {
+  display: grid;
+  grid-template-areas:
+    "header  header"
+    "sidebar main"
+    "footer  footer";
+  grid-template-columns: 250px 1fr; /* sidebar 250px + main flexible */
+  grid-template-rows: auto 1fr auto; /* header auto + main flexible + footer auto */
+}
+
+.site-header {
+  grid-area: header;
+  background: #fafafa;
+  padding: 1rem;
+  /* optional: fixed di atas */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.site-sidebar {
+  grid-area: sidebar;
+  background: #f0f0f0;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.site-footer {
+  grid-area: footer;
+  background: #fafafa;
+  padding: 1rem;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+
+.main-content {
+  grid-area: main;
+  /* jaga rasio 3:4 */
+  aspect-ratio: 3 / 4;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: auto;
+  margin: auto; /* terpusat dalam cell grid */
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background-color: #f8f9fa;
+}
+.sidebar {
+  height: 100vh;
+  position: fixed;
+  background-color: #343a40;
+  color: white;
+  width: 250px;
+  transition: width 0.3s;
+  z-index: 1000;
+  overflow-y: scroll;
+}
+.sidebar.collapsed {
+  width: 80px;
+}
+.sidebar .menu-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.sidebar .menu-item:hover {
+  background-color: #484e53;
+}
+.sidebar.collapsed .menu-item span {
+  display: none;
+}
+.sidebar .menu-item a {
+  color: white;
+  text-decoration: none;
+}
+.sidebar .menu-item i {
+  font-size: 1.5rem;
+  min-width: 40px; /* Pastikan semua ikon memiliki lebar yang sama */
+  text-align: center; /* Pusatkan ikon */
+}
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: #6c757d; /* Warna scrollbar */
+  border-radius: 4px;
+  border: 2px solid #343a40; /* Warna latar belakang sidebar */
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background-color: #495057; /* Warna saat hover */
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background-color: #343a40;
+  border-radius: 4px;
+}
+.dropdown-active {
+  background-color: #343a40 !important; /* Mengubah warna latar belakang */
+  color: white; /* Mengubah warna teks jika diperlukan */
+}
+.dropdown-menu {
+  background-color: #343a40; /* Mengubah warna latar belakang dropdown */
+}
+
+.dropdown-item {
+  color: white; /* Mengubah warna teks item dropdown */
+}
+
+.dropdown-item:hover {
+  background-color: #495057; /* Warna latar belakang saat hover */
+  color: white; /* Warna teks saat hover */
+}
+.content {
+  aspect-ratio: 3 / 4;
+  margin-left: 250px;
+  padding: 20px;
+  transition: margin-left 0.3s;
+}
+.content.collapsed {
+  margin-left: 80px;
+}
+.profile-dropdown {
+  text-align: left;
+}
+.profile-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.profile-dropdown {
+  width: 250px;
+}
+.profile-button {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: inherit;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.3s;
+}
+.profile-button:hover {
+  background-color: #f8f9fa;
+}
+.profile-button img {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.input-group-text {
+  background-color: #f8f9fa;
+  border-right: none;
+}
+.input-group .form-control {
+  border-left: none;
+}
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  transition: all 0.3s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.logo-container img {
+  width: 50px;
+  height: 50px;
+}
+.logo-container span {
+  margin-left: 10px;
+  transition: opacity 0.3s;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+.sidebar.collapsed .logo-container span {
+  display: none;
+}
+/* New styles for main content table */
+.main-content {
+  aspect-ratio: 3/4;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+.dataTables_wrapper .dataTables_length select {
+  min-width: 60px;
+}
+.menu-image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.action-buttons {
+  white-space: nowrap;
+}
+.action-buttons button {
+  padding: 0.25rem 0.5rem;
+  margin: 0 0.25rem;
+}
+.modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+#imagePreview {
+  margin-top: 10px;
+}
+#imagePreview img {
+  max-width: 200px;
+  max-height: 500px;
+  border-radius: 4px;
+}
+#editImagePreview {
+  margin-top: 10px;
+}
+#editImagePreview img {
+  border-radius: 4px;
+}
+.active-menu-item {
+  background-color: #484e53;
+  border-left: 4px solid #0d6efd;
+}
+/* CSS untuk memastikan teks deskripsi tidak terpotong */
+.table-container td {
+  white-space: normal !important;
+  word-wrap: break-word;
+  max-width: 250px; /* Sesuaikan lebar maksimum kolom */
+}
+.table-container th,
+.table-container td {
+  vertical-align: top;
+  text-align: justify;
+}
+.table-container td:nth-child(6) {
+  font-size: 14px;
+  line-height: 1.5; /* Opsional */
+}
+.table-container td:nth-child(7) {
+  font-size: 12px;
+  line-height: 1.5; /* Opsional */
+}
+.tagify__tag {
+  background: #e0f7fa;
+  color: #00796b;
+}
+.badge {
+  display: inline-block; /* Membuat badge sejajar horizontal */
+  font-size: 0.85rem;
+  padding: 0.4em 0.6em;
+  border-radius: 12px;
+  margin-right: 0.5rem; /* Spasi horizontal */
+  margin-bottom: 0.5rem; /* Spasi vertikal */
+  line-height: 1.5;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bayangan untuk efek */
+}
+.badge:hover {
+  transform: scale(1.05); /* Sedikit membesarkan badge saat hover */
+}
+
+.footer-custom {
+  background-color: #dcdcdc; /* Warna latar */
+  padding: 15px 0; /* Padding vertikal */
+  font-size: 0.875rem; /* Ukuran font */
+  color: #000; /* Warna teks */
+  display: flex; /* Gunakan flexbox */
+  justify-content: center; /* Pusatkan horizontal */
+  align-items: center; /* Pusatkan vertikal */
+  text-align: center; /* Pusatkan teks */
+  width: 100%; /* Lebar penuh */
+  position: relative; /* Posisi default */
+}
+.footer-custom a {
+  text-decoration: none;
+  color: inherit;
+}
+.footer-custom a:hover {
+  text-decoration: underline;
+}
+
+/* Animasi Pulse */
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Hover efek untuk dropdown item */
+.dropdown-item:hover {
+  border-left: 3px solid #0d6efd;
+}
+
+.modal-header.bg-primary {
+  background-color: #007bff !important;
+}
+
+.modal-header.bg-success {
+  background-color: #28a745 !important;
+}
+
+.modal-header.bg-warning {
+  background-color: #ffc107 !important;
+}
+
+.btn-close-white {
+  filter: invert(1);
+}
+
+#editImagePreview img {
+  max-height: 150px;
+  object-fit: cover;
+}
+
+.dropdown-menu {
+  position: absolute; /* Pastikan dropdown berada di posisi absolut */
+  top: 100%; /* Tempatkan dropdown di bawah elemen induk */
+  left: 0; /* Sesuaikan posisi horizontal jika perlu */
+  z-index: 1000; /* Pastikan dropdown berada di atas elemen lain */
+}

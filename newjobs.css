@@ -1,0 +1,250 @@
+body {
+    display: flex;
+    flex-direction: column;
+    font-family: "Poppins", sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: black;
+}
+
+h1 {
+  color: white;
+}
+
+#jobposition-text {
+  color: white;
+}
+
+#whywork-text {
+  color: #c1392b;
+}
+
+.card-text {
+  color: white;
+}
+
+.text-center h2 {
+  color: #c1392b;
+}
+
+
+#why-text {
+  color: white;
+}
+
+.fw-bold {
+  color: #ffffff;
+}
+
+li {
+  color: white;
+}
+
+.h5 p {
+  color: white;
+}
+
+.card {
+  transition: transform 0.3s, box-shadow 0.3s; 
+  color: black;
+  background-color: #1a1a1a;
+}
+
+.card:hover {
+  transform: scale(1.02); 
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); 
+}
+
+/* Nav Bar */
+.nav {
+  display: flex;
+  justify-content: space-between;
+  padding: 1.25rem 0;
+  align-items: center;
+  margin: 0 50px;
+}
+
+.nav ul {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+.nav a {
+  color: white;
+  text-decoration: none;
+}
+
+.nav h1 {
+  font-weight: 400;
+  font-size: 1.7rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+#card-pics {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.icon-list {
+  list-style: none; /* Menghilangkan bullet point default */
+  padding-left: 0; /* Menghilangkan padding kiri default */
+}
+
+.icon-list li {
+  display: flex; /* Menggunakan flexbox */
+  align-items: center; /* Menyelaraskan ikon dan teks di tengah */
+  margin-bottom: 4px; /* Jarak antar item */
+}
+
+.icon-list i {
+  margin-right: 10px; 
+  font-size: 18px; 
+  width: 24px; 
+  text-align: center; 
+}
+
+/*Apply Button*/
+.btn-custom {
+  background-color: #c1392b; 
+  border-color: #c1392b; 
+  color: white; 
+}
+
+.btn-custom:hover {
+  background-color: #c1392b; 
+  border-color: #c1392b;
+}
+
+
+.badge {
+  font-weight: normal;
+}
+
+#hero-img {
+  position: relative;
+}
+
+.position-absolute {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* Footer */
+.footer {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+.footer-info {
+  background-color: #1a1a1a ;
+  padding: 3rem 0;
+  color: white;
+}
+
+.footer-info-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  text-align: center;
+  gap: 2rem;
+}
+
+.footer-info-items h3 {
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+}
+
+.footer-info-items p {
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.footer-copyright {
+  padding: 2rem 0;
+  background: #1a1a1a;
+  color: white;
+}
+
+.footer-items {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+.footer-mid {
+  font-size: 1rem;
+  text-align: center;
+  letter-spacing: 2px;
+  font-weight: 500;
+}
+
+.footer-right,
+.footer-left {
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+}
+
+.footer-right {
+  text-align: right;
+}
+
+@media (min-width: 768px) {
+  .head {
+      padding: 15vh 10vw;
+  }
+
+  .logo {
+      width: 40%;
+      max-width: 200px;
+  }
+
+  .content-inner {
+      flex-direction: row;
+      align-items: center;
+      gap: 30px;
+  }
+
+  .content h1 {
+      font-size: 2.5rem;
+      text-align: left;
+      flex: 1;
+      color: white;
+  }
+
+  .content p {
+      font-size: 1.125rem;
+      text-align: left;
+      flex: 1;
+      color: white;
+  }
+}
+
+@media (min-width: 1024px) {
+  .head {
+      padding: 20vh 15vw;
+  }
+
+  .logo {
+      width: 20%;
+      max-width: 250px;
+  }
+
+  .buttons {
+      gap: 15px;
+  }
+
+  .content h1 {
+      font-size: 3rem;
+  }
+
+  .content p {
+      font-size: 1.25rem;
+  }
+}

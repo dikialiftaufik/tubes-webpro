@@ -1,0 +1,64 @@
+===========================================
+              PEMBAGIAN TUGAS              
+===========================================
+
+-------------------------------------------
+607012400005 – Diki Alif Taufik
+-------------------------------------------
+** HALAMAN USER **
+1. Landing Page
+2. Akun Saya
+3. Pesanan Saya
+4. Reservasi Saya
+5. User Login & Register
+
+** HALAMAN ADMIN **
+6. Admin Login
+7. Dashboard Admin
+8. Kelola Main Course (CRUD)
+9. Kelola Drinks (CRUD)
+10. Kelola Side Dish (CRUD)
+11. Kelola Paket (CRUD)
+12. Kelola Pesanan (CRUD)
+13. Kelola Users (CRUD)
+14. Kelola Notifikasi (CRUD)
+
+
+-------------------------------------------
+607012400032 – Ega Fiandra Pratama
+-------------------------------------------
+** HALAMAN USER **
+1. Laman menu
+2. info makanan
+3. laman kritik dan saran
+4. laman pembayaran 
+5. laman keranjang 
+6. info pemesanan 
+7. konfirmasi pemesanan
+8. laman pembayaran berhasil
+
+
+-------------------------------------------
+607012400093 – Ahmad Zufar Fathoni
+-------------------------------------------
+** HALAMAN USER **
+1. Halaman Tentang kami
+2. Halaman Mengapa Bolo
+3. Halaman Cerita kami
+4. Halaman Kontak kami
+
+** HALAMAN ADMIN **
+5. Laman admin Laporan
+6. Laman admin Reservasi
+
+
+-------------------------------------------
+607012400099 – Raynaldi Paniroean Panjaitan
+-------------------------------------------
+** HALAMAN USER **
+1. Find Jobs
+2. Detail Lowongan
+
+** HALAMAN ADMIN **
+3. Kelola Lowongan
+4. Kelola Pelamar

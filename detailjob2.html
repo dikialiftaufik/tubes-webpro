@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Lowongan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="newjobs.css" rel="stylesheet">
+    <link href="responsive-findJobs.css" rel="stylesheet">
+    <link href="newjobs.scss" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body>
+    <header>
+        <!-- Nav Bar -->
+        <nav id="nav-desktop">
+            <div class="nav large-container">
+              <ul>
+                <li data-aos="fade-down" data-aos-duration="500">
+                  <a href="index.html">Home</a>
+                </li>
+                <li
+                  data-aos="fade-down"
+                  data-aos-duration="500"
+                  data-aos-delay="100"
+                >
+                  <a href="AboutUs.html">About</a>
+                </li>
+                <li
+                  data-aos="fade-down"
+                  data-aos-duration="500"
+                  data-aos-delay="200"
+                >
+                  <a href="Makanan.html">Menu</a>
+                </li>
+              </ul>
+    
+              <img
+                src="IMG_3122.png"
+                data-aos="fade-down"
+                data-aos-duration="500"
+                data-aos-delay="300"
+                alt="logo"
+                width="150px"
+                height="100px"
+              />
+    
+              <ul>
+                <li
+                  data-aos="fade-down"
+                  data-aos-duration="500"
+                  data-aos-delay="400"
+                >
+                  <a href="#reservation">Reservasi</a>
+                </li>
+                <li
+                  data-aos="fade-down"
+                  data-aos-duration="500"
+                  data-aos-delay="500"
+                >
+                  <a href="#location">Lokasi</a>
+                </li>
+                <li
+                  data-aos="fade-down"
+                  data-aos-duration="500"
+                  data-aos-delay="600"
+                >
+                  <a href="findJobs.html">Karir</a>
+                </li>
+              </ul>
+            </div>
+        </nav>
+    </header>
+<div class="container mt-5">
+    <!-- Header -->
+    <div class="mb-4" id="jobposition-text">
+        <h2 class="fw-bold">Chef</h2>
+        <h5>Chef bertanggung jawab atas persiapan, pengolahan, dan penyajian makanan di dapur, 
+            serta memastikan kualitas dan kreativitas kuliner yang disajikan. Dalam struktur restoran, 
+            chef biasanya memegang peran sentral dalam menciptakan pengalaman makan yang memuaskan bagi pelanggan.
+        </h5>
+    </div>
+
+    <!-- Ringkasan -->
+    <div class="mb-4">
+        <h4 class="fw-bold">Ringkasan</h4>
+        <div class="row">
+            <div class="col-6">
+                <ul class="icon-list">
+                    <li><i class="fas fa-graduation-cap"></i> <strong>Pendidikan</strong>: SMA / SMK Sederajat</li>
+                    <li><i class="fas fa-briefcase"></i> <strong>Pengalaman</strong>: Pengalaman 1 Tahun</li>
+                    <li><i class="fas fa-venus-mars"></i> <strong>Gender</strong>: Pria/Wanita</li>
+                    <li><i class="fas fa-birthday-cake"></i> <strong>Umur</strong>: Maks. 28 Tahun</li>
+                    <li><i class="fas fa-money-bill-wave"></i> <strong>Besaran Gaji</strong>: Rp6.500.000</li>
+                    <li><i class="fas fa-calendar-alt"></i> <strong>Batas Lamaran</strong>: 20 Desember 2024</li>
+                    <li><i class="fas fa-map-marker-alt"></i> <strong>Lokasi Kerja</strong>: Kab. Bandung, Jawa Barat</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Syarat Pekerjaan -->
+    <div class="mb-4">
+        <h4 class="fw-bold">Syarat Pekerjaan</h4>
+        <ul>
+            <li>Pria/Wanita usia maksimal 30 tahun</li>
+            <li>Pendidikan minimal SMA / SMK Sederajat</li>
+            <li>Mahir dalam berbagai teknik memasak (menggoreng, memanggang, merebus, dll.).</li>
+            <li>Memiliki stamina yang baik untuk bekerja dalam waktu yang panjang dan di lingkungan dapur yang panas. </li>
+        </ul>
+    </div>
+
+    <!--Kirim Lamaran-->
+    <div class="mb-4">
+        <h4 class="fw-bold">Kirim Lamaran</h4>
+        <button type="button" class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#applicationModal">
+            Lamar
+        </button>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="applicationModal" tabindex="-1" aria-labelledby="applicationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="applicationModalLabel">Kirim Lamaran</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="lamaranForm">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nama Lengkap</label>
+                            <input type="text" class="form-control" id="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="resume" class="form-label">Upload CV</label>
+                            <input type="file" class="form-control" id="resume" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" id="submitLamaran" class="btn btn-primary">Kirim Lamaran</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Footer -->
+<div class="container-fluid">
+<footer class="footer">
+    <div class="footer-info">
+        <div class="footer-info-items main-container">
+            <div data-aos="fade-up">
+                <h3>Welcome to BOLOO</h3>
+                <p>Welcome to BOLOO, where every bite is a story.</p>
+                <p>
+                    Step into our cozy haven, where the warmth of heartfelt
+                    hospitality invite you to unwind and savor moments of delightful
+                    indulgence.
+                </p>
+            </div>
+            <div data-aos="fade-up" data-aos-delay="100">
+                <h3>Visit</h3>
+                <p>
+                    Jl. Sukapura No.76, Cipagalo, Kec. Bojongsoang, Kabupaten Bandung,
+                    Jawa Barat 40287
+                </p>
+
+                <h3>Talk</h3>
+                <p>6281215486311</p>
+
+                <h3>Write</h3>
+                <p>BOLOOO.food@gmail.com</p>
+            </div>
+
+            <div data-aos="fade-up" data-aos-delay="200">
+                <h3>Download App</h3>
+                <div>
+                    <a href="formPemesanan.html">
+                        <img src="Google Play.jpg" alt="Google Play" width="225px" height="65px" /></a>
+                </div>
+
+                <div>
+                    <a href="formPemesanan.html">
+                        <img src="App Store.jpg" alt="App Store" width="225px" height="65px" /></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-copyright">
+        <div class="footer-items large-container">
+            <div class="footer-left">&copy; 2024 BOLOO. All rights reserved</div>
+
+            <div class="footer-mid">
+                <img src="IMG_3122.png" alt="logo" width="150px" height="100px" />
+            </div>
+
+            <div class="footer-right">Taste the Difference</div>
+        </div>
+    </div>
+</footer>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Tambahkan event listener ke tombol "Kirim Lamaran"
+        document.getElementById('submitLamaran').addEventListener('click', function() {
+            // Tampilkan SweetAlert success
+            Swal.fire({
+                title: 'Berhasil!',
+                text: 'Lamaran Anda telah berhasil dikirim.',
+                icon: 'success', // Icon: success
+                confirmButtonText: 'OK'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Tutup modal setelah SweetAlert dikonfirmasi
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('applicationModal'));
+                    modal.hide();
+                }
+            });
+        });
+    </script>    
+</body>
+</html>

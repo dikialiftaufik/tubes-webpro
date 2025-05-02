@@ -1,0 +1,1377 @@
+<!doctype html>
+<html lang="en">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Makanan</title>
+    <link rel="icon" type="image/x-icon" href="img/logo/logo-alt.png" />
+    <link rel="stylesheet" href="css/responsive.css" />
+    <link rel="stylesheet" href="css/menu.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css">
+
+    <link
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+  rel="stylesheet"
+/>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&family=Poppins:wght@400;500;600;700&display=swap");
+
+:root {
+  --primary-color: #0a0b0a;
+  --secondary-color: #1a191a;
+  --text-color: #fff;
+  --accent-color: #ffc107;
+  --sidebar-width: 250px;
+  --header-height: 100px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+
+/* General Reset */
+body {
+  font-family: "Poppins", sans-serif;
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+h1,
+h3 {
+  color: var(--text-color);
+}
+
+a {
+  text-decoration: none;
+}
+
+/* Utility Classes */
+.large-container {
+  width: 92.5%;
+  margin: 0 auto;
+}
+
+.main-container {
+  width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header Styling */
+header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: var(--header-height);
+  background-color: rgba(10, 11, 10, 0.9);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+/* Nav Bar */
+.nav {
+  display: flex;
+  justify-content: space-between;
+  padding: 1.25rem 0;
+  align-items: center;
+}
+
+.nav ul {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+.nav a {
+  color: var(--primaryTextColor);
+}
+
+.nav h1 {
+  font-weight: 400;
+  font-size: 1.7rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* Sticky Navbar Styles for Desktop and Mobile */
+#nav-desktop,
+#nav-mobile {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  transition:
+    background-color 0.3s ease,
+    backdrop-filter 0.3s ease;
+}
+
+/* Styles for mobile navigation */
+#nav-mobile {
+  background-color: rgba(10, 11, 10, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Optional: Enhance scrolled state */
+#nav-desktop.scrolled,
+#nav-mobile.scrolled {
+  background-color: rgba(10, 11, 10, 0.9);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  height: 100px;
+}
+
+/* Ensure navigation links are visible on blurred background */
+#nav-desktop ul li a,
+#nav-mobile .nav-mobile-main a {
+  color: #ffffff; /* Adjust text color to ensure readability */
+  transition: color 0.3s ease;
+}
+
+#nav-desktop ul li a:hover,
+#nav-mobile .nav-mobile-main a:hover {
+  color: #f0f0f0; /* Slightly lighter on hover */
+  opacity: 0.8;
+}
+
+/* Dropdown Container */
+.notification-dropdown {
+  position: relative;
+  font-family: Arial, sans-serif;
+}
+
+.notification-dropdown a {
+  text-decoration: none;
+  color: #333;
+  position: relative;
+  font-size: 18px;
+  display: inline-block;
+}
+
+.notification-dropdown a .fas {
+  font-size: 20px;
+}
+
+/* Notification Badge */
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  background-color: red;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Dropdown Content */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  width: 350px;
+  z-index: 1000;
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.notification-dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Notification Item */
+.notification-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s ease;
+}
+
+.notification-item:hover {
+  background-color: #f9f9f9;
+}
+
+.notification-item img {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.notification-text h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+.notification-text p {
+  margin: 5px 0 0;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Dropdown animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notification-dropdown:hover .dropdown-content,
+.dropdown-content:hover {
+  display: block;
+}
+
+/* Dropdown User */
+/* User Dropdown Styling */
+.user-dropdown {
+  position: relative;
+  font-family: Arial, sans-serif;
+}
+
+.user-dropdown a {
+  text-decoration: none;
+  color: #333;
+  position: relative;
+  font-size: 18px;
+  display: inline-block;
+}
+
+.user-dropdown a .fas {
+  font-size: 20px;
+}
+
+/* Dropdown Content */
+.dropdown-content-user {
+  display: none;
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background-color: #ffffff; /* Warna latar belakang dropdown */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  width: 250px;
+  z-index: 1000;
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.user-dropdown:hover .dropdown-content-user {
+  display: block;
+}
+
+/* User Info */
+.user-info {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background-color: #f9f9f9;
+}
+
+.user-info img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.user-info .user-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Dropdown Divider */
+.dropdown-divider {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin: 8px 0;
+}
+
+/* Dropdown Items */
+/* Dropdown Items Base Styling */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  text-decoration: none;
+  font-size: 14px;
+  gap: 10px;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dropdown-item i {
+  width: 20px;
+  margin-right: 10px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.dropdown-item p {
+  margin: 0;
+  padding: 0;
+  display: inline-block;
+  flex-grow: 1; /* Allows text to take remaining space */
+  white-space: nowrap; /* Prevents text wrapping */
+}
+
+/* Hover effect for full width */
+.dropdown-item:hover {
+  width: 100%;
+}
+
+/* Account section - Blue theme */
+.dropdown-item[href="account.html"] i,
+.dropdown-item[href="account.html"] p {
+  color: #007bff;
+}
+.dropdown-item[href="account.html"]:hover {
+  background-color: #e6f2ff;
+}
+
+/* Orders section - Orange theme */
+.dropdown-item[href="orders.html"] i,
+.dropdown-item[href="orders.html"] p {
+  color: #f39c12;
+}
+.dropdown-item[href="orders.html"]:hover {
+  background-color: #fff5e6;
+}
+
+/* Reservations section - Green theme */
+.dropdown-item[href="reservations.html"] i,
+.dropdown-item[href="reservations.html"] p {
+  color: #2ecc71;
+}
+.dropdown-item[href="reservations.html"]:hover {
+  background-color: #e8f8f0;
+}
+
+/* Logout section - Red theme */
+.dropdown-item.logout i,
+.dropdown-item.logout p {
+  color: #e74c3c;
+}
+.dropdown-item.logout:hover {
+  background-color: #fde9e7;
+}
+
+/* Improved dropdown behavior */
+.dropdown-content-user {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.3s,
+    visibility 0.3s;
+}
+
+.user-dropdown:hover .dropdown-content-user,
+.dropdown-content-user:hover {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Hide dropdown when mouse leaves both trigger and content */
+.user-dropdown:not(:hover) .dropdown-content-user:not(:hover) {
+  opacity: 0;
+  visibility: hidden;
+  transition-delay: 0.3s;
+}
+
+/* Fix text alignment and spacing */
+.dropdown-content-user {
+  width: 250px;
+}
+
+/* Order of menu items - use flexbox for container */
+.dropdown-content-user {
+  display: none; /* This will be overridden by hover states */
+  flex-direction: column;
+}
+
+/* Ensure items stay in correct order */
+.dropdown-content-user > * {
+  order: 10; /* Default order */
+}
+
+.user-info {
+  order: 1;
+}
+
+.dropdown-item[href="account.html"] {
+  order: 2;
+}
+
+.dropdown-item[href="orders.html"] {
+  order: 3;
+}
+
+.dropdown-item[href="reservations.html"] {
+  order: 4;
+}
+
+.dropdown-item.logout {
+  order: 6;
+}
+
+/* Dividers */
+.dropdown-divider:nth-of-type(1) {
+  order: 1.5;
+}
+
+.dropdown-divider:nth-of-type(2) {
+  order: 5;
+}
+
+/* Dropdown animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Main Layout */
+.container {
+  display: flex;
+  margin-top: var(--header-height);
+  min-height: calc(100vh - var(--header-height));
+  background-color: var(--primary-color);
+  padding: 2rem;
+  gap: 2rem;
+}
+
+.fas.fa-shopping-cart {
+    font-size: 24px;
+    color: #fcfafa; /* Ubah warna sesuai kebutuhan */
+}
+
+#nav-desktop ul {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+#nav-desktop ul li a {
+    padding: 10px;
+}
+
+  .new-label {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #ff4500;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 5px;
+    z-index: 1;
+  }
+  
+  
+
+  .menu-item {
+    position: relative;
+  }
+
+  .daging-ayam {
+  background-color: #fffdfb;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.daging-Sapi {
+  background-color: #8B4513;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.daging-kambing {
+  background-color: #5D4037;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.nasi {
+  background-color: #F8E7A0;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.bumbu-kacang {
+  background-color: #D2691E;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.kecap {
+  background-color: #6A1B9A;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+
+.lada-bubuk {
+  background-color: #6B8E23;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.Santan {
+  background-color: #F5F5F5;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.rempah {
+  background-color: #9E9D24;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.acar {
+  background-color: #336633;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.Sambal-bawang {
+  background-color: #FF0000;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.Lalapan {
+  background-color: #F2545B;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.Tulang-kambing {
+  background-color: #A52A2A;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.jeroan-kambing {
+  background-color: #9e2727;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+.Lalapan {
+  background-color: #F2545B;
+  color: black;
+  padding: 5px 10px; /* Padding seragam */
+  border-radius: 5px; /* Border melengkung */
+  font-size: 0.9em; /* Ukuran font seragam */
+  text-align: center; /* Teks rata tengah */
+  min-width: 80px; /* Lebar minimum seragam */
+  line-height: 1.2; /* Tinggi baris seragam */
+  white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+}
+
+
+
+.image-slider {
+  position: relative;
+  max-width: 100%;
+  height: 400px;
+  overflow: hidden;
+  background-color: #252525af; /* Warna abu-abu terang */
+}
+
+.image-slider .slide {
+  display: none;
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.image-slider .slide.active {
+  display: block;
+  opacity: 1;
+  z-index: 1;
+}
+
+.image-slider img {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.image-slider .navigation {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  transform: translateY(-50%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.image-slider .navigation button {
+  background-color: rgba(207, 197, 197, 0.8); /* Warna abu-abu terang */
+  border: none;
+  color: black;
+  font-size: 24px;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+  pointer-events: all;
+}
+
+.image-slider .navigation button:hover {
+  background-color: rgba(150, 150, 150, 1); /* Warna abu-abu lebih gelap */
+}
+
+.image-slider .navigation button:focus {
+  outline: none;
+}
+.image-slider .navigation button {
+  z-index: 3;
+}
+  
+
+/* Footer */
+.footer-info {
+  background: #1a191a;
+  padding: 3rem 0;
+}
+
+.footer-info-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  text-align: center;
+  gap: 2rem;
+}
+
+.footer-info-items h3 {
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+}
+
+.footer-info-items p {
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.footer-copyright {
+  padding: 2rem 0;
+  background: #2a292b;
+}
+
+.footer-items {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+.footer-mid {
+  font-size: 1rem;
+  text-align: center;
+  letter-spacing: 2px;
+  font-weight: 500;
+}
+
+.footer-right,
+.footer-left {
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+}
+
+.footer-right {
+  text-align: right;
+}
+
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav id="nav-desktop">
+        <div class="nav large-container">
+          <ul>
+            <li data-aos="fade-down" data-aos-duration="500">
+              <a href="index.html">Home</a>
+            </li>
+            <li
+              data-aos="fade-down"
+              data-aos-duration="500"
+              data-aos-delay="100"
+            >
+              <a href="AboutUs.html">About</a>
+            </li>
+            <li
+              data-aos="fade-down"
+              data-aos-duration="500"
+              data-aos-delay="200"
+            >
+              <a href="Makanan.html">Menu</a>
+            </li>
+            <li
+              data-aos="fade-down"
+              data-aos-duration="500"
+              data-aos-delay="400"
+            >
+              <a href="#reservation">Reservasi</a>
+            </li>
+          </ul>
+
+          <img
+            src="img/logo/logo.png"
+            data-aos="fade-down"
+            data-aos-duration="500"
+            data-aos-delay="300"
+            alt="logo"
+            width="150px"
+            height="100px"
+          />
+
+          <ul>
+            <li
+              data-aos="fade-down"
+              data-aos-duration="500"
+              data-aos-delay="500"
+            >
+              <a href="#location">Lokasi</a>
+            </li>
+            <li
+              data-aos="fade-down"
+              data-aos-duration="500"
+              data-aos-delay="600"
+            >
+              <a href="findJobs.html">Karir</a>
+            </li>
+            <li
+              data-aos="fade-down"
+              data-aos-duration="500"
+              data-aos-delay="700"
+            >
+              <a href="findJobs.html">
+                <i class="fas fa-shopping-cart"></i>
+              </a>
+            </li>
+
+            <!-- Notification -->
+            <li
+  class="notification-dropdown"
+  data-aos="fade-down"
+  data-aos-duration="500"
+  data-aos-delay="800"
+>
+  <a href="#">
+    <i class="fas fa-bell"></i>
+    <span class="notification-badge">3</span>
+  </a>
+  <div class="dropdown-content">
+    <div class="notification-item">
+      <img src="img/notification/1.avif" alt="Promo Tahun Baru" />
+      <div class="notification-text">
+        <h4>Promo Tahun Baru</h4>
+        <p>Diskon hingga 50% untuk semua menu!</p>
+      </div>
+    </div>
+    <div class="notification-item">
+      <img src="img/notification/sate-goreng.jpg" alt="Promo Makan Hemat" />
+      <div class="notification-text">
+        <h4>Menu Baru Wajib Coba!</h4>
+        <p>Rasakan kenikmatan sate goreng ayam!</p>
+      </div>
+    </div>
+    <div class="notification-item">
+      <img src="img/notification/4.webp" alt="Reservasi Spesial" />
+      <div class="notification-text">
+        <h4>Jam Operasional Baru</h4>
+        <p>Sekarang kami buka hingga pukul 21:00!</p>
+      </div>
+    </div>
+  </div>
+</li>
+
+<!-- User -->
+<li
+  class="user-dropdown"
+  data-aos="fade-down"
+  data-aos-duration="500"
+  data-aos-delay="900"
+>
+  <a href="#">
+    <i class="fas fa-user"></i>
+  </a>
+  <div class="dropdown-content-user">
+    <div class="user-info">
+      <img src="img/ega fiandra.jpg" alt="User Profile" />
+      <div class="user-name">Egafiandra12</div>
+    </div>
+    <div class="dropdown-divider"></div>
+    <a href="account.html" class="dropdown-item">
+      <i class="fas fa-user-cog"></i> <p> Akun Saya</p>
+    </a>
+    <a href="orders.html" class="dropdown-item">
+      <i class="fas fa-box"></i> <p> Pesanan Saya</p>
+    </a>
+    <a href="reservations.html" class="dropdown-item">
+      <i class="fas fa-calendar-alt"></i> <p> Reservasi Saya</p>
+    </a>
+    <div class="dropdown-divider"></div>
+    <a href="signout.html" class="dropdown-item logout">
+      <i class="fas fa-sign-out-alt"></i> <p> Sign Out</p>
+    </a>
+  </div>
+</li>
+
+
+          </ul>
+        </div>
+      </nav>
+
+      <nav id="nav-mobile">
+        <div class="nav-mobile">
+          <div class="nav large-container">
+            <img
+              src="img/logo/logo.png"
+              data-aos="fade-down"
+              data-aos-duration="500"
+              data-aos-delay="200"
+              alt="logo-alt"
+              width="50px"
+              height="50px"
+            />
+            <div id="burger-navigation">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-mobile-main">
+          <div>
+            <a href="index.html">Home</a>
+          </div>
+          <div>
+            <a href="about.html">About Us</a>
+          </div>
+          <div>
+            <a href="Makanan.html">Menu</a>
+          </div>
+          <div>
+            <a href="#reservation">Reservation</a>
+          </div>
+          <div>
+            <a href="#location">Location</a>
+          </div>
+          <div>
+            <a href="findJobs.html">Find Jobs</a>
+          </div>
+        </div>
+      </nav>
+          </header>
+
+            <!-- Masukkan Main Content Disini -->
+             <br><br><br><br><br><br>
+            <div class="image-slider">
+              <div class="slide active">
+                <img src="img/Paket Pa Gesit.jpeg" alt="Image 1">
+              </div>
+              <div class="slide">
+                <img src="img/Paket Pa Tani.jpeg" alt="Image 2">
+              </div>
+              <div class="slide">
+                <img src="img/Paket Pa Toni.jpeg" alt="Image 3">
+              </div>
+              <div class="navigation">
+                <button class="prev" onclick="changeSlide(-1)">&#10094;</button>
+                <button class="next" onclick="changeSlide(1)">&#10095;</button>
+              </div>
+            </div>
+            
+            <div class="menu-container">
+              
+             
+          
+             <div class="menu-item">
+            <a href="infomenu.html">
+              <img src="img/main-course/sate-kambing.jpg" alt="Makanan">
+            </a>
+            <h3>SATE KAMBING</h3>
+            <p>Sate kambing dengan tekstur yang empuk dan tidak berbau</p>
+            <div class="ingredients">
+              <span class="daging-kambing">Daging Kambing</span>
+              <span class="kecap">kecap</span>
+              <span class="lada-bubuk">lada bubuk</span>
+              <span class="acar">Acar</span>
+            </div>
+            <p><strong>Kalori:</strong> 750 kcal</p>
+            <p><strong>Harga:</strong> Rp 35.000</p>
+            <button class="order-button" onclick="window.location.href='keranjang.html';">Pesan</button>
+          </div>
+          
+              <div class="menu-item">
+                <img src="img/main-course/sate-ayam.jpg" alt="Makanan">
+                <h3>SATE AYAM</h3>
+                <p>Sate ayam dengan bumbu kacang yang otentik</p>
+                <div class="ingredients">
+                  <span class="daging-ayam">Daging Ayam</span>
+                  <span class="bumbu-kacang">Bumbu kacang</span>
+                  <span class="lada-bubuk">lada bubuk</span>
+                  <span class="acar">Acar</span>
+                </div>
+                <p><strong>Kalori:</strong> 450 kcal</p>
+                <p><strong>Harga:</strong> Rp 22.000</p>
+                <button class="order-button">Pesan</button>
+              </div>
+          
+          
+          
+               <div class="menu-item">
+                <img src="img/main-course/sate-sapi.jpg" alt="Makanan">
+                <h3>SATE SAPI</h3>
+                <p>Sate Sapi dengan tekstur yang empuk dan tidak berbau</p>
+                <div class="ingredients">
+                  <span class="daging-Sapi">Daging Sapi</span>
+                  <span class="kecap">kecap</span>
+                  <span class="lada-bubuk">lada bubuk</span>
+                  <span class="acar">Acar</span>
+                </div>
+                <p><strong>Kalori:</strong> 600 kcal</p>
+                <p><strong>Harga:</strong> Rp 35.000</p>
+                <button class="order-button">Pesan</button>
+              </div>
+          
+              <div class="menu-item">
+                <img src="img/best-seller/tongseng-ayam.jpg" alt="Makanan">
+                <h3>TONGSENG AYAM</h3>
+                <p>Masakan berkuah santan khas jawa tengah dengan cita rasa manis dan berempah</p>
+                <div class="ingredients">
+                  <span class="daging-ayam">Daging Ayam</span>
+                  <span class="Santan">santan</span>
+                  <span class="rempah">rempah</span>
+                  <span class="kecap">kecap</span>
+                </div>
+                <p><strong>Kalori:</strong> 250 kcal</p>
+                <p><strong>Harga:</strong> Rp 22.000</p>
+                <button class="order-button">Pesan</button>
+              </div>
+          
+              <div class="menu-item">
+                <img src="img/best-seller/tongseng-sapi.jpg" alt="Makanan">
+                <h3>TONGSENG SAPI</h3>
+                <p>Masakan berkuah santan khas jawa tengah dengan cita rasa manis dan berempah</p>
+                <div class="ingredients">
+                  <span class="daging-Sapi">Daging Sapi</span>
+                  <span class="Santan">santan</span>
+                  <span class="rempah">rempah</span>
+                  <span class="kecap">kecap</span>
+                </div>
+                <p><strong>Kalori:</strong> 300 kcal</p>
+                <p><strong>Harga:</strong> Rp 35.000</p>
+                <button class="order-button">Pesan</button>
+              </div>
+          
+              <div class="menu-item">
+                <img src="img/best-seller/tongseng-kambing.jpg" alt="Makanan">
+                <h3>TONGSENG KAMBING</h3>
+                <p>Masakan berkuah santan khas jawa tengah dengan cita rasa manis dan berempah</p>
+                <div class="ingredients">
+                  <span class="daging-kambing">Daging Kambing</span>
+                  <span class="Santan">santan</span>
+                  <span class="rempah">rempah</span>
+                  <span class="kecap">kecap</span>
+                </div>
+                <p><strong>Kalori:</strong> 500 kcal</p>
+                <p><strong>Harga:</strong> Rp 35.000</p>
+                <button class="order-button">Pesan</button>
+              </div>
+          
+              <div class="menu-item">
+                <img src="img/main-course/tengkleng-kambing.jpg"Makanan">
+                <h3>GULAI</h3>
+                <p>Masakan berkuah santan khas jawa tengah dengan cita rasa gurih dan berempah.</p>
+                <div class="ingredients">
+                  <span class="daging-kambing">Daging Kambing</span>
+                  <span class="Santan">santan</span>
+                  <span class="rempah">rempah</span>
+                  <span class="jeroan-kambing">jeroan-kambing</span>
+                </div>
+                <p><strong>Kalori:</strong> 450 kcal</p>
+                <p><strong>Harga:</strong> Rp 20.000</p>
+                <button class="order-button">Pesan</button>
+              </div>
+          
+              <div class="menu-item">
+                <div class="new-label">Menu Baru</div>
+                <img src="img/new-menu/Nasgor.jpg" alt="Makanan">
+                <h3>NASI GORENG AYAM</h3>
+                <p>Nasi goreng dengan cita rasa khas jawa tengah</p>
+                <div class="ingredients">
+                  <span class="daging-ayam">Daging Ayam</span>
+                  <span class="rempah">rempah</span>
+                  <span class="kecap">kecap</span>
+                  <span class="nasi">nasi</span>
+                </div>
+                <p><strong>Kalori:</strong> 600 kcal</p>
+                <p><strong>Harga:</strong> Rp 27.000</p>
+                <button class="order-button">Pesan</button>
+              </div>
+              
+          
+              <div class="menu-item">
+                <div class="new-label">Menu Baru</div>
+                <img src="img/new-menu/Nasgor.jpg" alt="Makanan">
+                <h3>NASI GORENG SAPI</h3>
+                <p>Nasi goreng dengan cita rasa khas jawa tengah.</p>
+                <div class="ingredients">
+                  <span class="daging-Sapi">Daging Sapi</span>
+                  <span class="rempah">rempah</span>
+                  <span class="kecap">kecap</span>
+                  <span class="nasi">nasi</span>
+                </div>
+                <p><strong>Kalori:</strong> 650 kcal</p>
+                <p><strong>Harga:</strong> Rp 30.000</p>
+                <button class="order-button">Pesan</button>
+              </div>
+          
+              <div class="menu-item">
+                <div class="new-label">Menu Baru</div>
+                <img src="img/new-menu/Nasgor.jpg" alt="Makanan">
+                <h3>NASI GORENG KAMBING</h3>
+                <p>Nasi goreng dengan cita rasa khas jawa tengah</p>
+                <div class="ingredients">
+                  <span class="daging-kambing">Daging Kambing</span>
+                  <span class="rempah">rempah</span>
+                  <span class="kecap">kecap</span>
+                  <span class="nasi">nasi</span>
+                </div>
+                <p><strong>Kalori:</strong> 600 kcal</p>
+                <p><strong>Harga:</strong> Rp 30.000</p>
+                <button class="order-button">Pesan</button>
+              </div>
+          
+              <div class="menu-item">
+                <img src="img/new-menu/ayam-geprek.jpg" alt="MAKANAN">
+                <h3>AYAM GEPREK</h3>
+                <div class="new-label">Menu Baru</div>
+                <p>Ayam geprek dengan sambal bawang yang bikin mata melek</p>
+                <div class="ingredients">
+                  <span class="daging-ayam">Daging Ayam</span>
+                  <span class="Sambal-bawang">Sambal bawang</span>
+                  <span class="Lalapan">Lalapan</span>
+                </div>
+                <p><strong>Kalori:</strong> 150 kcal</p>
+                <p><strong>Harga:</strong> Rp 20.000</p>
+                <button class="order-button">Pesan</button>
+              </div>
+          
+              <div class="menu-item">
+                <img src="img/new-menu/tengkleng-kambing.jpg" alt="Makanan">
+                <h3>TENGKLENG</h3>
+                <p>Tulang iga yang di masak dengan rempahdan santan khas jawa tengah</p>
+                <div class="ingredients">
+                  <span class="Tulang-kambing">Tulang-kambing</span>
+                  <span class="Santan">santan</span>
+                  <span class="rempah">rempah</span>
+                  <span class="kecap">kecap</span>
+                </div>
+                <p><strong>Kalori:</strong> 460 kcal</p>
+                <p><strong>Harga:</strong> Rp 30.000</p>
+                <button class="order-button">Pesan</button>
+              </div>
+            </div>
+        
+    <!-- Footer -->
+    <footer>
+      <div class="footer-info">
+        <div class="footer-info-items main-container">
+          <div data-aos="fade-up">
+            <h3>Welcome to BOLOO</h3>
+            <p>Welcome to BOLOO, where every bite is a story.</p>
+            <p>
+              Step into our cozy haven, where the warmth of heartfelt
+              hospitality invite you to unwind and savor moments of delightful
+              indulgence.
+            </p>
+          </div>
+          <div data-aos="fade-up" data-aos-delay="100">
+            <h3>Visit</h3>
+            <p>
+              Jl. Sukapura No.76, Cipagalo, Kec. Bojongsoang, Kabupaten Bandung,
+              Jawa Barat 40287
+            </p>
+  
+            <h3>Talk</h3>
+            <p>6281215486311</p>
+  
+            <h3>Write</h3>
+            <p>BOLOOO.food@gmail.com</p>
+          </div>
+  
+          <div data-aos="fade-up" data-aos-delay="200">
+            <h3>Download App</h3>
+            <div>
+              <a href="formPemesanan.html">
+                <img
+                  src="img/logo/google-play-icon.png"
+                  alt="Google Play"
+                  width="225px"
+                  height="65px"
+              /></a>
+            </div>
+  
+            <div>
+              <a href="formPemesanan.html">
+                <img
+                  src="img/logo/app-store-icon.png"
+                  alt="App Store"
+                  width="225px"
+                  height="65px"
+              /></a>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <div class="footer-copyright">
+        <div class="footer-items large-container">
+          <div class="footer-left">&copy; 2024 BOLOO. All rights reserved</div>
+      
+          <div class="footer-mid">
+            <img
+              src="img/logo/logo.png"
+              alt="logo"
+              width="150px"
+              height="100px"
+            />
+  
+    
+        <!-- Tombol Kritik dan Saran -->
+        <div class="footer-feedback">
+          <button onclick="window.location.href='saran.html'" class="feedback-button">Kritik dan Saran</button>
+        </div>
+      </div>
+    </div>
+    
+        <div class="footer-right">Taste the Difference</div>
+      </div>
+    </div>
+  </footer>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/js/iziToast.min.js"></script>
+    <script src="js/script.js" type="text/javascript"></script>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+      AOS.init();
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+    const desktopNavbar = document.getElementById("nav-desktop");
+    const mobileNavbar = document.getElementById("nav-mobile");
+  
+    // Function to handle navbar styling on scroll
+    window.addEventListener("scroll", () => {
+      const scrollThreshold = 50;
+  
+      if (window.scrollY > scrollThreshold) {
+        if (desktopNavbar) desktopNavbar.classList.add("scrolled");
+        if (mobileNavbar) mobileNavbar.classList.add("scrolled");
+      } else {
+        if (desktopNavbar) desktopNavbar.classList.remove("scrolled");
+        if (mobileNavbar) mobileNavbar.classList.remove("scrolled");
+      }
+      let currentSlide = 0;
+  const slides = document.querySelectorAll('.image-slider .slide');
+  const totalSlides = slides.length;
+  
+  function showSlide(index) {
+    slides.forEach((slide, i) => {
+      slide.classList.remove('active');
+      if (i === index) {
+        slide.classList.add('active');
+      }
+    });
+  }
+  
+  function changeSlide(step) {
+    currentSlide = (currentSlide + step + totalSlides) % totalSlides;
+    showSlide(currentSlide);
+  }
+  
+  // Slide otomatis
+  function autoSlide() {
+    changeSlide(1);
+  }
+  
+  // Interval untuk pergeseran otomatis
+  let slideInterval = setInterval(autoSlide, 3000); // Ganti slide setiap 2 detik
+  
+  // Navigasi manual
+  document.querySelector('.prev').addEventListener('click', () => {
+    changeSlide(-1);
+    resetAutoSlide();
+  });
+  
+  document.querySelector('.next').addEventListener('click', () => {
+    changeSlide(1);
+    resetAutoSlide();
+  });
+  
+  // Reset interval saat tombol navigasi diklik
+  function resetAutoSlide() {
+    clearInterval(slideInterval);
+    slideInterval = setInterval(autoSlide, 2000);
+  }
+  
+  // Tampilkan slide pertama saat halaman dimuat
+  showSlide(currentSlide);
+  
+    });
+  });
+    </script>
+    
+  </body>
+  </html>
+  </body>
+  </html>
