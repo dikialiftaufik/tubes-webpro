@@ -1,12 +1,18 @@
 <?php
-// melakukan koneksi ke mysql
+// configdb.php
 $host = "localhost";
-$user = "root";
-$password = "";
-$dbname = "bolooo";
+$user = "root"; 
+$password = ""; // Sesuaikan dengan password MySQL Anda
+$database = "bolooo"; // Sesuaikan dengan nama database
 
-$conn = mysqli_connect($host, $user, $password, $dbname);
-if (!$conn) {
-	die("Koneksi gagal: " . mysqli_connect_error());
-} 
+// Membuat koneksi
+$conn = new mysqli($host, $user, $password, $database);
+
+// Cek koneksi
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
+}
+
+// Set charset
+$conn->set_charset("utf8mb4");
 ?>
