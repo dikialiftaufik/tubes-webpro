@@ -135,6 +135,7 @@ include '../views/sidebar.php';
                                     ID <?= ($sort_column === 'id') ? ($sort_order === 'ASC' ? '↑' : '↓') : '' ?>
                                 </a>
                             </th>
+                            <th>Foto Profil</th>
                             <th>
                                 <a href="?<?= http_build_query([
                                     'search' => $search,
@@ -145,7 +146,6 @@ include '../views/sidebar.php';
                                     Username <?= ($sort_column === 'username') ? ($sort_order === 'ASC' ? '↑' : '↓') : '' ?>
                                 </a>
                             </th>
-                            <th>Foto Profil</th>
                             <th>Nama Lengkap</th>
                             <th>
                                 <a href="?<?= http_build_query([
@@ -169,13 +169,13 @@ include '../views/sidebar.php';
                         ?>
                         <tr>
                             <td><?= htmlspecialchars($user['id']) ?></td>
-                            <td><?= htmlspecialchars($user['username']) ?></td>
                             <td>
                                 <img src="<?= $profile_pic ?>" 
                                      class="rounded-circle border" 
                                      style="width: 40px; height: 40px; object-fit: cover;"
                                      onerror="this.src='https://via.placeholder.com/40'">
                             </td>
+                            <td><?= htmlspecialchars($user['username']) ?></td>
                             <td><?= htmlspecialchars($user['full_name']) ?></td>
                             <td>
                                 <span class="badge bg-<?= $user['role'] === 'admin' ? 'primary' : 'success' ?>">
