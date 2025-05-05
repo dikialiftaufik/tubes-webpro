@@ -39,6 +39,11 @@
                     'label' => 'Notifikasi',
                     'icon' => 'bi-bell',
                     'link' => 'notification.php'
+                ],
+                [
+                    'label' => 'Feedback',
+                    'icon' => 'bi-chat-left-text',
+                    'link' => 'feedback.php'
                 ]
             ],
             'cashier' => [
