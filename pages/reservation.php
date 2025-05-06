@@ -16,7 +16,7 @@ $sort_order = isset($_GET['order']) && strtoupper($_GET['order']) === 'ASC' ? 'A
 $offset = ($page - 1) * $selected_per_page;
 
 // Query data reservasi
-$query = "SELECT * FROM reservations 
+$query = "SELECT * FROM reservations2 
           WHERE nama LIKE ? 
             OR CAST(jumlah_orang AS CHAR) LIKE ? 
             OR pesanan LIKE ? 
