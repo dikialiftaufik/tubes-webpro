@@ -18,7 +18,7 @@ $offset = ($page - 1) * $selected_per_page;
 // Query data reservasi
 $query = "SELECT * FROM reservations 
           WHERE nama LIKE ? 
-            OR jumlah_orang LIKE ? 
+            OR CAST(jumlah_orang AS CHAR) LIKE ? 
             OR pesanan LIKE ? 
             OR status LIKE ? 
           ORDER BY $sort_column $sort_order 
@@ -27,6 +27,9 @@ $query = "SELECT * FROM reservations
 
 $search_term = "%$search%";
 $stmt = $conn->prepare($query);
+if (!$stmt) {
+  die("Prepare failed: (" . $conn->errno . ") " . $conn->error);
+}
 $stmt->bind_param("ssss", $search_term, $search_term, $search_term, $search_term);
 $stmt->execute();
 $result = $stmt->get_result();
