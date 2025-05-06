@@ -29,22 +29,22 @@ $sort_order = isset($_GET['order']) && strtoupper($_GET['order']) === 'ASC' ? 'A
 $search_term = "%$search%";
 $offset = ($page - 1) * $selected_per_page;
 
-// Query data (FIXED)
-$query = "SELECT * FROM reservation 
+// Query data
+$query = "SELECT * FROM reservations 
           WHERE nama LIKE ? 
              OR pesanan LIKE ? 
              OR status LIKE ? 
           ORDER BY $sort_column $sort_order 
-          LIMIT $selected_per_page OFFSET $offset";
+          LIMIT ? OFFSET ?";
 
 $stmt = $conn->prepare($query);
-$stmt->bind_param("sss", $search_term, $search_term, $search_term);
+$stmt->bind_param("sssii", $search_term, $search_term, $search_term, $selected_per_page, $offset);
 $stmt->execute();
 $result = $stmt->get_result();
 $reservations = $result->fetch_all(MYSQLI_ASSOC);
 
 // Total data
-$total_query = "SELECT COUNT(*) AS total FROM reservation 
+$total_query = "SELECT COUNT(*) AS total FROM reservations 
                 WHERE nama LIKE ? 
                    OR pesanan LIKE ? 
                    OR status LIKE ?";
@@ -146,6 +146,11 @@ include '../views/sidebar.php';
                             </td>
                         </tr>
                         <?php endforeach; ?>
+                        <?php if (count($reservations) === 0): ?>
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">Tidak ada data ditemukan.</td>
+                        </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
