@@ -569,64 +569,31 @@
             </div>
           </div>
 
-          <form
-            class="reservation-item-form"
-            id="reservation-item-form"
-            data-aos="fade-up"
-            data-aos-delay="100"
-          >
+          <form class="reservation-item-form" id="reservation-item-form" data-aos="fade-up" data-aos-delay="100" action="reservation.php" method="POST">
             <div class="form-row">
               <div class="form-group">
                 <label for="table_name">Nama Lengkap</label>
-                <input
-                  type="text"
-                  name="table_name"
-                  id="table_name"
-                  placeholder="Masukkan Nama Lengkap Anda"
-                />
+                <input type="text" name="table_name" id="table_name" placeholder="Masukkan Nama Lengkap Anda" required>
               </div>
-
-<div class="form-group">
+              <div class="form-group">
                 <label for="table_capacity">Jumlah Orang</label>
-                <input
-                  type="number"
-                  name="table_capacity"
-                  id="table_capacity"
-                  placeholder="Masukkan Jumlah Orang"
-                />
+                <input type="number" name="table_capacity" id="table_capacity" placeholder="Masukkan Jumlah Orang" required>
               </div>
-              
             </div>
 
             <div class="form-row">
-<div class="form-group">
+              <div class="form-group">
                 <label for="order_date">Tanggal</label>
-        <input
-            type="text"
-            name="order_date"
-            id="order_date"
-            placeholder="Pilih Tanggal"
-            class="form-control"
-        />
+                <input type="text" name="order_date" id="order_date" placeholder="Pilih Tanggal" class="form-control" required>
               </div>
               <div class="form-row">
-              <div class="form-group">
-                <label for="start-time">Jam Mulai</label>
-                <input
-                  type="time"
-                  name="start-time"
-                  id="start-time"
-                  placeholder="Masukkan Jam"
-                />
+                <div class="form-group">
+                  <label for="start-time">Jam Mulai</label>
+                  <input type="time" name="start_time" id="start-time" placeholder="Masukkan Jam" required>
                 </div>
                 <div class="form-group">
-                <label for="end-time">Jam Selesai</label>
-                <input
-                  type="time"
-                  name="end-time"
-                  id="end-time"
-                  placeholder="Masukkan Jam"
-                />
+                  <label for="end-time">Jam Selesai</label>
+                  <input type="time" name="end_time" id="end-time" placeholder="Masukkan Jam" required>
                 </div>
               </div>
             </div>
@@ -634,17 +601,12 @@
             <div class="form-column">
               <div class="form-group">
                 <label for="order">Pesan Disini</label>
-                <textarea
-                  name="order"
-                  id="order"
-                  placeholder="Kosongkan jika Anda ingin memesan di tempat"
-                  cols="30"
-                  rows="10"
-                ></textarea>
+                <textarea name="order" id="order" placeholder="Kosongkan jika Anda ingin memesan di tempat" cols="30" rows="10"></textarea>
               </div>
 
-            <div class="form-group">
-              <button>Kirim</button>
+              <div class="form-group">
+                <button type="submit" name="submit_reservation">Kirim</button>
+              </div>
             </div>
           </form>
         </div>

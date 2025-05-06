@@ -56,11 +56,6 @@
                     'label' => 'Pesanan',
                     'icon' => 'bi-cart',
                     'link' => 'order.php'
-                ],
-                [
-                    'label' => 'Transaksi',
-                    'icon' => 'bi-receipt',
-                    'link' => 'transactions.php'
                 ]
             ]
         ];

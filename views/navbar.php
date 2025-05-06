@@ -31,9 +31,10 @@ if(isset($_SESSION['user']['id'])) {
             <span class="text-white fs-4 fw-bold d-none d-md-block">
                 <?php
     $current_page = basename($_SERVER['PHP_SELF']);
-$page_title = ($current_page == 'users.php') 
-            ? 'Manajemen Pengguna' 
-            : ($_SESSION['user']['role'] === 'admin' ? 'Dashboard Admin' : 'Dashboard Kasir');
+    $page_title = $title ?? 'Dashboard';
+ $title = "Pesenan"; // di cashier.php
+ $title = "Transaksi"; // di transaksi.php
+ 
 ?>
 
 <span class="navbar-brand mb-0 h1 text-white">

@@ -1,7 +1,7 @@
 <!-- File: Makanan.php -->
 <?php
 require_once 'configdb.php';
-include 'partials/header.php'; // Jika ada header umum
+include 'views/header.php'; // Jika ada header umum
 ?>
 
 <div class="container mt-5">
@@ -31,4 +31,4 @@ include 'partials/header.php'; // Jika ada header umum
     </div>
 </div>
 
-<?php include 'partials/footer.php'; // Jika ada footer umum ?>
+<?php include 'views/footer.php'; // Jika ada footer umum ?>
