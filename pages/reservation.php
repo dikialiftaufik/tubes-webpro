@@ -26,7 +26,7 @@ $query = "SELECT * FROM reservations
 
 $search_term = "%$search%";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("ssssii", $search_term, $search_term, $search_term, $search_term, $selected_per_page, $offset);
+$stmt->bind_param("ssss", $search_term, $search_term, $search_term, $search_term);
 $stmt->execute();
 $result = $stmt->get_result();
 $reservations = $result->fetch_all(MYSQLI_ASSOC);
