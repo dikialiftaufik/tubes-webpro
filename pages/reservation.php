@@ -22,7 +22,8 @@ $query = "SELECT * FROM reservations
             OR pesanan LIKE ? 
             OR status LIKE ? 
           ORDER BY $sort_column $sort_order 
-          LIMIT ? OFFSET ?";
+          LIMIT $selected_per_page OFFSET $offset";
+
 
 $search_term = "%$search%";
 $stmt = $conn->prepare($query);
