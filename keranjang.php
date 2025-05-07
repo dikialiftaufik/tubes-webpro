@@ -1,10 +1,15 @@
+<?php
+session_start();
+include './configdb.php';
+include './views/header.php';
+?>
 <!doctype html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="css/responsive.css" />
-    <link rel="stylesheet" href="css/navbar.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
     <title>Keranjang Makanan</title>
     <style>
       body {
@@ -115,8 +120,6 @@
         bottom: 0;
         width: 100%;
       }
-
-      
     </style>
   </head>
   <body>
@@ -142,7 +145,7 @@
     <footer>
       <p>
         &copy; 2024 Keranjang Makanan |
-        <a href="index.html">Kembali ke Beranda</a>
+        <a href="../index.php">Kembali ke Beranda</a>
       </p>
     </footer>
 
@@ -154,7 +157,6 @@
         let keranjangItems =
           JSON.parse(localStorage.getItem("keranjang")) || [];
 
-        // Fungsi untuk memperbarui tampilan keranjang
         function updateKeranjang() {
           keranjangList.innerHTML = "";
           let totalQuantity = 0;
@@ -185,7 +187,6 @@
           totalPriceElement.textContent = totalPrice;
         }
 
-        // Fungsi untuk mengurangi jumlah item
         window.kurangiJumlah = function (index) {
           if (keranjangItems[index].quantity > 1) {
             keranjangItems[index].quantity--;
@@ -196,21 +197,18 @@
           updateKeranjang();
         };
 
-        // Fungsi untuk menambah jumlah item
         window.tambahJumlah = function (index) {
           keranjangItems[index].quantity++;
           localStorage.setItem("keranjang", JSON.stringify(keranjangItems));
           updateKeranjang();
         };
 
-        // Fungsi untuk menghapus item
         window.hapusItem = function (index) {
           keranjangItems.splice(index, 1);
           localStorage.setItem("keranjang", JSON.stringify(keranjangItems));
           updateKeranjang();
         };
 
-        // Fungsi untuk checkout
         window.checkout = function () {
           if (keranjangItems.length === 0) {
             alert("Keranjang Anda kosong!");
@@ -220,15 +218,12 @@
               .join(", ");
             alert("Checkout berhasil! Anda membeli: " + itemsDetail);
 
-            // Simpan data pesanan sementara ke localStorage
             localStorage.setItem("pesanan", JSON.stringify(keranjangItems));
 
-            // Kosongkan keranjang setelah checkout
             keranjangItems = [];
             localStorage.setItem("keranjang", JSON.stringify(keranjangItems));
 
-            // Arahkan ke halaman pembayaran
-            window.location.href = "lamanpembayaran.html";
+            window.location.href = "lamanpembayaran.php";
           }
         };
 
