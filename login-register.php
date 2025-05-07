@@ -1,3 +1,35 @@
+<?php 
+session_start();
+if(isset($_SESSION['error'])): ?>
+<script>
+iziToast.error({
+    title: 'Error!',
+    message: '<?= $_SESSION["error"] ?>',
+    position: 'topRight'
+});
+</script>
+<?php unset($_SESSION['error']); endif; ?>
+
+<?php if(isset($_SESSION['success'])): ?>
+<script>
+iziToast.success({
+    title: 'Success!',
+    message: '<?= $_SESSION["success"] ?>',
+    position: 'topRight'
+});
+</script>
+<?php unset($_SESSION['success']); endif; ?>
+
+<?php if(isset($_SESSION['info'])): ?>
+<script>
+iziToast.info({
+    title: 'Info!',
+    message: '<?= $_SESSION["info"] ?>',
+    position: 'topRight'
+});
+</script>
+<?php unset($_SESSION['info']); endif; ?>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -245,11 +277,14 @@
     .password-container .toggle-password:hover {
       color: #000;
     }
+    .iziToast.iziToast-color-info {
+    background: #2ecc71;
+}
     </style>
   </head>
   <body>
     <div style="position: absolute; top: 20px; left: 30px;">
-  <a href="index.html" style="
+  <a href="index.php" style="
     display: flex;
     justify-content: center;
     align-items: center;
@@ -294,40 +329,30 @@
   
   
       <div class="form-container sign-up-container">
-        <form action="#">
+        <form action="auth/register_process.php" method="POST" id="registerForm">
           <h1>Buat Akun Baru</h1>
-          <div class="social-container">
-            <a href="#" class="social"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" class="social"
-              ><i class="fab fa-brands fa-google"></i
-            ></a>
-          </div>
-          <span>atau gunakan akun Anda</span>
-          <input type="text" id="registerName" placeholder="Masukkan Nama" />
-          <input type="email" id="registerEmail" placeholder="Masukkan Email" />
+          
+          <input type="text" name="full_name" id="registerName" placeholder="Masukkan Nama Lengkap" />
+          <input type="email" name="email" id="registerEmail" placeholder="Masukkan Email" />
           <div class="password-container">
-            <input type="password" id="registerPassword" placeholder="Masukkan Password" />
-            <i class="fas fa-eye toggle-password" data-target="confirmPassword"></i>
+            <input type="password" name="password" id="registerPassword" placeholder="Masukkan Password" />
+            <i class="fas fa-eye toggle-password" data-target="registerPassword"></i>
           </div>
-          <button id="registerButton">Daftar</button>
+          <button type="submit" id="registerButton">Daftar</button>
         </form>
       </div>
       <div class="form-container sign-in-container">
-        <form action="#">
+        <form action="auth/login_process.php" method="POST">
           <h1>Selamat Datang</h1>
-          <div class="social-container">
-            <a href="#" class="social"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" class="social"><i class="fab fa-brands fa-google"></i></i></a>
-          </div>
-          <span>atau gunakan akun Anda</span>
-          <input type="email" id="loginEmail" placeholder="Masukkan Email" />
+         
+          <input type="email" name="email" id="loginEmail" placeholder="Masukkan Email" />
           <div class="password-container">
-            <input type="password" id="loginPassword" placeholder="Masukkan Password" />
+            <input type="password" name="password" id="loginPassword" placeholder="Masukkan Password" />
             <i class="fas fa-eye toggle-password" data-target="password"></i>
           </div>
           <a href="#" data-toggle="modal" data-target="#forgotPasswordModal">Lupa password Anda?</a>
 
-          <button id="loginButton">Masuk</button>
+          <button type="submit" id="loginButton">Masuk</button>
         </form>
       </div>
       <div class="overlay-container">
@@ -356,15 +381,15 @@
 <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
 <script>
   // Event Listener untuk Login dan Register
-  document.getElementById("loginButton").addEventListener("click", (e) => {
-    e.preventDefault();
-    handleAuth("login");
-  });
+//   document.getElementById("loginButton").addEventListener("click", (e) => {
+//     e.preventDefault();
+//     handleAuth("login");
+//   });
 
-  document.getElementById("registerButton").addEventListener("click", (e) => {
-    e.preventDefault();
-    handleAuth("register");
-  });
+//   document.getElementById("registerButton").addEventListener("click", (e) => {
+//     e.preventDefault();
+//     document.getElementById("registerForm").submit(); // Submit form langsung
+// });
 
   // Logika form toggle
   const signUpButton = document.getElementById("signUp");
@@ -389,106 +414,119 @@ document.querySelectorAll('.toggle-password').forEach(toggle => {
   });
 });
 
-// User management functions
-// Fungsi untuk memuat data pengguna dari localStorage
-const loadUsers = () => {
-  const users = localStorage.getItem('users');
-  return users ? JSON.parse(users) : [];
-};
-
-// Fungsi untuk menyimpan pengguna baru ke localStorage
-const saveUser = (user) => {
-  const users = loadUsers();
-  users.push(user);
-  localStorage.setItem('users', JSON.stringify(users));
-};
-
-// Fungsi untuk memvalidasi pengguna saat login
-const validateUser = (email, password) => {
-  const users = loadUsers();
-  return users.find(user => user.email === email && user.password === password);
-};
-
-// Event Listener untuk tombol Daftar
-document.getElementById("registerButton").addEventListener("click", (e) => {
-  e.preventDefault();
-  
-  const name = document.getElementById("registerName").value;
-  const email = document.getElementById("registerEmail").value;
-  const password = document.getElementById("registerPassword").value;
-
-  if (!name || !email || !password) {
-    iziToast.error({
-      title: 'Oops...',
-      message: 'Please fill in all fields!',
-      position: 'topRight'
-    });
-    return;
-  }
-
-  const users = loadUsers();
-  if (users.some(user => user.email === email)) {
-    iziToast.error({
-      title: 'Registration Failed',
-      message: 'Email already registered!',
-      position: 'topRight'
-    });
-    return;
-  }
-
-  const newUser = { name, email, password };
-  saveUser(newUser);
-
-  iziToast.success({
-    title: 'Welcome!',
-    message: 'Account created successfully!',
-    position: 'topRight',
-    timeout: 1500,
-    onClosed: () => {
-      document.getElementById("registerName").value = '';
-      document.getElementById("registerEmail").value = '';
-      document.getElementById("registerPassword").value = '';
-    }
-  });
-});
-
-// Event Listener untuk tombol Login
-document.getElementById("loginButton").addEventListener("click", (e) => {
-  e.preventDefault();
-
-  const email = document.getElementById("loginEmail").value;
-  const password = document.getElementById("loginPassword").value;
-
-  if (!email || !password) {
-    iziToast.error({
-      title: 'Oops...',
-      message: 'Please fill in all fields!',
-      position: 'topRight'
-    });
-    return;
-  }
-
-  const user = validateUser(email, password);
-  if (user) {
-    sessionStorage.setItem('currentUser', JSON.stringify(user));
-    iziToast.success({
-      title: 'Welcome back!',
-      message: 'Login successful!',
-      position: 'topRight',
-      timeout: 1500,
-      onClosed: () => {
-        window.location.href = 'index.html';
-      }
-    });
-  } else {
-    iziToast.error({
-      title: 'Login Failed',
-      message: 'Invalid email or password!',
-      position: 'topRight'
-    });
-  }
-});
-
     </script>
+    <script>
+// Notifikasi untuk semua aksi
+document.addEventListener('DOMContentLoaded', function() {
+    // Notifikasi form validation
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const inputs = this.querySelectorAll('input');
+            let isValid = true;
+            
+            inputs.forEach(input => {
+                if(!input.checkValidity()) {
+                    isValid = false;
+                    input.classList.add('is-invalid');
+                    
+                    iziToast.warning({
+                        title: 'Peringatan',
+                        message: `${input.placeholder} harus diisi!`,
+                        position: 'topRight'
+                    });
+                }
+            });
+
+            if(!isValid) e.preventDefault();
+        });
+    });
+
+    // Notifikasi toggle password
+    document.querySelectorAll('.toggle-password').forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            const isVisible = this.classList.contains('fa-eye-slash');
+            iziToast.info({
+                title: 'Keamanan',
+                message: isVisible ? 'Password disembunyikan' : 'Password ditampilkan',
+                position: 'topRight',
+                timeout: 2000
+            });
+        });
+    });
+
+    // Notifikasi panel toggle
+    const panelButtons = {
+        signUp: 'Bergabung dengan komunitas kuliner',
+        signIn: 'Selamat datang kembali!'
+    };
+    
+    document.getElementById('signUp').addEventListener('click', () => showPanelToast('signUp'));
+    document.getElementById('signIn').addEventListener('click', () => showPanelToast('signIn'));
+
+    function showPanelToast(type) {
+        iziToast.info({
+            title: 'Mode Form',
+            message: panelButtons[type],
+            position: 'topRight',
+            timeout: 2000,
+            backgroundColor: '#e67e22'
+        });
+    }
+
+    // Notifikasi forgot password
+    document.querySelector('[data-target="#forgotPasswordModal"]').addEventListener('click', () => {
+        iziToast.info({
+            title: 'Reset Password',
+            message: 'Masukkan email terdaftar Anda',
+            position: 'topRight'
+        });
+    });
+
+    // Notifikasi saat buka Gmail
+    document.querySelector('.btn-gmail').addEventListener('click', function(e) {
+        e.preventDefault();
+        iziToast.info({
+            title: 'Redirecting...',
+            message: 'Mengarahkan ke halaman Gmail',
+            position: 'topRight'
+        });
+        setTimeout(() => window.open(this.href, '_blank'), 1000);
+    });
+
+    // Notifikasi navigasi kembali
+    document.querySelector('.fa-arrow-left').closest('a').addEventListener('click', function(e) {
+        e.preventDefault();
+        iziToast.info({
+            title: 'Navigasi',
+            message: 'Kembali ke halaman utama',
+            position: 'topRight',
+            onClosing: () => window.location.href = this.href
+        });
+    });
+
+    // Notifikasi interaksi input
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('focus', () => {
+            iziToast.hide();
+            iziToast.info({
+                title: 'Input Aktif',
+                message: `Sedang mengisi ${input.placeholder}`,
+                position: 'topRight',
+                timeout: 1000,
+                backgroundColor: '#3498db'
+            });
+        });
+    });
+});
+
+// Handle error dari PHP
+<?php if(isset($_SESSION['db_error'])): ?>
+iziToast.error({
+    title: 'Database Error',
+    message: '<?= $_SESSION["db_error"] ?>',
+    position: 'topRight'
+});
+<?php unset($_SESSION['db_error']); endif; ?>
+</script>
   </body>
 </html>

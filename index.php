@@ -743,7 +743,7 @@
                 position: "topRight",
                 timeout: 3000,
                 onClosing: function () {
-                    window.location.href = "login-register.html";
+                    window.location.href = "login-register.php";
                 }
             });
         }
