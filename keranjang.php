@@ -92,7 +92,7 @@ include './views/header.php';
         margin-top: 20px;
       }
 
-      #checkout-button {
+      #checkout-button, #back-button {
         background-color: #ff4500;
         color: white;
         padding: 15px 30px;
@@ -100,9 +100,10 @@ include './views/header.php';
         border-radius: 8px;
         cursor: pointer;
         font-size: 1.2em;
+        margin: 10px;
       }
 
-      #checkout-button:hover {
+      #checkout-button:hover, #back-button:hover {
         background-color: #e03e00;
       }
 
@@ -119,6 +120,11 @@ include './views/header.php';
         position: fixed;
         bottom: 0;
         width: 100%;
+      }
+      
+      .empty-cart-message {
+        text-align: center;
+        margin: 50px 0;
       }
     </style>
   </head>
@@ -138,6 +144,7 @@ include './views/header.php';
       </div>
 
       <div class="keranjang-footer">
+        <button id="back-button" onclick="kembaliKeMenu()">Kembali ke Menu</button>
         <button id="checkout-button" onclick="checkout()">Checkout</button>
       </div>
     </div>
@@ -145,7 +152,7 @@ include './views/header.php';
     <footer>
       <p>
         &copy; 2024 Keranjang Makanan |
-        <a href="../index.php">Kembali ke Beranda</a>
+        <a href="index.php">Kembali ke Beranda</a>
       </p>
     </footer>
 
@@ -154,8 +161,13 @@ include './views/header.php';
         const keranjangList = document.getElementById("keranjang-list");
         const totalQuantityElement = document.getElementById("total-quantity");
         const totalPriceElement = document.getElementById("total-price");
-        let keranjangItems =
-          JSON.parse(localStorage.getItem("keranjang")) || [];
+        const checkoutButton = document.getElementById("checkout-button");
+        let keranjangItems = JSON.parse(localStorage.getItem("keranjang")) || [];
+
+        // Cek jika keranjang kosong saat halaman dimuat
+        if (keranjangItems.length === 0) {
+          redirectToMenuIfEmpty();
+        }
 
         function updateKeranjang() {
           keranjangList.innerHTML = "";
@@ -163,19 +175,32 @@ include './views/header.php';
           let totalPrice = 0;
 
           if (keranjangItems.length === 0) {
-            keranjangList.innerHTML = "<li>Keranjang Anda kosong</li>";
+            keranjangList.innerHTML = `
+              <div class="empty-cart-message">
+                <h2>Keranjang Anda kosong</h2>
+                <p>Silakan kembali ke menu untuk menambahkan makanan</p>
+              </div>
+            `;
+            checkoutButton.disabled = true;
+            checkoutButton.style.opacity = 0.5;
+            
+            // Set timeout untuk memberikan waktu membaca pesan
+            setTimeout(redirectToMenuIfEmpty, 2000);
           } else {
+            checkoutButton.disabled = false;
+            checkoutButton.style.opacity = 1;
+            
             keranjangItems.forEach((item, index) => {
               const li = document.createElement("li");
               li.innerHTML = `
-                            <span>${item.name} (Rp ${item.price})</span>
-                            <div class="quantity-controls">
-                                <button onclick="kurangiJumlah(${index})">-</button>
-                                <span>${item.quantity}</span>
-                                <button onclick="tambahJumlah(${index})">+</button>
-                                <button class="remove-btn" onclick="hapusItem(${index})">Hapus</button>
-                            </div>
-                        `;
+                <span>${item.name} (Rp ${new Intl.NumberFormat('id-ID').format(item.price)})</span>
+                <div class="quantity-controls">
+                    <button onclick="kurangiJumlah(${index})">-</button>
+                    <span>${item.quantity}</span>
+                    <button onclick="tambahJumlah(${index})">+</button>
+                    <button class="remove-btn" onclick="hapusItem(${index})">Hapus</button>
+                </div>
+              `;
               keranjangList.appendChild(li);
 
               totalQuantity += item.quantity;
@@ -184,10 +209,28 @@ include './views/header.php';
           }
 
           totalQuantityElement.textContent = totalQuantity;
-          totalPriceElement.textContent = totalPrice;
+          totalPriceElement.textContent = new Intl.NumberFormat('id-ID').format(totalPrice);
+          
+          // Trigger event untuk update panel di halaman lain
+          let storageEvent = new StorageEvent('storage', {
+            key: 'keranjang',
+            newValue: localStorage.getItem('keranjang'),
+            url: window.location.href
+          });
+          window.dispatchEvent(storageEvent);
         }
 
-        window.kurangiJumlah = function (index) {
+        function redirectToMenuIfEmpty() {
+          if (keranjangItems.length === 0) {
+            window.location.href = "index.php"; // Atau halaman menu Anda
+          }
+        }
+
+        window.kembaliKeMenu = function() {
+          window.location.href = "index.php"; // Atau halaman menu Anda
+        };
+
+        window.kurangiJumlah = function(index) {
           if (keranjangItems[index].quantity > 1) {
             keranjangItems[index].quantity--;
           } else {
@@ -197,19 +240,19 @@ include './views/header.php';
           updateKeranjang();
         };
 
-        window.tambahJumlah = function (index) {
+        window.tambahJumlah = function(index) {
           keranjangItems[index].quantity++;
           localStorage.setItem("keranjang", JSON.stringify(keranjangItems));
           updateKeranjang();
         };
 
-        window.hapusItem = function (index) {
+        window.hapusItem = function(index) {
           keranjangItems.splice(index, 1);
           localStorage.setItem("keranjang", JSON.stringify(keranjangItems));
           updateKeranjang();
         };
 
-        window.checkout = function () {
+        window.checkout = function() {
           if (keranjangItems.length === 0) {
             alert("Keranjang Anda kosong!");
           } else {

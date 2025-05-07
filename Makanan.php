@@ -22,12 +22,16 @@ $result = $conn->query($sql);
       margin: 0;
       padding: 0;
       padding-bottom: 70px; /* Untuk memberi ruang bagi panel keranjang */
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* Ensure the body takes at least the full viewport height */
     }
     .container {
       width: 90%;
       max-width: 1200px;
       margin: auto;
       padding: 40px 0;
+      flex: 1; /* Allow the container to grow and take available space */
     }
     h1 {
       text-align: center;
@@ -149,6 +153,25 @@ $result = $conn->query($sql);
       max-width: 80%;
       text-align: center;
     }
+
+    /* Footer Styles */
+    footer {
+      background-color: #333;
+      color: white;
+      text-align: center;
+      padding: 10px 0;
+      margin-top: 20px; /* Add some space above the footer */
+    }
+
+    footer a {
+      color: white;
+      text-decoration: none;
+      margin: 0 10px;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -176,10 +199,8 @@ $result = $conn->query($sql);
     </div>
   </div>
   
-  <!-- Notifikasi saat item ditambahkan -->
   <div class="notification" id="notification"></div>
   
-  <!-- Panel keranjang di bagian bawah -->
   <div class="cart-panel" id="cart-panel" onclick="window.location.href='keranjang.php'">
     <div class="cart-left">
       <div class="cart-item-count"><span id="total-items">0</span> item</div>
@@ -191,7 +212,12 @@ $result = $conn->query($sql);
     </div>
   </div>
 
-  <!-- Script untuk menangani keranjang belanja -->
+  <footer>
+    <a href="#">Tentang Kami</a> |
+    <a href="#">Hubungi Kami</a> |
+    <a href="#">Kritik & Saran</a>
+  </footer>
+
   <script>
     // Periksa keranjang saat halaman dimuat
     document.addEventListener('DOMContentLoaded', function() {
@@ -254,6 +280,15 @@ $result = $conn->query($sql);
           priceTotal += item.price * item.quantity;
         });
         
+// Tambahkan ini di bagian script menu makanan
+window.addEventListener('storage', function(e) {
+  if (e.key === 'keranjang') {
+    updateCartPanel();
+  }
+});
+
+
+
         // Update tampilan
         totalItems.textContent = itemCount;
         totalPrice.textContent = new Intl.NumberFormat('id-ID').format(priceTotal);
