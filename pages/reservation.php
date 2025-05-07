@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function () {
       status: $('#showStatus').val()
     };
 
-    $.post('reservasi.php', updatedData, function(response) {
+    $.post('update_reservation.php', updatedData, function(response) {
       alert(response.message || 'Data berhasil diperbarui');
       location.reload();
     }, 'json');
