@@ -1,7 +1,7 @@
 <!-- File: Makanan.php -->
 <?php
-require_once '../configdb.php';
-include '../views/header.php'; // Jika ada header umum
+require_once 'configdb.php';
+include 'views/header.php'; // Jika ada header umum
 ?>
 
 <div class="container mt-5">
@@ -32,4 +32,4 @@ include '../views/header.php'; // Jika ada header umum
     </div>
 </div>
 
-<?php include '../views/footer.php'; // Jika ada footer umum ?>
+<?php include 'views/footer.php'; // Jika ada footer umum ?>
