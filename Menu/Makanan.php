@@ -14,6 +14,7 @@ include '../views/header.php'; // Jika ada header umum
         while($row = mysqli_fetch_assoc($result)):
         ?>
         <div class="col-md-4 mb-4">
+            
             <div class="card h-100">
                 <img src="img/main-course/<?= $row['image_url'] ?>" class="card-img-top" alt="<?= $row['name'] ?>">
                 <div class="card-body">
