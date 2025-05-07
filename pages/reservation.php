@@ -13,6 +13,44 @@ if ($_SESSION['user']['role'] !== 'admin') {
     exit();
 }
 
+// Fungsi untuk handle edit dan delete
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['action'])) {
+        $action = $_POST['action'];
+        $id = $_POST['id'];
+
+        if ($action === 'delete') {
+            $stmt = $conn->prepare("DELETE FROM reservation WHERE id = ?");
+            $stmt->bind_param("i", $id);
+            if ($stmt->execute()) {
+                echo json_encode(['message' => 'Reservasi berhasil dihapus']);
+            } else {
+                echo json_encode(['message' => 'Gagal menghapus reservasi']);
+            }
+            exit();
+        }
+
+        if ($action === 'update') {
+            $nama = $_POST['nama'];
+            $jumlah_orang = $_POST['jumlah_orang'];
+            $tanggal = $_POST['tanggal'];
+            $jam_mulai = $_POST['jam_mulai'];
+            $jam_selesai = $_POST['jam_selesai'];
+            $pesanan = $_POST['pesanan'];
+            $status = $_POST['status'];
+
+            $stmt = $conn->prepare("UPDATE reservation SET nama = ?, jumlah_orang = ?, tanggal = ?, jam_mulai = ?, jam_selesai = ?, pesanan = ?, status = ? WHERE id = ?");
+            $stmt->bind_param("sisssssi", $nama, $jumlah_orang, $tanggal, $jam_mulai, $jam_selesai, $pesanan, $status, $id);
+            if ($stmt->execute()) {
+                echo json_encode(['message' => 'Data berhasil diperbarui']);
+            } else {
+                echo json_encode(['message' => 'Gagal memperbarui data']);
+            }
+            exit();
+        }
+    }
+}
+
 // Konfigurasi pagination
 $per_page_options = [10, 25, 50, 100];
 $selected_per_page = isset($_GET['per_page']) && in_array($_GET['per_page'], $per_page_options) 
@@ -140,7 +178,7 @@ include '../views/sidebar.php';
     </div>
 </div>
 
-<!-- Modal View/Edit (gunakan ulang modal untuk kedua fungsi) -->
+<!-- Modal View/Edit -->
 <div class="modal fade" id="showReservationModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -232,6 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
   $('#saveChangesBtn').click(function() {
     const id = $(this).data('id');
     const updatedData = {
+      action: 'update',
       id,
       nama: $('#showNama').val(),
       jumlah_orang: $('#showJumlahOrang').val(),
@@ -242,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function () {
       status: $('#showStatus').val()
     };
 
-    $.post('update_reservation.php', updatedData, function(response) {
+    $.post('reservasi.php', updatedData, function(response) {
       alert(response.message || 'Data berhasil diperbarui');
       location.reload();
     }, 'json');
@@ -251,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function () {
   $(document).on('click', '.delete-btn', function() {
     const id = $(this).data('id');
     if (confirm('Apakah Anda yakin ingin menghapus reservasi ini?')) {
-      $.post('delete_reservation.php', { id }, function(response) {
+      $.post('reservasi.php', { action: 'delete', id }, function(response) {
         alert(response.message || 'Reservasi berhasil dihapus');
         location.reload();
       }, 'json');
