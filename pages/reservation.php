@@ -185,66 +185,78 @@ include '../views/sidebar.php';
   </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-$(document).on('click', '.view-btn', function() {
-  const id = $(this).data('id');
-  $.get('get_reservation.php', { id }, function(data) {
-    const res = JSON.parse(data);
-    $('#showNama').val(res.nama).prop('readonly', true);
-    $('#showJumlahOrang').val(res.jumlah_orang).prop('readonly', true);
-    $('#showTanggal').val(res.tanggal).prop('readonly', true);
-    $('#showJamMulai').val(res.jam_mulai).prop('readonly', true);
-    $('#showJamSelesai').val(res.jam_selesai).prop('readonly', true);
-    $('#showPesanan').val(res.pesanan).prop('readonly', true);
-    $('#showStatus').val(res.status).prop('readonly', true);
-    $('#saveChangesBtn').addClass('d-none');
-    $('#showReservationModal').modal('show');
+document.addEventListener('DOMContentLoaded', function () {
+  $(document).on('click', '.view-btn', function() {
+    const id = $(this).data('id');
+    $.get('get_reservation.php', { id }, function(data) {
+      if (!data || typeof data !== 'object') {
+        console.error('Data kosong atau bukan object:', data);
+        return;
+      }
+      $('#showNama').val(data.nama).prop('readonly', true);
+      $('#showJumlahOrang').val(data.jumlah_orang).prop('readonly', true);
+      $('#showTanggal').val(data.tanggal).prop('readonly', true);
+      $('#showJamMulai').val(data.jam_mulai).prop('readonly', true);
+      $('#showJamSelesai').val(data.jam_selesai).prop('readonly', true);
+      $('#showPesanan').val(data.pesanan).prop('readonly', true);
+      $('#showStatus').val(data.status).prop('readonly', true);
+      $('#saveChangesBtn').addClass('d-none');
+      const modal = new bootstrap.Modal(document.getElementById('showReservationModal'));
+      modal.show();
+    }, 'json');
   });
-});
 
-$(document).on('click', '.edit-btn', function() {
-  const id = $(this).data('id');
-  $.get('get_reservation.php', { id }, function(data) {
-    const res = JSON.parse(data);
-    $('#showNama').val(res.nama).prop('readonly', false);
-    $('#showJumlahOrang').val(res.jumlah_orang).prop('readonly', false);
-    $('#showTanggal').val(res.tanggal).prop('readonly', false);
-    $('#showJamMulai').val(res.jam_mulai).prop('readonly', false);
-    $('#showJamSelesai').val(res.jam_selesai).prop('readonly', false);
-    $('#showPesanan').val(res.pesanan).prop('readonly', false);
-    $('#showStatus').val(res.status).prop('readonly', false);
-    $('#saveChangesBtn').removeClass('d-none').data('id', id);
-    $('#showReservationModal').modal('show');
+  $(document).on('click', '.edit-btn', function() {
+    const id = $(this).data('id');
+    $.get('get_reservation.php', { id }, function(data) {
+      if (!data || typeof data !== 'object') {
+        console.error('Data kosong atau bukan object:', data);
+        return;
+      }
+      $('#showNama').val(data.nama).prop('readonly', false);
+      $('#showJumlahOrang').val(data.jumlah_orang).prop('readonly', false);
+      $('#showTanggal').val(data.tanggal).prop('readonly', false);
+      $('#showJamMulai').val(data.jam_mulai).prop('readonly', false);
+      $('#showJamSelesai').val(data.jam_selesai).prop('readonly', false);
+      $('#showPesanan').val(data.pesanan).prop('readonly', false);
+      $('#showStatus').val(data.status).prop('readonly', false);
+      $('#saveChangesBtn').removeClass('d-none').data('id', id);
+      const modal = new bootstrap.Modal(document.getElementById('showReservationModal'));
+      modal.show();
+    }, 'json');
   });
-});
 
-$('#saveChangesBtn').click(function() {
-  const id = $(this).data('id');
-  const updatedData = {
-    id,
-    nama: $('#showNama').val(),
-    jumlah_orang: $('#showJumlahOrang').val(),
-    tanggal: $('#showTanggal').val(),
-    jam_mulai: $('#showJamMulai').val(),
-    jam_selesai: $('#showJamSelesai').val(),
-    pesanan: $('#showPesanan').val(),
-    status: $('#showStatus').val()
-  };
+  $('#saveChangesBtn').click(function() {
+    const id = $(this).data('id');
+    const updatedData = {
+      id,
+      nama: $('#showNama').val(),
+      jumlah_orang: $('#showJumlahOrang').val(),
+      tanggal: $('#showTanggal').val(),
+      jam_mulai: $('#showJamMulai').val(),
+      jam_selesai: $('#showJamSelesai').val(),
+      pesanan: $('#showPesanan').val(),
+      status: $('#showStatus').val()
+    };
 
-  $.post('update_reservation.php', updatedData, function(response) {
-    alert('Data berhasil diperbarui');
-    location.reload();
-  });
-});
-
-$(document).on('click', '.delete-btn', function() {
-  const id = $(this).data('id');
-  if (confirm('Apakah Anda yakin ingin menghapus reservasi ini?')) {
-    $.post('delete_reservation.php', { id }, function(response) {
-      alert(response.message);
+    $.post('update_reservation.php', updatedData, function(response) {
+      alert(response.message || 'Data berhasil diperbarui');
       location.reload();
     }, 'json');
-  }
+  });
+
+  $(document).on('click', '.delete-btn', function() {
+    const id = $(this).data('id');
+    if (confirm('Apakah Anda yakin ingin menghapus reservasi ini?')) {
+      $.post('delete_reservation.php', { id }, function(response) {
+        alert(response.message || 'Reservasi berhasil dihapus');
+        location.reload();
+      }, 'json');
+    }
+  });
 });
 </script>
 
