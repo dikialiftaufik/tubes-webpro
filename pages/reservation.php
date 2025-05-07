@@ -140,7 +140,7 @@ include '../views/sidebar.php';
     </div>
 </div>
 
-<!-- Modal View -->
+<!-- Modal View/Edit (gunakan ulang modal untuk kedua fungsi) -->
 <div class="modal fade" id="showReservationModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -151,31 +151,34 @@ include '../views/sidebar.php';
       <div class="modal-body">
         <div class="mb-2">
           <label>Nama:</label>
-          <input type="text" id="showNama" class="form-control" readonly>
+          <input type="text" id="showNama" class="form-control">
         </div>
         <div class="mb-2">
           <label>Jumlah Orang:</label>
-          <input type="text" id="showJumlahOrang" class="form-control" readonly>
+          <input type="text" id="showJumlahOrang" class="form-control">
         </div>
         <div class="mb-2">
           <label>Tanggal:</label>
-          <input type="text" id="showTanggal" class="form-control" readonly>
+          <input type="text" id="showTanggal" class="form-control">
         </div>
         <div class="mb-2">
           <label>Jam Mulai:</label>
-          <input type="text" id="showJamMulai" class="form-control" readonly>
+          <input type="text" id="showJamMulai" class="form-control">
         </div>
         <div class="mb-2">
           <label>Jam Selesai:</label>
-          <input type="text" id="showJamSelesai" class="form-control" readonly>
+          <input type="text" id="showJamSelesai" class="form-control">
         </div>
         <div class="mb-2">
           <label>Pesanan:</label>
-          <textarea id="showPesanan" class="form-control" readonly></textarea>
+          <textarea id="showPesanan" class="form-control"></textarea>
         </div>
         <div class="mb-2">
           <label>Status:</label>
-          <input type="text" id="showStatus" class="form-control" readonly>
+          <input type="text" id="showStatus" class="form-control">
+        </div>
+        <div class="text-end">
+          <button type="button" id="saveChangesBtn" class="btn btn-primary d-none">Simpan Perubahan</button>
         </div>
       </div>
     </div>
@@ -187,15 +190,61 @@ $(document).on('click', '.view-btn', function() {
   const id = $(this).data('id');
   $.get('get_reservation.php', { id }, function(data) {
     const res = JSON.parse(data);
-    $('#showNama').val(res.nama);
-    $('#showJumlahOrang').val(res.jumlah_orang);
-    $('#showTanggal').val(res.tanggal);
-    $('#showJamMulai').val(res.jam_mulai);
-    $('#showJamSelesai').val(res.jam_selesai);
-    $('#showPesanan').val(res.pesanan);
-    $('#showStatus').val(res.status);
+    $('#showNama').val(res.nama).prop('readonly', true);
+    $('#showJumlahOrang').val(res.jumlah_orang).prop('readonly', true);
+    $('#showTanggal').val(res.tanggal).prop('readonly', true);
+    $('#showJamMulai').val(res.jam_mulai).prop('readonly', true);
+    $('#showJamSelesai').val(res.jam_selesai).prop('readonly', true);
+    $('#showPesanan').val(res.pesanan).prop('readonly', true);
+    $('#showStatus').val(res.status).prop('readonly', true);
+    $('#saveChangesBtn').addClass('d-none');
     $('#showReservationModal').modal('show');
   });
+});
+
+$(document).on('click', '.edit-btn', function() {
+  const id = $(this).data('id');
+  $.get('get_reservation.php', { id }, function(data) {
+    const res = JSON.parse(data);
+    $('#showNama').val(res.nama).prop('readonly', false);
+    $('#showJumlahOrang').val(res.jumlah_orang).prop('readonly', false);
+    $('#showTanggal').val(res.tanggal).prop('readonly', false);
+    $('#showJamMulai').val(res.jam_mulai).prop('readonly', false);
+    $('#showJamSelesai').val(res.jam_selesai).prop('readonly', false);
+    $('#showPesanan').val(res.pesanan).prop('readonly', false);
+    $('#showStatus').val(res.status).prop('readonly', false);
+    $('#saveChangesBtn').removeClass('d-none').data('id', id);
+    $('#showReservationModal').modal('show');
+  });
+});
+
+$('#saveChangesBtn').click(function() {
+  const id = $(this).data('id');
+  const updatedData = {
+    id,
+    nama: $('#showNama').val(),
+    jumlah_orang: $('#showJumlahOrang').val(),
+    tanggal: $('#showTanggal').val(),
+    jam_mulai: $('#showJamMulai').val(),
+    jam_selesai: $('#showJamSelesai').val(),
+    pesanan: $('#showPesanan').val(),
+    status: $('#showStatus').val()
+  };
+
+  $.post('update_reservation.php', updatedData, function(response) {
+    alert('Data berhasil diperbarui');
+    location.reload();
+  });
+});
+
+$(document).on('click', '.delete-btn', function() {
+  const id = $(this).data('id');
+  if (confirm('Apakah Anda yakin ingin menghapus reservasi ini?')) {
+    $.post('delete_reservation.php', { id }, function(response) {
+      alert(response.message);
+      location.reload();
+    }, 'json');
+  }
 });
 </script>
 
