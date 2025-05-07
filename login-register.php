@@ -284,7 +284,7 @@ iziToast.info({
   </head>
   <body>
     <div style="position: absolute; top: 20px; left: 30px;">
-  <a href="index.html" style="
+  <a href="index.php" style="
     display: flex;
     justify-content: center;
     align-items: center;
