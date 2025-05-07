@@ -13,6 +13,9 @@ if ($_SESSION['user']['role'] !== 'admin') {
     exit();
 }
 
+$conn->query("INSERT INTO reservation (nama, jumlah_orang, tanggal, jam_mulai, jam_selesai, status)
+VALUES ('John Doe', 4, '2025-05-10', '18:00:00', '20:00:00', 'Dikonfirmasi')");
+
 // Konfigurasi pagination
 $per_page_options = [10, 25, 50, 100];
 $selected_per_page = isset($_GET['per_page']) && in_array($_GET['per_page'], $per_page_options) 
