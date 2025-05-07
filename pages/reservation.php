@@ -254,29 +254,30 @@ include '../views/sidebar.php';
 
       // Delete Reservation
       $('#reservationTable').on('click', '.delete-btn', function() {
-        const id = $(this).data('id');
-        
+    const id = $(this).data('id');
+    
+    // Kode SweetAlert yang sudah diperbaiki di atas
+    });
         Swal.fire({
-          title: 'Hapus Reservasi?',
-          text: "Data yang dihapus tidak dapat dikembalikan!",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: 'Ya, Hapus!'
-
-        }).then((result) => {
-          if (result.isConfirmed) {
-            reservationData = reservationData.filter(r => r.id !== id);
-            table.clear().rows.add(reservationData).draw();
-            
-            Swal.fire(
-              'Terhapus!',
-              'Data reservasi telah dihapus',
-              'success'
-            );
-        }
-        });
+    title: 'Hapus Reservasi',
+    text: "Data yang dihapus tidak dapat dikembalikan!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Ya, Hapus!'
+    }).then((result) => {
+    if (result.isConfirmed) {
+        reservationData = reservationData.filter(r => r.id !== id);
+        table.clear().rows.add(reservationData).draw();
+        
+        Swal.fire(
+            'Terhapus!',
+            'Data reservasi telah dihapus',
+            'success'
+        );
+    }
+});
 </script>
 
 <?php 
