@@ -1,5 +1,25 @@
-<?php 
+<?php
 session_start();
+if (isset($_SESSION['reservation_success'])) {
+    echo '<script>
+        iziToast.success({
+            title: "Sukses!",
+            message: "Reservasi berhasil dikirim.",
+            position: "topRight"
+        });
+    </script>';
+    unset($_SESSION['reservation_success']);
+}
+if (isset($_SESSION['reservation_error'])) {
+    echo '<script>
+        iziToast.error({
+            title: "Gagal!",
+            message: "' . $_SESSION['reservation_error'] . '",
+            position: "topRight"
+        });
+    </script>';
+    unset($_SESSION['reservation_error']);
+}
 ?>
 <!doctype html>
 <html lang="en">
@@ -130,33 +150,30 @@ session_start();
   data-aos="fade-down"
   data-aos-duration="500"
   data-aos-delay="900"
->
-  <a href="#">
-    <i class="fas fa-user"></i>
-  </a>
-  <div class="dropdown-content-user">
-    <div class="user-info">
-      <img src="img/profile-pic.png" alt="User Profile" />
-      <div class="user-name">dikialift13</div>
-    </div>
-    <div class="dropdown-divider"></div>
-    <a href="account.html" class="dropdown-item">
-      <i class="fas fa-user-cog"></i> <p> Akun Saya</p>
-    </a>
-    <a href="orders.html" class="dropdown-item">
-      <i class="fas fa-box"></i> <p> Pesanan Saya</p>
-    </a>
-    <a href="reservations.html" class="dropdown-item">
-      <i class="fas fa-calendar-alt"></i> <p> Reservasi Saya</p>
-    </a>
-    <div class="dropdown-divider"></div>
-    <a href="signout.html" class="dropdown-item logout">
-      <i class="fas fa-sign-out-alt"></i> <p> Sign Out</p>
-    </a>
-  </div>
-</li>
-
-
+><a href="#">
+              <i class="fas fa-user"></i>
+            </a>
+            <div class="dropdown-content-user">
+              <div class="user-info">
+                <img src="img/profile-pic.png" alt="User Profile" />
+                <div class="user-name">dikialift13</div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <a href="account.html" class="dropdown-item">
+                <i class="fas fa-user-cog"></i> <p> Akun Saya</p>
+              </a>
+              <a href="orders.html" class="dropdown-item">
+                <i class="fas fa-box"></i> <p> Pesanan Saya</p>
+              </a>
+              <a href="reservations.html" class="dropdown-item">
+                <i class="fas fa-calendar-alt"></i> <p> Reservasi Saya</p>
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="signout.html" class="dropdown-item logout">
+                <i class="fas fa-sign-out-alt"></i> <p> Sign Out</p>
+              </a>
+            </div>
+          </li>
           </ul>
         </div>
       </nav>
@@ -572,7 +589,7 @@ session_start();
             </div>
           </div>
 
-          <form class="reservation-item-form" id="reservation-item-form" data-aos="fade-up" data-aos-delay="100" action="reservation.php" method="POST">
+          <form class="reservation-item-form" ... action="process_reservation.php" method="POST">
             <div class="form-row">
               <div class="form-group">
                 <label for="table_name">Nama Lengkap</label>
@@ -711,7 +728,7 @@ session_start();
       AOS.init();
     </script>
     <script>
-document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("reservation-item-form");
     const isLoggedIn = <?php echo isset($_SESSION['loggedin']) ? 'true' : 'false'; ?>;
 

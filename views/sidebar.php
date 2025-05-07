@@ -61,9 +61,10 @@
         ];
 
         $current_page = basename($_SERVER['SCRIPT_NAME']);
-        $role = $_SESSION['user']['role'];
+        $role = isset($_SESSION['user']['role']) ? $_SESSION['user']['role'] : '';
+        $menu_items = isset($allowed_pages[$role]) ? $allowed_pages[$role] : [];
         
-        foreach ($allowed_pages[$role] as $menu_item): 
+        foreach ($menu_items as $menu_item): 
             $is_active = ($current_page === $menu_item['link']) ? 'active' : '';
         ?>
             <a href="<?= $menu_item['link'] ?>" 

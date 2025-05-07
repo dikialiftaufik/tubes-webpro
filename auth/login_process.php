@@ -24,7 +24,8 @@ if(!password_verify($password, $user['password'])) {
     exit();
 }
 
-// Login berhasil
+// Set session variables
+$_SESSION['loggedin'] = true;
 $_SESSION['user'] = [
     'id' => $user['id'],
     'name' => $user['full_name'],
@@ -32,13 +33,6 @@ $_SESSION['user'] = [
 ];
 
 $_SESSION['success'] = "Login berhasil!";
-header("Location: ../index.php"); // Redirect ke halaman utama
+header("Location: ../index.php");
 exit();
-
-// Setelah validasi login sukses
-$_SESSION['loggedin'] = true;
-$_SESSION['user_email'] = $email; // Contoh menyimpan email user
-// Redirect ke halaman index
-header("Location: ../../index.php");
-exit;
 ?>

@@ -58,8 +58,8 @@ $selected_per_page = isset($_GET['per_page']) && in_array($_GET['per_page'], $pe
                     : 10;
 $page = isset($_GET['page']) ? max((int)$_GET['page'], 1) : 1;
 $search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
-$sort_column = in_array($_GET['sort'] ?? '', ['id','nama','jumlah_orang','tanggal','jam_mulai','jam_selesai','status']) ? $_GET['sort'] : 'tanggal';
-$sort_order = isset($_GET['order']) && strtoupper($_GET['order']) === 'ASC' ? 'ASC' : 'DESC';
+$sort_column = in_array($_GET['sort'] ?? '', ['id','nama','jumlah_orang','tanggal','jam_mulai','jam_selesai','status']) ? $_GET['sort'] : 'id';
+$sort_order = isset($_GET['order']) && strtoupper($_GET['order']) === 'DESC' ? 'DESC' : 'ASC';
 $search_term = "%$search%";
 $offset = ($page - 1) * $selected_per_page;
 
@@ -95,7 +95,7 @@ if ($total_pages > 0 && $page > $total_pages) {
         'per_page' => $selected_per_page,
         'page' => $total_pages
     ];
-    header("Location: reservasi.php?" . http_build_query($query_params));
+    header("Location: reservation.php?" . http_build_query($query_params));
     exit();
 }
 
@@ -127,7 +127,7 @@ include '../views/sidebar.php';
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-search"></i>
                         </button>
-                        <a href="reservasi.php" class="btn btn-secondary">
+                        <a href="reservation.php" class="btn btn-secondary">
                             <i class="bi bi-arrow-clockwise"></i>
                         </a>
                     </div>
@@ -183,7 +183,7 @@ include '../views/sidebar.php';
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Detail Reservasi</h5>
+        <h5 class="modal-title">Edit Reservasi</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -290,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function () {
   $(document).on('click', '.delete-btn', function() {
     const id = $(this).data('id');
     if (confirm('Apakah Anda yakin ingin menghapus reservasi ini?')) {
-      $.post('reservasi.php', { action: 'delete', id }, function(response) {
+      $.post('reservation.php', { action: 'delete', id }, function(response) {
         alert(response.message || 'Reservasi berhasil dihapus');
         location.reload();
       }, 'json');
