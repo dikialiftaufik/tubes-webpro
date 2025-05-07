@@ -13,10 +13,6 @@ if ($_SESSION['user']['role'] !== 'admin') {
     exit();
 }
 
-// Tambahkan ini setelah require_once '../configdb.php';
-$conn->query("INSERT INTO reservation (nama, jumlah_orang, tanggal, jam_mulai, jam_selesai, pesanan, status)
-VALUES ('John Doe', 4, '2025-05-10', '18:00:00', '20:00:00', 'Sate Ayam', 'Dikonfirmasi')");
-
 
 // Konfigurasi pagination
 $per_page_options = [10, 25, 50, 100];
