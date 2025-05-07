@@ -153,6 +153,131 @@ include '../views/sidebar.php';
         </div>
     </div>
 </div>
+<script>
+          // ================= FITUR SHOW =================
+          function showReservation(id) {
+        const reservation = reservationData.find(r => r.id === id);
+        
+        // Format tanggal
+        const options = { 
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        };
+        const formattedDate = new Date(reservation.tanggalWaktu).toLocaleDateString('id-ID', options);
+        
+        // Format status
+        const statusBadge = reservation.status === 'Tersedia' ? 
+          '<span class="badge bg-success">Tersedia</span>' : 
+          '<span class="badge bg-danger">Tidak Tersedia</span>';
+
+        // Update modal
+        document.getElementById('showNama').value = reservation.nama;
+        document.getElementById('showJumlahOrang').value = reservation.jumlahOrang;
+        document.getElementById('showTanggalWaktu').innerHTML = formattedDate;
+        document.getElementById('showStatus').innerHTML = statusBadge;
+        document.getElementById('showPesanan').value = reservation.pesanan;
+
+        $('#showReservationModal').modal('show');
+      }
+
+      // Event listener untuk tombol show
+      $('#reservationTable').on('click', '.show-btn', function() {
+        const id = $(this).data('id');
+        showReservation(id);
+      });
+
+      // Add Reservation
+      document.getElementById('saveReservation').addEventListener('click', () => {
+        const newReservation = {
+          id: Date.now(),
+          nama: document.getElementById('nama').value,
+          jumlahOrang: parseInt(document.getElementById('jumlahOrang').value),
+          tanggalWaktu: document.getElementById('tanggalWaktu').value,
+          pesanan: document.getElementById('pesanan').value,
+          status: document.getElementById('status').value
+        };
+
+        reservationData.push(newReservation);
+        table.clear().rows.add(reservationData).draw();
+        $('#addReservationModal').modal('hide');
+        document.getElementById('addReservationForm').reset();
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Reservasi Berhasil!',
+          text: 'Data reservasi telah ditambahkan'
+        });
+      });
+
+       // Edit Reservation
+       $('#reservationTable').on('click', '.edit-btn', function() {
+        const id = $(this).data('id');
+        const reservation = reservationData.find(r => r.id === id);
+        
+        document.getElementById('editReservationId').value = id;
+        document.getElementById('editNama').value = reservation.nama;
+        document.getElementById('editJumlahOrang').value = reservation.jumlahOrang;
+        document.getElementById('editTanggalWaktu').value = reservation.tanggalWaktu;
+        document.getElementById('editPesanan').value = reservation.pesanan;
+        document.getElementById('editStatus').value = reservation.status;
+        
+        $('#editReservationModal').modal('show');
+      });
+
+      // Update Reservation
+      document.getElementById('updateReservation').addEventListener('click', () => {
+        const id = parseInt(document.getElementById('editReservationId').value);
+        const index = reservationData.findIndex(r => r.id === id);
+        
+        reservationData[index] = {
+          id: id,
+          nama: document.getElementById('editNama').value,
+          jumlahOrang: parseInt(document.getElementById('editJumlahOrang').value),
+          tanggalWaktu: document.getElementById('editTanggalWaktu').value,
+          pesanan: document.getElementById('editPesanan').value,
+          status: document.getElementById('editStatus').value
+        };
+
+        table.clear().rows.add(reservationData).draw();
+        $('#editReservationModal').modal('hide');
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Perubahan Tersimpan!',
+          text: 'Data reservasi telah diperbarui'
+        });
+      });
+
+      // Delete Reservation
+      $('#reservationTable').on('click', '.delete-btn', function() {
+        const id = $(this).data('id');
+        
+        Swal.fire({
+          title: 'Hapus Reservasi?',
+          text: "Data yang dihapus tidak dapat dikembalikan!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Ya, Hapus!'
+
+        }).then((result) => {
+          if (result.isConfirmed) {
+            reservationData = reservationData.filter(r => r.id !== id);
+            table.clear().rows.add(reservationData).draw();
+            
+            Swal.fire(
+              'Terhapus!',
+              'Data reservasi telah dihapus',
+              'success'
+            );
+        }
+        });
+</script>
 
 <?php 
 include '../views/footer.php';
