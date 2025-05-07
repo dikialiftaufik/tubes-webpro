@@ -136,9 +136,10 @@ include '../views/sidebar.php';
                             <td><?= htmlspecialchars($res['pesanan']) ?></td>
                             <td><?= htmlspecialchars($res['status']) ?></td>
                             <td>
-                            <a href="view_reservation.php?id=<?= $res['id'] ?>" class="btn btn-sm btn-info show-btn" data-id="<?= $res['id'] ?>">
-                            <a href="edit_reservation.php?id=<?= $res['id'] ?>" class="btn btn-sm btn-warning edit-btn" data-id="<?= $res['id'] ?>">
-                            <button ... class="btn btn-sm btn-danger delete-btn" data-id="<?= $res['id'] ?>">
+                                <a href="view_reservation.php?id=<?= $res['id'] ?>" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a>
+                                <a href="edit_reservation.php?id=<?= $res['id'] ?>" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
+                                <form action="delete_reservation.php" method="POST" class="d-inline">
+                                    <input type="hidden" name="id" value="<?= $res['id'] ?>">
                                     <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus reservasi ini?')">
                                         <i class="bi bi-trash"></i>
                                     </button>
