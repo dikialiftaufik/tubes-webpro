@@ -205,7 +205,22 @@ include '../views/sidebar.php';
                         </td>
                         <td><?= date('d M Y', strtotime($user['created_at'])) ?></td>
                         <td>
-                            <!-- ... tombol aksi tetap sama ... -->
+                            <button
+  type="button"
+  class="btn btn-sm btn-info"
+  data-bs-toggle="modal"
+  data-bs-target="#userModal"
+  data-user='<?= htmlspecialchars(json_encode($user), ENT_QUOTES, 'UTF-8') ?>'
+>
+  <i class="bi bi-eye"></i>
+</button>
+                                <form action="delete_user.php" method="POST" class="d-inline">
+                                    <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
+                                    <button type="submit" class="btn btn-sm btn-danger" 
+                                        onclick="return confirm('Yakin ingin menghapus user ini?')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -265,7 +280,7 @@ include '../views/sidebar.php';
 </div>
 
 <!-- User Modal -->
-<div class="modal fade" id="userModal" tabindex="-1">
+<div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -275,12 +290,15 @@ include '../views/sidebar.php';
             <div class="modal-body">
                 <div class="row">
                     <div class="col-md-4 text-center">
-                        <img id="modalProfilePic" 
-                             class="rounded-circle border mb-3" 
-                             style="width: 150px; height: 150px; object-fit: cover;">
+                        <img id="modalProfilePic" src="" 
+                             class="img-fluid rounded-circle mb-3" 
+                             style="width: 150px; height: 150px; object-fit: cover;"
+                             onerror="this.src='https://via.placeholder.com/150'">
                     </div>
                     <div class="col-md-8">
-                        <dl class="row" id="modalUserData"></dl>
+                        <dl id="modalUserData" class="row">
+                            <!-- Data akan diisi via JavaScript -->
+                        </dl>
                     </div>
                 </div>
             </div>
@@ -294,13 +312,15 @@ include '../views/sidebar.php';
 <script>
 document.getElementById('userModal').addEventListener('show.bs.modal', function(event) {
     const button = event.relatedTarget;
-    const userData = JSON.parse(button.dataset.userData);
+    const userData = JSON.parse(button.dataset.user); // Perbaiki di sini (dari 'userData' ke 'user')
     
     // Update profile picture
     const profilePic = document.getElementById('modalProfilePic');
-    profilePic.src = userData.profile_picture 
-        ? '../' + userData.profile_picture 
-        : 'https://via.placeholder.com/150';
+    if (userData.profile_picture) {
+        profilePic.src = '../' + userData.profile_picture; // Sesuaikan path sesuai struktur direktori
+    } else {
+        profilePic.src = 'https://via.placeholder.com/150';
+    }
     profilePic.onerror = () => profilePic.src = 'https://via.placeholder.com/150';
     
     // Update user data
@@ -309,6 +329,7 @@ document.getElementById('userModal').addEventListener('show.bs.modal', function(
         'full_name': 'Nama Lengkap',
         'email': 'Email',
         'phone_number': 'No. HP',
+        'gender': 'Jenis Kelamin',
         'address': 'Alamat',
         'role': 'Role',
         'created_at': 'Terdaftar'
@@ -329,7 +350,14 @@ document.getElementById('userModal').addEventListener('show.bs.modal', function(
         dd.className = 'col-sm-8';
         
         if(key === 'created_at') {
-            dd.textContent = new Date(userData[key]).toLocaleString();
+            const date = new Date(userData[key]);
+            dd.textContent = date.toLocaleDateString('id-ID', { 
+                day: '2-digit', 
+                month: 'long', 
+                year: 'numeric' 
+            });
+        } else if (key === 'gender') {
+            dd.textContent = userData[key] ? userData[key].charAt(0).toUpperCase() + userData[key].slice(1) : '-';
         } else {
             dd.textContent = userData[key] || '-';
         }
