@@ -1,3 +1,4 @@
+<!-- filepath: c:\xampp\htdocs\tubes\tubes\formPemesanan.php -->
 <!doctype html>
 <html lang="en">
   <head>
@@ -108,21 +109,21 @@
         <div class="nav large-container">
           <ul>
             <li data-aos="fade-down" data-aos-duration="500">
-              <a href="index.html">Home</a>
+              <a href="index.php">Home</a>
             </li>
             <li
               data-aos="fade-down"
               data-aos-duration="500"
               data-aos-delay="100"
             >
-              <a href="AboutUs.html">About</a>
+              <a href="AboutUs.php">About</a>
             </li>
             <li
               data-aos="fade-down"
               data-aos-duration="500"
               data-aos-delay="200"
             >
-              <a href="Makanan.html">Menu</a>
+              <a href="Makanan.php">Menu</a>
             </li>
             <li
               data-aos="fade-down"
@@ -156,14 +157,14 @@
               data-aos-duration="500"
               data-aos-delay="600"
             >
-              <a href="findJobs.html">Karir</a>
+              <a href="findJobs.php">Karir</a>
             </li>
             <li
               data-aos="fade-down"
               data-aos-duration="500"
               data-aos-delay="700"
             >
-              <a href="keranjang.html">
+              <a href="keranjang.php">
                 <i class="fas fa-shopping-cart"></i>
               </a>
             </li>
@@ -193,13 +194,13 @@
       
         <div class="nav-mobile-main">
           <div>
-            <a href="index.html">Home</a>
+            <a href="index.php">Home</a>
           </div>
           <div>
-            <a href="about.html">About Us</a>
+            <a href="about.php">About Us</a>
           </div>
           <div>
-            <a href="Makanan.html">Menu</a>
+            <a href="Makanan.php">Menu</a>
           </div>
           <div>
             <a href="#reservation">Reservation</a>
@@ -208,7 +209,7 @@
             <a href="#location">Location</a>
           </div>
           <div>
-            <a href="findJobs.html">Find Jobs</a>
+            <a href="findJobs.php">Find Jobs</a>
           </div>
         </div>
       </nav>
@@ -240,7 +241,7 @@
         <div class="text-content">
           <h2>MINUMAN</h2>
           <p>Minuman yang cocok untuk menemani makanmu.</p>
-          <a href="Minuman.html">
+          <a href="Minuman.php">
             <button class="explore-btn">LIHAT MENU »</button>
           </a>
         </div>
@@ -255,7 +256,7 @@
         <div class="text-content">
           <h2>SIDE DISH</h2>
           <p>Lengkapi hidangan utama Anda dengan berbagai pilihan side dish lezat kami.</p>
-          <a href="sidedish.html">
+          <a href="sidedish.php">
             <button class="explore-btn">LIHAT MENU »</button>
           </a>
         </div>
@@ -270,11 +271,9 @@
         <div class="text-content">
           <h2>PAKET</h2>
           <p>Paket yang cocok dengan kamu.</p>
-          <a href="paket.html">
+          <a href="paket.php">
             <button class="explore-btn">LIHAT MENU »</button>
           </a>
         </div>
       </div>
     </section>
-
-  

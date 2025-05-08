@@ -92,7 +92,7 @@ $result = $conn->query($sql);
       bottom: 0;
       left: 0;
       width: 100%;
-      background-color: #008000; /* Warna hijau seperti pada gambar */
+      background-color:rgba(255, 61, 55, 0.97);
       color: white;
       padding: 15px;
       display: flex;
@@ -106,7 +106,7 @@ $result = $conn->query($sql);
     }
     
     .cart-panel:hover {
-      background-color: #006600;
+      background-color:rgb(201, 15, 15);
     }
     
     .cart-left {
@@ -183,7 +183,12 @@ $result = $conn->query($sql);
       <?php if ($result && $result->num_rows > 0): ?>
         <?php while ($row = $result->fetch_assoc()): ?>
           <div class="card">
-            <img src="assets/images/<?php echo htmlspecialchars($row['gambar']); ?>" alt="<?php echo htmlspecialchars($row['nama_makanan']); ?>" />
+            <!-- Perbaikan utama di bagian ini - langsung menggunakan image_url dari database -->
+            <img 
+              src="<?php echo $row['gambar']; ?>" 
+              alt="<?php echo htmlspecialchars($row['nama_makanan']); ?>"
+              onerror="this.onerror=null; this.src='assets/images/default.jpg';"
+            />
             <h2><?php echo htmlspecialchars($row['nama_makanan']); ?></h2>
             <p><?php echo htmlspecialchars($row['deskripsi'] ?? ''); ?></p>
             <p>Harga: Rp <?php echo number_format($row['harga'], 0, ',', '.'); ?></p>
@@ -278,15 +283,6 @@ $result = $conn->query($sql);
           priceTotal += item.price * item.quantity;
         });
         
-// Tambahkan ini di bagian script menu makanan
-window.addEventListener('storage', function(e) {
-  if (e.key === 'keranjang') {
-    updateCartPanel();
-  }
-});
-
-
-
         // Update tampilan
         totalItems.textContent = itemCount;
         totalPrice.textContent = new Intl.NumberFormat('id-ID').format(priceTotal);
@@ -298,6 +294,13 @@ window.addEventListener('storage', function(e) {
         cartPanel.style.display = 'none';
       }
     }
+    
+    // Tambahkan ini di bagian script menu makanan
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'keranjang') {
+        updateCartPanel();
+      }
+    });
   </script>
   
   <script src="assets/js/script.js"></script>
