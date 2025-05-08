@@ -2,8 +2,8 @@
 session_start();
 
 // --- Bagian 1: Pengaturan Session & Pesan ---
-$success_message = '';
-if (isset($_SESSION['success_message'])) {
+$success_message = ''; // untuk menyimpan pesan sukses yang akan ditampilkan
+if (isset($_SESSION['success_message'])) { // $_SESSION = array super global
     $success_message = $_SESSION['success_message'];
     unset($_SESSION['success_message']);
 }
