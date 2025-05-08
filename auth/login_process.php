@@ -5,7 +5,7 @@ include '../configdb.php';
 $email = $_POST['email'];
 $password = $_POST['password'];
 
-$stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+$stmt = $conn->prepare("SELECT id, full_name, email, username, profile_picture, password FROM users WHERE email = ?");
 $stmt->bind_param("s", $email);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -29,7 +29,9 @@ $_SESSION['loggedin'] = true;
 $_SESSION['user'] = [
     'id' => $user['id'],
     'name' => $user['full_name'],
-    'email' => $user['email']
+    'email' => $user['email'],
+    'username' => $user['username'],
+    'profile' => !empty($user['profile_picture']) ? $user['profile_picture'] : 'uploads/profiles/default.jpg'
 ];
 
 $_SESSION['success'] = "Login berhasil!";
