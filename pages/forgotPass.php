@@ -100,8 +100,9 @@ if (isset($_SESSION['reset_block_time']) && (time() - $_SESSION['reset_block_tim
         } else {
             // Update password
             $user_id = $_SESSION['reset_user_id'];
+            $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
             $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
-            $stmt->bind_param("si", $new_password, $user_id);
+            $stmt->bind_param("si", $hashed_password, $user_id);
             
             if ($stmt->execute()) {
                 $_SESSION['success_message'] = "Password berhasil diubah!";
@@ -180,6 +181,14 @@ include '../views/header-forgot.php';
                 placeholder="Masukkan password baru"
                 required
               />
+              
+              <!-- <button
+                class="btn btn-outline-dark border-start-0"
+                type="button"
+                onclick="togglePasswordVisibility('new_password', 'eyeIconNew')"
+              >
+                <i id="eyeIconNew" class="bi bi-eye"></i>
+              </button> -->
           </div><br>
           <div class="mb-3">
                         <label for="confirm_password" class="form-label">Konfirmasi Password</label>
@@ -191,6 +200,13 @@ include '../views/header-forgot.php';
                             placeholder="Konfirmasi password baru"
                             required
                         />
+                        <!-- <button
+                class="btn btn-outline-dark border-start-0"
+                type="button"
+                onclick="togglePasswordVisibility('confirm_password', 'eyeIconConfirm')"
+              >
+                <i id="eyeIconConfirm" class="bi bi-eye"></i>
+              </button> -->
                     </div>
 <br>
           <button type="submit" name="reset_password" class="btn btn-primary w-100">

@@ -2,6 +2,20 @@
     <script src="bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+      <script>
+function togglePasswordVisibility(passwordId, eyeIconId) {
+    const passwordInput = document.getElementById(passwordId);
+    const eyeIcon = document.getElementById(eyeIconId);
+
+    if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        eyeIcon.classList.replace("bi-eye", "bi-eye-slash");
+    } else {
+        passwordInput.type = "password";
+        eyeIcon.classList.replace("bi-eye-slash", "bi-eye");
+    }
+}
+
       document
         .getElementById("sendResetLink")
         .addEventListener("click", function () {

@@ -7,6 +7,8 @@
     <link rel="icon" type="image/x-icon" href="../img/logo/logo-alt.png" />
     <!-- Link ke file CSS Bootstrap -->
     <link href="bootstrap-5.3.3-dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
       body {
         background-image: url("../img/hero-section.jpg");
@@ -106,6 +108,21 @@
     color: #4d3835;
     list-style-type: circle;
     margin-bottom: 5px;
+}
+
+.bi-eye-slash, .bi-eye {
+    transition: all 0.3s ease;
+}
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    z-index: 2;
+}
+.input-group {
+    position: relative;
 }
     </style>
   </head>

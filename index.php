@@ -159,7 +159,7 @@ if (isset($_SESSION['reservation_error'])) {
                 <div class="user-name">dikialift13</div>
               </div>
               <div class="dropdown-divider"></div>
-              <a href="account.html" class="dropdown-item">
+              <a href="account.php" class="dropdown-item">
                 <i class="fas fa-user-cog"></i> <p> Akun Saya</p>
               </a>
               <a href="orders.html" class="dropdown-item">
