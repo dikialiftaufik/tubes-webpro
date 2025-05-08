@@ -99,7 +99,7 @@ if ($total_pages > 0 && $page > $total_pages) {
     exit();
 }
 
-$title = "Data Menu"; 
+$title = "Data Reservasi"; 
 include '../views/header.php';
 include '../views/navbar.php';
 include '../views/sidebar.php';
