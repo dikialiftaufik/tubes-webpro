@@ -1,3 +1,33 @@
+<?php
+// Proses saat form disubmit
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $nama = $_POST['nama'];
+    $masukan = $_POST['masukan'];
+
+    // Koneksi ke database
+    $conn = new mysqli("localhost", "root", "", "bolooo");
+
+    // Cek koneksi
+    if ($conn->connect_error) {
+        die("Koneksi gagal: " . $conn->connect_error);
+    }
+
+    // Simpan data ke tabel feedback
+    $stmt = $conn->prepare("INSERT INTO feedback (nama, masukan) VALUES (?, ?)");
+    $stmt->bind_param("ss", $nama, $masukan);
+    $stmt->execute();
+
+    if ($stmt->affected_rows > 0) {
+        echo "<script>alert('Masukan berhasil dikirim!'); window.location.href='saran.php';</script>";
+    } else {
+        echo "<script>alert('Gagal mengirim masukan.');</script>";
+    }
+
+    $stmt->close();
+    $conn->close();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -286,13 +316,11 @@ data-aos-delay="900"
     <div class="container" data-aos="fade-up" data-aos-duration="800">
         <h1>Masukan untuk BOLO</h1>
         <p class="inspirational-text">"Kritik dan saran Anda membantu kami menjadi lebih baik setiap harinya. Terima kasih telah berkontribusi!"</p>
-        <form id="feedbackForm">
-            <label for="name">Nama Anda:</label>
-            <input type="text" id="name" name="name" placeholder="Masukkan nama Anda">
-
-            <label for="feedback">Kritik dan Saran Anda:</label>
-            <textarea id="feedback" name="feedback" placeholder="Tulis kritik dan saran Anda di sini..."></textarea>
-
+        <form method="POST" action="">
+            <label>Nama:</label><br>
+            <input type="text" id="name" name="nama" placeholder="Masukkan Nama Anda">
+            <label>Masukan:</label><br>
+            <textarea id="feedback" name="masukan" placeholder="Tulis kritik dan saran Anda di sini..."></textarea>
             <button type="submit">Kirim Masukan</button>
         </form>
 

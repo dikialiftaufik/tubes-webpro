@@ -37,7 +37,7 @@ $search = $conn->real_escape_string($_GET['search'] ?? '');
 $offset = ($page - 1) * $per_page;
 
 $search_term = "%$search%";
-$stmt = $conn->prepare("SELECT * FROM feedback WHERE nama LIKE ? OR masukan LIKE ? ORDER BY id DESC LIMIT ? OFFSET ?");
+$stmt = $conn->prepare("SELECT * FROM feedback WHERE nama LIKE ? OR masukan LIKE ? ORDER BY id ASC LIMIT ? OFFSET ?");
 $stmt->bind_param("ssii", $search_term, $search_term, $per_page, $offset);
 $stmt->execute();
 $feedbacks = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -90,9 +90,8 @@ include '../views/sidebar.php';
                         <td><?= htmlspecialchars($fb['nama']) ?></td>
                         <td><?= htmlspecialchars($fb['masukan']) ?></td>
                         <td>
-                            <button class="btn btn-info btn-sm view-btn" data-id="<?= $fb['id'] ?>">Lihat</button>
-                            <button class="btn btn-warning btn-sm edit-btn" data-id="<?= $fb['id'] ?>">Edit</button>
-                            <button class="btn btn-danger btn-sm delete-btn" data-id="<?= $fb['id'] ?>">Hapus</button>
+                            <button type="button" class="btn btn-sm btn-info view-btn" data-id="<?= $fb['id'] ?>"><i class="bi bi-eye"></i></button>
+                            <button type="button" class="btn btn-sm btn-danger delete-btn" data-id="<?= $fb['id'] ?>"><i class="bi bi-trash"></i></button>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -112,7 +111,7 @@ include '../views/sidebar.php';
       </div>
       <div class="modal-body">
         <label>Nama:</label>
-        <input type="text" id="modalNama" class="form-control mb-2">
+        <input type="text" id="modalNama" class="form-control mb-6">
         <label>Masukan:</label>
         <textarea id="modalMasukan" class="form-control mb-2"></textarea>
         <div class="text-end">
@@ -131,16 +130,6 @@ document.addEventListener('DOMContentLoaded', function () {
       $('#modalNama').val(data.nama).prop('readonly', true);
       $('#modalMasukan').val(data.masukan).prop('readonly', true);
       $('#saveBtn').addClass('d-none');
-      new bootstrap.Modal('#feedbackModal').show();
-    }, 'json');
-  });
-
-  $('.edit-btn').click(function () {
-    const id = $(this).data('id');
-    $.get('get_feedback.php', { id }, function (data) {
-      $('#modalNama').val(data.nama).prop('readonly', false);
-      $('#modalMasukan').val(data.masukan).prop('readonly', false);
-      $('#saveBtn').removeClass('d-none').data('id', id);
       new bootstrap.Modal('#feedbackModal').show();
     }, 'json');
   });
@@ -170,5 +159,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 </script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <?php include '../views/footer.php'; $conn->close(); ?>
