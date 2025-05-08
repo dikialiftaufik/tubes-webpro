@@ -215,7 +215,7 @@ $result = $conn->query($sql);
   <footer>
     <a href="#">Tentang Kami</a> |
     <a href="#">Hubungi Kami</a> |
-    <a href="#">Kritik & Saran</a>
+    <a href="saran.php">Kritik & Saran</a>
   </footer>
 
   <script>

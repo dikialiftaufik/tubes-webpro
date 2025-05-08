@@ -1,9 +1,10 @@
 <?php
-session_start();
+session_start(); 
 
 // --- Bagian 1: Pengaturan Session & Pesan ---
-$success_message = ''; // untuk menyimpan pesan sukses yang akan ditampilkan
-if (isset($_SESSION['success_message'])) { // $_SESSION = array super global
+$success_message = ''; // untuk menyimpan notifikasi yang akan ditampilkan
+$error_message = "";
+if (isset($_SESSION['success_message'])) { 
     $success_message = $_SESSION['success_message'];
     unset($_SESSION['success_message']);
 }
@@ -15,14 +16,14 @@ header("Pragma: no-cache");
 
 // --- Bagian 3: Koneksi Database ---
 require_once '../configdb.php';
-$error_message = "";
 
 // --- Bagian 4: Proses Login (POST) ---
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $password = $_POST['password'];
+if ($_SERVER["REQUEST_METHOD"] == "POST") { // memastikan kode hanya dijalankan jika form dikirim dengan metode POST
+    $username = mysqli_real_escape_string($conn, $_POST['username']); // mencegah sql injection
+    $password = $_POST['password']; // tidak menggunakan mysqli_real_escape_string karena akan di hash
     $role = mysqli_real_escape_string($conn, $_POST['role']);
 
+    // validasi field kosong
     if (empty($username) || empty($password) || empty($role)) {
         $error_message = "Semua field harus diisi!";
     } else {
@@ -31,11 +32,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->execute();
         $result = $stmt->get_result();
 
+        // memastikan hanya ada satu data pengguna yang cocok dengan username dan role.
         if ($result->num_rows === 1) {
-            $user = $result->fetch_assoc();
+            $user = $result->fetch_assoc(); // mengonversi hasil query ke array asosiatif
             
             // --- Perbaikan 1: Verifikasi Password dengan Hash ---
-            if (password_verify($password, $user['password'])) { // <-- Ganti ke password_verify
+            if (password_verify($password, $user['password'])) { 
                 $_SESSION['user'] = [
                     'id' => $user['id'],
                     'username' => $user['username'],
@@ -52,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $cookie_name,
                         $cookie_value,
                         time() + (30 * 24 * 3600), // 30 hari
-                        "/",
+                        "/", // berlaku seluruh path website
                         "",
                         false, // HTTPS tidak wajib
                         true   // Hanya diakses via HTTP
