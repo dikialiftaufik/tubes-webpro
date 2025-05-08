@@ -126,6 +126,34 @@ include './views/header.php';
         text-align: center;
         margin: 50px 0;
       }
+      
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        visibility: hidden;
+      }
+      
+      .loading-spinner {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #ff4500;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     </style>
   </head>
   <body>
@@ -149,6 +177,10 @@ include './views/header.php';
       </div>
     </div>
 
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="loading-spinner"></div>
+    </div>
+
     <footer>
       <p>
         &copy; 2024 Keranjang Makanan |
@@ -162,6 +194,7 @@ include './views/header.php';
         const totalQuantityElement = document.getElementById("total-quantity");
         const totalPriceElement = document.getElementById("total-price");
         const checkoutButton = document.getElementById("checkout-button");
+        const loadingOverlay = document.getElementById("loading-overlay");
         let keranjangItems = JSON.parse(localStorage.getItem("keranjang")) || [];
 
         // Cek jika keranjang kosong saat halaman dimuat
@@ -252,21 +285,63 @@ include './views/header.php';
           updateKeranjang();
         };
 
-        window.checkout = function() {
+        // Fungsi untuk mengirim data keranjang ke server
+        async function kirimDataKeranjang() {
+          try {
+            showLoading();
+            
+            const response = await fetch('proses_keranjang.php', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: localStorage.getItem('keranjang')
+            });
+            
+            if (!response.ok) {
+              throw new Error('Gagal mengirim data ke server');
+            }
+            
+            const result = await response.json();
+            return result;
+          } catch (error) {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat memproses pesanan: ' + error.message);
+            hideLoading();
+            return { status: 'error' };
+          }
+        }
+
+        function showLoading() {
+          loadingOverlay.style.visibility = 'visible';
+        }
+
+        function hideLoading() {
+          loadingOverlay.style.visibility = 'hidden';
+        }
+
+        window.checkout = async function() {
           if (keranjangItems.length === 0) {
             alert("Keranjang Anda kosong!");
-          } else {
-            const itemsDetail = keranjangItems
-              .map((item) => `${item.name} (${item.quantity})`)
-              .join(", ");
-            alert("Checkout berhasil! Anda membeli: " + itemsDetail);
-
+            return;
+          }
+          
+          // Kirim data keranjang ke server terlebih dahulu
+          const result = await kirimDataKeranjang();
+          
+          if (result.status === 'success') {
+            // Simpan untuk referensi di localStorage
             localStorage.setItem("pesanan", JSON.stringify(keranjangItems));
-
+            
+            // Kosongkan keranjang
             keranjangItems = [];
             localStorage.setItem("keranjang", JSON.stringify(keranjangItems));
-
+            
+            // Redirect ke halaman pembayaran
             window.location.href = "lamanpembayaran.php";
+          } else {
+            hideLoading();
+            alert("Gagal memproses pesanan. Silakan coba lagi.");
           }
         };
 
