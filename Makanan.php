@@ -92,7 +92,7 @@ $result = $conn->query($sql);
       bottom: 0;
       left: 0;
       width: 100%;
-      background-color: #008000; /* Warna hijau seperti pada gambar */
+      background-color:rgba(255, 61, 55, 0.97); /* Warna hijau seperti pada gambar */
       color: white;
       padding: 15px;
       display: flex;
@@ -106,7 +106,7 @@ $result = $conn->query($sql);
     }
     
     .cart-panel:hover {
-      background-color: #006600;
+      background-color:rgb(201, 15, 15);
     }
     
     .cart-left {
