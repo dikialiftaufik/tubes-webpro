@@ -111,7 +111,7 @@ include '../views/sidebar.php';
       </div>
       <div class="modal-body">
         <label>Nama:</label>
-        <input type="text" id="modalNama" class="form-control mb-6">
+        <input type="text" id="modalNama" class="form-control mb-2">
         <label>Masukan:</label>
         <textarea id="modalMasukan" class="form-control mb-2"></textarea>
         <div class="text-end">

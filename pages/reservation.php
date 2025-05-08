@@ -183,7 +183,7 @@ include '../views/sidebar.php';
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">View/Edit Reservasi</h5>
+        <h5 class="modal-title">Detail Reservasi</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">

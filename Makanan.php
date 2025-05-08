@@ -18,7 +18,7 @@ $result = $conn->query($sql);
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color:rgb(13, 13, 13);
+      background-color:rgb(4, 4, 4);
       margin: 0;
       padding: 0;
       padding-bottom: 70px; /* Untuk memberi ruang bagi panel keranjang */
@@ -212,11 +212,9 @@ $result = $conn->query($sql);
     </div>
   </div>
 
-  <footer>
-    <a href="#">Tentang Kami</a> |
-    <a href="#">Hubungi Kami</a> |
+  <footer>|
     <a href="saran.php">Kritik & Saran</a>
-  </footer>
+  |</footer>
 
   <script>
     // Periksa keranjang saat halaman dimuat
