@@ -1,23 +1,23 @@
 <?php
-// pages/login.php
 session_start();
 
-// Tambahkan di bawah session_start()
-$success_message = '';
-if (isset($_SESSION['success_message'])) {
+// --- Bagian 1: Pengaturan Session & Pesan ---
+$success_message = ''; // untuk menyimpan pesan sukses yang akan ditampilkan
+if (isset($_SESSION['success_message'])) { // $_SESSION = array super global
     $success_message = $_SESSION['success_message'];
-    unset($_SESSION['success_message']); // Hapus session setelah ditampilkan
+    unset($_SESSION['success_message']);
 }
 
-// Header untuk disable cache
+// --- Bagian 2: Nonaktifkan Cache ---
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
 
+// --- Bagian 3: Koneksi Database ---
 require_once '../configdb.php';
-
 $error_message = "";
 
+// --- Bagian 4: Proses Login (POST) ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = mysqli_real_escape_string($conn, $_POST['username']);
     $password = $_POST['password'];
@@ -34,7 +34,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($result->num_rows === 1) {
             $user = $result->fetch_assoc();
             
-            if ($password === $user['password']) {
+            // --- Perbaikan 1: Verifikasi Password dengan Hash ---
+            if (password_verify($password, $user['password'])) { // <-- Ganti ke password_verify
                 $_SESSION['user'] = [
                     'id' => $user['id'],
                     'username' => $user['username'],
@@ -42,13 +43,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     'full_name' => $user['full_name']
                 ];
 
-                // Redirect dan hentikan script
+                // --- Perbaikan 2: Cookie "Ingat Saya" ---
+                if (isset($_POST['rememberMe'])) {
+                    // Set cookie berlaku 30 hari
+                    $cookie_name = "remember_user";
+                    $cookie_value = base64_encode($user['id'] . ":" . $user['username']);
+                    setcookie(
+                        $cookie_name,
+                        $cookie_value,
+                        time() + (30 * 24 * 3600), // 30 hari
+                        "/",
+                        "",
+                        false, // HTTPS tidak wajib
+                        true   // Hanya diakses via HTTP
+                    );
+                }
+
+                // Redirect berdasarkan role
+                session_regenerate_id(true); // Keamanan: anti session fixation
                 if ($user['role'] === 'admin') {
                     header("Location: dashboard.php");
                 } else {
                     header("Location: cashier.php");
                 }
-                exit(); // Penting!
+                exit();
             } else {
                 $error_message = "Password salah!";
             }
