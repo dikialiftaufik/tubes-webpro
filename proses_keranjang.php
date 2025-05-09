@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-// Jika metode request bukan POST
+//  metode request bukan POST
 http_response_code(405);
 echo json_encode([
     'status' => 'error',

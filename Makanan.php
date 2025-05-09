@@ -183,7 +183,7 @@ $result = $conn->query($sql);
       <?php if ($result && $result->num_rows > 0): ?>
         <?php while ($row = $result->fetch_assoc()): ?>
           <div class="card">
-            <!-- Perbaikan utama di bagian ini - langsung menggunakan image_url dari database -->
+            <!-- langsung menggunakan image_url dari database -->
             <img 
               src="<?php echo $row['gambar']; ?>" 
               alt="<?php echo htmlspecialchars($row['nama_makanan']); ?>"
@@ -295,7 +295,7 @@ $result = $conn->query($sql);
       }
     }
     
-    // Tambahkan ini di bagian script menu makanan
+    // Tambahan menu makanan
     window.addEventListener('storage', function(e) {
       if (e.key === 'keranjang') {
         updateCartPanel();

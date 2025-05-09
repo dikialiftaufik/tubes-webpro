@@ -255,12 +255,12 @@ include './views/header.php';
 
         function redirectToMenuIfEmpty() {
           if (keranjangItems.length === 0) {
-            window.location.href = "index.php"; // Atau halaman menu Anda
+            window.location.href = "makanan.php"; // halaman menu 
           }
         }
 
         window.kembaliKeMenu = function() {
-          window.location.href = "index.php"; // Atau halaman menu Anda
+          window.location.href = "makanan.php"; //  halaman menu
         };
 
         window.kurangiJumlah = function(index) {
