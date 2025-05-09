@@ -212,7 +212,7 @@ include '../views/sidebar.php';
                             <td><?= htmlspecialchars($menu['id'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars($menu['name'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td><img src="../uploads/menu/<?= htmlspecialchars($menu['image_url'], ENT_QUOTES, 'UTF-8') ?>" 
-       alt="Menu" style="max-width: 100px;"></td>
+       alt="Menu" style="width: 100px; height: 75px;"></td>
        <td><?= htmlspecialchars($menu['type'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= number_format($menu['price'], 2) ?></td>
                             <td><?= htmlspecialchars($menu['calories'], ENT_QUOTES, 'UTF-8') ?></td>
