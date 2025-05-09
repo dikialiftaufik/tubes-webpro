@@ -40,9 +40,12 @@ if($result->num_rows > 0) {
     $username = $username.rand(100,999);
 }
 
-// Simpan ke database dengan username
-$stmt = $conn->prepare("INSERT INTO users (full_name, email, password, username) VALUES (?, ?, ?, ?)");
-$stmt->bind_param("ssss", $full_name, $email, $password, $username);
+// Set role default sebagai 'user'
+$role = 'user';
+
+// Simpan ke database dengan username dan role
+$stmt = $conn->prepare("INSERT INTO users (full_name, email, password, username, role) VALUES (?, ?, ?, ?, ?)");
+$stmt->bind_param("sssss", $full_name, $email, $password, $username, $role);
 
 if($stmt->execute()) {
     $_SESSION['success'] = "Registrasi berhasil! Silakan login.";
