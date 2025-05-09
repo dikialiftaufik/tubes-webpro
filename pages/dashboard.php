@@ -34,7 +34,7 @@ $result = $stmt->get_result();
 $pending_orders = $result->fetch_assoc()['total'];
 
 // Query total reservations
-$stmt = $conn->prepare("SELECT COUNT(*) AS total FROM reservations");
+$stmt = $conn->prepare("SELECT COUNT(*) AS total FROM reservation");
 $stmt->execute();
 $result = $stmt->get_result();
 $total_reservations = $result->fetch_assoc()['total'];
