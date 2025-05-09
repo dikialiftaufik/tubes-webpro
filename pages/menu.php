@@ -250,7 +250,8 @@ include '../views/sidebar.php';
                             </div>
                             <div class="mb-3">
                                 <label>Gambar URL:</label>
-                                <input type="url" name="image_url" class="form-control" required>
+                                <input type="text" name="image_url" class="form-control" required>
+                                <small class="text-muted">Contoh: nama_file.jpg</small>
                             </div>
                             <div class="mb-3">
                                 <label>Jenis:</label>
