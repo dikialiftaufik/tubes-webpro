@@ -1,59 +1,79 @@
 <?php
 session_start();
-include '../configdb.php';
+require_once '../configdb.php';
 
-// Validasi input
-if(empty($_POST['full_name']) || empty($_POST['email']) || empty($_POST['password'])) {
-    $_SESSION['error'] = "Semua field harus diisi!";
-    header("Location: ../login-register.php");
-    exit();
-}
+// Set pesan default
+$_SESSION['error'] = '';
+$_SESSION['success'] = '';
 
-$full_name = $_POST['full_name'];
-$email = $_POST['email'];
-$password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $full_name = trim($_POST['full_name']);
+    $username = trim($_POST['username']);
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+    $role = 'customer'; // Role otomatis
 
-// Generate username dari email
-$username = strtolower(explode('@', $email)[0]); // Ambil bagian sebelum @
-$username = preg_replace('/[^a-z0-9]/', '', $username); // Hapus karakter khusus
+    // Validasi input kosong
+    if (empty($full_name) || empty($username) || empty($email) || empty($password)) {
+        $_SESSION['error'] = "Semua field harus diisi!";
+        header("Location: ../login-register.php");
+        exit();
+    }
 
-// Cek duplikat email
-$stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-$stmt->bind_param("s", $email);
-$stmt->execute();
-$result = $stmt->get_result();
+    try {
+        // Cek username sudah ada
+        $stmt = $conn->prepare("SELECT username FROM users WHERE username = ?");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $stmt->store_result();
+        
+        if ($stmt->num_rows > 0) {
+            $_SESSION['error'] = "Username sudah digunakan!";
+            header("Location: ../login-register.php");
+            exit();
+        }
+        $stmt->close();
 
-if($result->num_rows > 0) {
-    $_SESSION['error'] = "Email sudah terdaftar!";
-    header("Location: ../login-register.php");
-    exit();
-}
+        // Cek email sudah ada
+        $stmt = $conn->prepare("SELECT email FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $stmt->store_result();
+        
+        if ($stmt->num_rows > 0) {
+            $_SESSION['error'] = "Email sudah terdaftar!";
+            header("Location: ../login-register.php");
+            exit();
+        }
+        $stmt->close();
 
-// Cek duplikat username
-$stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
-$stmt->bind_param("s", $username);
-$stmt->execute();
-$result = $stmt->get_result();
+        // Hash password
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-if($result->num_rows > 0) {
-    // Jika username sudah ada, tambahkan angka random
-    $username = $username.rand(100,999);
-}
-
-// Set role default sebagai 'user'
-$role = 'user';
-
-// Simpan ke database dengan username dan role
-$stmt = $conn->prepare("INSERT INTO users (full_name, email, password, username, role) VALUES (?, ?, ?, ?, ?)");
-$stmt->bind_param("sssss", $full_name, $email, $password, $username, $role);
-
-if($stmt->execute()) {
-    $_SESSION['success'] = "Registrasi berhasil! Silakan login.";
-    $_SESSION['info'] = "Username Anda: ".$username;
+        // Insert data baru
+        $stmt = $conn->prepare("INSERT INTO users (full_name, username, email, password, role) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssss", $full_name, $username, $email, $hashed_password, $role);
+        
+        if ($stmt->execute()) {
+            $_SESSION['success'] = "Registrasi berhasil! Silakan login";
+            header("Location: ../login-register.php");
+            exit();
+        } else {
+            $_SESSION['error'] = "Gagal melakukan registrasi";
+            header("Location: ../login-register.php");
+            exit();
+        }
+        
+        $stmt->close();
+    } catch (Exception $e) {
+        $_SESSION['error'] = "Terjadi kesalahan sistem";
+        header("Location: ../login-register.php");
+        exit();
+    }
+    
+    $conn->close();
 } else {
-    $_SESSION['error'] = "Gagal melakukan registrasi: ".$conn->error;
+    header("Location: ../login-register.php");
+    exit();
 }
-
-header("Location: ../login-register.php");
-exit();
 ?>

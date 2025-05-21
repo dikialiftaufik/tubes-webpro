@@ -1,4 +1,12 @@
-<?php include 'views/header-log-reg.php'; ?>
+<?php
+// Hapus pesan notifikasi setelah ditampilkan
+$success = isset($_SESSION['success']) ? $_SESSION['success'] : '';
+$error = isset($_SESSION['error']) ? $_SESSION['error'] : '';
+unset($_SESSION['success']);
+unset($_SESSION['error']);
+
+include 'views/header-log-reg.php'; ?>
+
 <div class="container" id="container">
 <!-- Forgot Password Modal -->
 <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
@@ -32,6 +40,7 @@
           <h1>Buat Akun Baru</h1>
           
           <input type="text" name="full_name" id="registerName" placeholder="Masukkan Nama Lengkap" />
+          <input type="text" name="username" id="registerUsername" placeholder="Masukkan Username" />
           <input type="email" name="email" id="registerEmail" placeholder="Masukkan Email" />
           <div class="password-container">
             <input type="password" name="password" id="registerPassword" placeholder="Masukkan Password" />
@@ -72,4 +81,29 @@
         </div>
       </div>
     </div>
+    <!-- Letakkan di bagian sebelum </body> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/js/iziToast.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css">
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    <?php if(!empty($success)): ?>
+        iziToast.success({
+            title: 'Sukses!',
+            message: '<?= addslashes($success) ?>',
+            position: 'topRight',
+            timeout: 5000
+        });
+    <?php endif; ?>
+    
+    <?php if(!empty($error)): ?>
+        iziToast.error({
+            title: 'Gagal!',
+            message: '<?= addslashes($error) ?>',
+            position: 'topRight',
+            timeout: 5000
+        });
+    <?php endif; ?>
+});
+</script>
 <?php include 'views/footer-log-reg.php'; ?>

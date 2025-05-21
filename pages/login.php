@@ -1,79 +1,80 @@
 <?php
-session_start(); 
+session_start();
 
-// ---  Pengaturan Session & Pesan ---
-$success_message = ''; // untuk menyimpan notifikasi yang akan ditampilkan
+// --- Pengaturan Session & Pesan ---
+$success_message = '';
 $error_message = "";
-if (isset($_SESSION['success_message'])) { // memeriksa apakah dalam sesi terdapat success message
-    $success_message = $_SESSION['success_message']; // jika ada data disimpan untuk ditampilkan ke user
-    unset($_SESSION['success_message']); // menghapus agar muncul sekali
+if (isset($_SESSION['success_message'])) {
+    $success_message = $_SESSION['success_message'];
+    unset($_SESSION['success_message']);
 }
 
-// ---  Nonaktifkan Cache ---
+// --- Nonaktifkan Cache ---
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
 
-// ---  Koneksi Database ---
+// --- Koneksi Database ---
 require_once '../configdb.php';
 
 // --- Proses Login (POST) ---
-if ($_SERVER["REQUEST_METHOD"] == "POST") { // memastikan kode hanya dijalankan jika form dikirim dengan metode POST
-    $username = mysqli_real_escape_string($conn, $_POST['username']); // mencegah sql injection
-    $password = $_POST['password']; // tidak menggunakan mysqli_real_escape_string karena akan di hash
-    $role = mysqli_real_escape_string($conn, $_POST['role']);
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = trim($_POST['username']);
+    $password = $_POST['password'];
 
-    // validasi field kosong
-    if (empty($username) || empty($password) || empty($role)) {
-        $error_message = "Semua field harus diisi!";
+    // Validasi input
+    if (empty($username) || empty($password)) {
+        $error_message = "Username dan password harus diisi!";
     } else {
-        $stmt = $conn->prepare("SELECT * FROM users WHERE username = ? AND role = ?");
-        $stmt->bind_param("ss", $username, $role);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        try {
+            // Query dengan prepared statement
+            $stmt = $conn->prepare("SELECT id, username, password, role, full_name FROM users WHERE username = ?");
+            $stmt->bind_param("s", $username);
+            $stmt->execute();
+            $result = $stmt->get_result();
 
-        // memastikan hanya ada satu data pengguna yang cocok dengan username dan role.
-        if ($result->num_rows === 1) {
-            $user = $result->fetch_assoc(); // mengonversi hasil query ke array asosiatif
-            
-            // ---  Verifikasi Password dengan Hash ---
-            if (password_verify($password, $user['password'])) { 
-                $_SESSION['user'] = [
-                    'id' => $user['id'],
-                    'username' => $user['username'],
-                    'role' => $user['role'],
-                    'full_name' => $user['full_name']
-                ];
+            if ($result->num_rows === 1) {
+                $user = $result->fetch_assoc();
+                
+                // Verifikasi password
+                if (password_verify($password, $user['password'])) {
+                    // Set session
+                    $_SESSION['user'] = [
+                        'id' => $user['id'],
+                        'username' => $user['username'],
+                        'role' => $user['role'],
+                        'full_name' => $user['full_name']
+                    ];
 
-                // ---  Cookie "Ingat Saya" ---
-                if (isset($_POST['rememberMe'])) {
-                    // Set cookie berlaku 30 hari
-                    $cookie_name = "remember_user";
-                    $cookie_value = base64_encode($user['id'] . ":" . $user['username']);
-                    setcookie(
-                        $cookie_name,
-                        $cookie_value,
-                        time() + (30 * 24 * 3600), // 30 hari
-                        "/", // berlaku seluruh path website
-                        "",
-                        false, // HTTPS tidak wajib
-                        true   // Hanya diakses via HTTP
-                    );
-                }
+                    // Cookie Ingat Saya
+                    if (isset($_POST['rememberMe'])) {
+                        $cookieValue = base64_encode($user['id'] . ':' . $user['username']);
+                        setcookie(
+                            'remember_user',
+                            $cookieValue,
+                            time() + (30 * 24 * 3600),
+                            "/",
+                            "",
+                            false,
+                            true
+                        );
+                    }
 
-                // Redirect berdasarkan role
-                session_regenerate_id(true); // Keamanan: anti session fixation
-                if ($user['role'] === 'admin') {
-                    header("Location: dashboard.php");
+                    // Redirect berdasarkan role
+                    session_regenerate_id(true);
+                    header("Location: " . ($user['role'] === 'admin' ? 'dashboard.php' : 'cashier.php'));
+                    exit();
                 } else {
-                    header("Location: cashier.php");
+                    $error_message = "Password salah!";
                 }
-                exit();
             } else {
-                $error_message = "Password salah!";
+                $error_message = "Username tidak ditemukan!";
             }
-        } else {
-            $error_message = "Username tidak ditemukan atau role tidak sesuai!";
+            
+            $stmt->close();
+        } catch (Exception $e) {
+            error_log("Login error: " . $e->getMessage());
+            $error_message = "Terjadi kesalahan sistem";
         }
     }
 }
@@ -81,88 +82,92 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") { // memastikan kode hanya dijalankan 
 include '../views/header-login.php';
 ?>
 
-  <body>
+<body>
     <div class="logo-container">
-      <img src="../img/logo/logo.png" alt="Logo" />
+        <img src="../img/logo/logo.png" alt="Logo" />
     </div>
-    <div
-      class="container d-flex align-items-center justify-content-center"
-      style="height: 100vh"
-    >
-      <div class="login-container">
-        <h2>Selamat Datang!</h2>
+    <div class="container d-flex align-items-center justify-content-center" style="height: 100vh">
+        <div class="login-container">
+            <h2>Selamat Datang!</h2>
 
-        <?php if(!empty($error_message)): ?>
-            <div class="alert alert-danger" role="alert">
-                <?php echo $error_message; ?>
-            </div>
-        <?php endif; ?>
+            <?php if(!empty($error_message)): ?>
+                <div class="alert alert-danger" role="alert">
+                    <?= htmlspecialchars($error_message) ?>
+                </div>
+            <?php endif; ?>
 
-        <?php if(!empty($success_message)): ?>
-        <div class="alert alert-success" role="alert">
-            <?php echo $success_message; ?>
+            <?php if(!empty($success_message)): ?>
+                <div class="alert alert-success" role="alert">
+                    <?= htmlspecialchars($success_message) ?>
+                </div>
+            <?php endif; ?>
+
+            <form id="loginForm" method="POST">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input
+                        name="username"
+                        type="text"
+                        class="form-control"
+                        id="username"
+                        placeholder="Masukkan username"
+                        required
+                        autofocus
+                    />
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-group">
+                        <input
+                            name="password"
+                            type="password"
+                            class="form-control"
+                            id="password"
+                            placeholder="Masukkan password"
+                            required
+                        />
+                        <button
+                            class="btn btn-outline-dark"
+                            type="button"
+                            id="togglePassword"
+                            onclick="togglePasswordVisibility()"
+                        >
+                            <i class="bi bi-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="remember-forgot">
+                    <div>
+                        <input type="checkbox" id="rememberMe" name="rememberMe"/>
+                        <label for="rememberMe" class="form-check-label">Ingat Saya</label>
+                    </div>
+                    <div>
+                        <a href="forgotPass.php">Lupa Password?</a>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Login</button>
+            </form>
         </div>
-        <?php endif; ?>
-
-        <form id="loginForm" method="POST">
-          <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input
-              name="username"
-              type="text"
-              class="form-control"
-              id="username"
-              placeholder="Masukkan username"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label for="password" class="form-label required">Password</label>
-            <div class="input-group">
-              <input
-                name="password"
-                type="password"
-                class="form-control"
-                id="password"
-                placeholder="Masukkan password"
-                required
-              />
-              <button
-                class="btn btn-outline-dark"
-                type="button"
-                id="togglePassword"
-                onclick="togglePasswordVisibility()"
-              >
-                <i class="bi bi-eye" id="eyeIcon"></i>
-              </button>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label for="role" class="form-label">Role</label>
-              <select class="form-control" id="role" name="role" required>
-                <option value="" disabled>Pilih Role</option>
-                <option value="admin" name="admin">Admin</option>
-                <option value="cashier" name="cashier">Kasir</option>
-              </select>
-          </div>
-
-          <!-- Remember Me dan Forgot Password -->
-          <div class="remember-forgot">
-            <div>
-              <input type="checkbox" id="rememberMe" name="rememberMe"/>
-              <label for="rememberMe" class="form-check-label"
-                >Ingat Saya</label
-              >
-            </div>
-            <div>
-              <a href="forgotPass.php">Lupa Password?</a>
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-primary w-100">Login</button>
-        </form>
-      </div>
     </div>
+
+    <script>
+        function togglePasswordVisibility() {
+            const passwordField = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                eyeIcon.classList.remove('bi-eye');
+                eyeIcon.classList.add('bi-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                eyeIcon.classList.remove('bi-eye-slash');
+                eyeIcon.classList.add('bi-eye');
+            }
+        }
+    </script>
 
 <?php
 include '../views/footer-login.php';
