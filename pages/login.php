@@ -1,23 +1,23 @@
 <?php
 session_start(); 
 
-// --- Bagian 1: Pengaturan Session & Pesan ---
+// ---  Pengaturan Session & Pesan ---
 $success_message = ''; // untuk menyimpan notifikasi yang akan ditampilkan
 $error_message = "";
-if (isset($_SESSION['success_message'])) { 
-    $success_message = $_SESSION['success_message'];
-    unset($_SESSION['success_message']);
+if (isset($_SESSION['success_message'])) { // memeriksa apakah dalam sesi terdapat success message
+    $success_message = $_SESSION['success_message']; // jika ada data disimpan untuk ditampilkan ke user
+    unset($_SESSION['success_message']); // menghapus agar muncul sekali
 }
 
-// --- Bagian 2: Nonaktifkan Cache ---
+// ---  Nonaktifkan Cache ---
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
 
-// --- Bagian 3: Koneksi Database ---
+// ---  Koneksi Database ---
 require_once '../configdb.php';
 
-// --- Bagian 4: Proses Login (POST) ---
+// --- Proses Login (POST) ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") { // memastikan kode hanya dijalankan jika form dikirim dengan metode POST
     $username = mysqli_real_escape_string($conn, $_POST['username']); // mencegah sql injection
     $password = $_POST['password']; // tidak menggunakan mysqli_real_escape_string karena akan di hash
@@ -36,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") { // memastikan kode hanya dijalankan 
         if ($result->num_rows === 1) {
             $user = $result->fetch_assoc(); // mengonversi hasil query ke array asosiatif
             
-            // --- Perbaikan 1: Verifikasi Password dengan Hash ---
+            // ---  Verifikasi Password dengan Hash ---
             if (password_verify($password, $user['password'])) { 
                 $_SESSION['user'] = [
                     'id' => $user['id'],
@@ -45,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") { // memastikan kode hanya dijalankan 
                     'full_name' => $user['full_name']
                 ];
 
-                // --- Perbaikan 2: Cookie "Ingat Saya" ---
+                // ---  Cookie "Ingat Saya" ---
                 if (isset($_POST['rememberMe'])) {
                     // Set cookie berlaku 30 hari
                     $cookie_name = "remember_user";
