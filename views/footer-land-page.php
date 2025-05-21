@@ -51,7 +51,7 @@
 
       <div class="footer-copyright">
         <div class="footer-items large-container">
-          <div class="footer-left">&copy; 2024 BOLOOO. All Rights Reserved</div>
+          <div class="footer-left">&copy; <?= date('Y') ?> BOLOOO. All Rights Reserved</div>
 
           <div class="footer-mid">
             <img
