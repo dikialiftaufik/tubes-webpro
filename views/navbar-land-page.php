@@ -11,14 +11,14 @@ if (session_status() === PHP_SESSION_NONE) {
         <div class="nav large-container">
           <ul>
             <li data-aos="fade-down" data-aos-duration="500">
-              <a href="index.html">Home</a>
+              <a href="index.php">Home</a>
             </li>
             <li
               data-aos="fade-down"
               data-aos-duration="500"
               data-aos-delay="100"
             >
-              <a href="AboutUs.html">About</a>
+              <a href="AboutUs.php">About</a>
             </li>
             <li
               data-aos="fade-down"
@@ -59,7 +59,7 @@ if (session_status() === PHP_SESSION_NONE) {
               data-aos-duration="500"
               data-aos-delay="600"
             >
-              <a href="findJobs.html">Karir</a>
+              <a href="#">Karir</a>
             </li>
             <li
               data-aos="fade-down"
@@ -73,11 +73,12 @@ if (session_status() === PHP_SESSION_NONE) {
 
             <!-- Notification -->
             <li
-  class="notification-dropdown"
-  data-aos="fade-down"
-  data-aos-duration="500"
-  data-aos-delay="800"
->
+              class="notification-dropdown"
+              data-aos="fade-down"
+              data-aos-duration="500"
+              data-aos-delay="800"
+            >
+
   <a href="#">
     <i class="fas fa-bell"></i>
     <span class="notification-badge">3</span>
