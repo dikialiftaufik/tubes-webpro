@@ -309,6 +309,7 @@ include '../views/sidebar.php';
                         <div class="mb-3">
                             <label>Image URL:</label>
                             <input type="url" id="showImageUrl" class="form-control" required>
+                            <!-- Image preview container will be added here dynamically when viewing -->
                         </div>
                         <div class="mb-3">
                             <label>Type:</label>
@@ -396,11 +397,31 @@ $(document).ready(function() {
             // Fill form
             $('#showName').val(menu.name).prop('readonly', isView);
             $('#showImageUrl').val(menu.image_url).prop('readonly', isView);
+            
+            // Add image preview for view mode
+            if (isView) {
+                // Check if image container already exists, if not create it
+                if ($('#imagePreviewContainer').length === 0) {
+                    $('#showImageUrl').after('<div id="imagePreviewContainer" class="mt-2"><img id="imagePreview" class="img-fluid rounded" style="max-height: 200px;" /></div>');
+                }
+                // Display the image
+                $('#imagePreview').attr('src', '../uploads/menu/' + menu.image_url);
+                $('#imagePreviewContainer').show();
+            } else {
+                // Hide the image preview in edit mode
+                if ($('#imagePreviewContainer').length > 0) {
+                    $('#imagePreviewContainer').hide();
+                }
+            }
+            
             $('#showType').val(menu.type).prop('disabled', isView);
             $('#showPrice').val(menu.price).prop('readonly', isView);
             $('#showCalories').val(menu.calories).prop('readonly', isView);
             $('#showIngredients').val(menu.ingredients).prop('readonly', isView);
             $('#showDescription').val(menu.description).prop('readonly', isView);
+
+            // Update modal title based on mode
+            $('.modal-title').text(isView ? 'Detail Menu' : 'Edit Menu');
 
             // Toggle save button
             $('#saveMenuChangesBtn').toggle(!isView);
