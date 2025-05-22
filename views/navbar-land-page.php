@@ -18,7 +18,7 @@ if (session_status() === PHP_SESSION_NONE) {
               data-aos-duration="500"
               data-aos-delay="100"
             >
-              <a href="AboutUs.php">About</a>
+              <a href="zufar/AboutUs.php">About</a>
             </li>
             <li
               data-aos="fade-down"
