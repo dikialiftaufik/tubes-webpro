@@ -152,16 +152,16 @@ require_once 'views/alerts-land-page.php';
             <div class="form-row">
               <div class="form-group">
                 <label for="order_date">Tanggal</label>
-                <input type="text" name="order_date" id="order_date" placeholder="Pilih Tanggal" class="form-control" required>
+                <input type="date" name="order_date" id="order_date" class="form-control" required min="<?php echo date('Y-m-d'); ?>">
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label for="start-time">Jam Mulai</label>
-                  <input type="time" name="start_time" id="start-time" placeholder="Masukkan Jam" required>
+                  <label for="start_time">Jam Mulai</label>
+                  <input type="time" name="start_time" id="start_time" placeholder="Masukkan Jam" required>
                 </div>
                 <div class="form-group">
-                  <label for="end-time">Jam Selesai</label>
-                  <input type="time" name="end_time" id="end-time" placeholder="Masukkan Jam" required>
+                  <label for="end_time">Jam Selesai</label>
+                  <input type="time" name="jam_selesai" id="end_time" placeholder="Masukkan Jam" required>
                 </div>
               </div>
             </div>

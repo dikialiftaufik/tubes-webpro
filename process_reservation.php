@@ -14,13 +14,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_reservation'])
     $jumlah_orang = (int)$_POST['table_capacity'];
     $tanggal = mysqli_real_escape_string($conn, $_POST['order_date']);
     $jam_mulai = mysqli_real_escape_string($conn, $_POST['start_time']);
-    $jam_selesai = mysqli_real_escape_string($conn, $_POST['end_time']);
+    $jam_selesai = mysqli_real_escape_string($conn, $_POST['jam_selesai']);
     $pesanan = mysqli_real_escape_string($conn, $_POST['order']);
     $status = 'Pending'; // Status default
 
     // Query untuk insert data reservasi
     $stmt = $conn->prepare("INSERT INTO reservation (nama, jumlah_orang, tanggal, jam_mulai, jam_selesai, pesanan, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sississ", $nama, $jumlah_orang, $tanggal, $jam_mulai, $jam_selesai, $pesanan, $status);
+    $stmt->bind_param("sisssss", $nama, $jumlah_orang, $tanggal, $jam_mulai, $jam_selesai, $pesanan, $status);
 
     if ($stmt->execute()) {
         $_SESSION['reservation_success'] = true;
