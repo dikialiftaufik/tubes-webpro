@@ -1,7 +1,8 @@
 <?php
 session_start();
-include './configdb.php';
-include './views/header.php';
+require_once __DIR__ . '/../configdb.php';
+// Perbaikan path include - hapus slash di depan
+include __DIR__ . '/../views/header.php';
 ?>
 <!doctype html>
 <html lang="id">

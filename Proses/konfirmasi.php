@@ -1,6 +1,7 @@
 <?php
 session_start();
-include './configdb.php';
+include '../configdb.php';
+
 
 // Redirect jika tidak ada data pembayaran
 if (!isset($_SESSION['data_pembayaran']) || empty($_SESSION['data_pembayaran'])) {

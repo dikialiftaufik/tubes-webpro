@@ -102,7 +102,7 @@ bersihkanSession();
         .btn {
             display: inline-block;
             padding: 10px 20px;
-            background-color: #4CAF50;
+            background-color:rgb(236, 47, 47);
             color: white;
             text-decoration: none;
             border-radius: 4px;

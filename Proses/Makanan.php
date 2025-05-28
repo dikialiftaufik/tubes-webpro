@@ -1,8 +1,9 @@
 <?php
-require_once 'configdb.php';
+require_once __DIR__ . '/../configdb.php';
+
 include './views/header.php';
-// Query untuk mengambil data makanan
-$sql = "SELECT name AS nama_makanan, price AS harga, image_url AS gambar, description AS deskripsi FROM menu";
+// Query untuk mengambil data makanan - tambahkan ID
+$sql = "SELECT id, name AS nama_makanan, price AS harga, image_url AS gambar, description AS deskripsi FROM menu";
 
 $result = $conn->query($sql);
 ?>
@@ -13,7 +14,6 @@ $result = $conn->query($sql);
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Menu Makanan</title>
-  <link rel="stylesheet" href="assets/css/style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     body {
@@ -51,6 +51,7 @@ $result = $conn->query($sql);
       width: 300px;
       overflow: hidden;
       transition: transform 0.3s ease;
+      position: relative; /* Untuk positioning button */
     }
     .card:hover {
       transform: translateY(-5px);
@@ -59,6 +60,7 @@ $result = $conn->query($sql);
       width: 100%;
       height: 200px;
       object-fit: cover;
+      background-color: #f0f0f0; /* Background untuk loading */
     }
     .card h2 {
       font-size: 1.5rem;
@@ -68,19 +70,62 @@ $result = $conn->query($sql);
       margin: 0 16px 16px;
       color: #555;
     }
-    .order-button {
-      display: block;
-      width: calc(100% - 32px);
+    
+    /* Area konten yang bisa diklik untuk ke detail */
+    .card-content {
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    
+    .card-content:hover {
+      background-color: #f8f9fa;
+    }
+    
+    /* Modifikasi untuk button area */
+    .card-buttons {
+      display: flex;
+      gap: 8px;
       margin: 0 16px 16px;
+    }
+    
+    .detail-button {
+      flex: 1;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      text-align: center;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    
+    .detail-button:hover {
+      background-color: #0056b3;
+    }
+    
+    .order-button {
+      flex: 1;
       padding: 10px;
       background-color: rgb(233, 2, 2);
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      font-size: 1rem;
+      font-size: 0.9rem;
       text-align: center;
       text-decoration: none;
+      transition: background-color 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
     }
     .order-button:hover {
       background-color: rgb(124, 9, 9);
@@ -172,6 +217,19 @@ $result = $conn->query($sql);
     footer a:hover {
       text-decoration: underline;
     }
+
+    /* Style untuk gambar error/tidak ditemukan */
+    .image-placeholder {
+      width: 100%;
+      height: 200px;
+      background-color: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-size: 14px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -183,18 +241,66 @@ $result = $conn->query($sql);
       <?php if ($result && $result->num_rows > 0): ?>
         <?php while ($row = $result->fetch_assoc()): ?>
           <div class="card">
-            <!-- langsung menggunakan image_url dari database -->
-            <img 
-              src="<?php echo $row['gambar']; ?>" 
-              alt="<?php echo htmlspecialchars($row['nama_makanan']); ?>"
-              onerror="this.onerror=null; this.src='assets/images/default.jpg';"
-            />
-            <h2><?php echo htmlspecialchars($row['nama_makanan']); ?></h2>
-            <p><?php echo htmlspecialchars($row['deskripsi'] ?? ''); ?></p>
-            <p>Harga: Rp <?php echo number_format($row['harga'], 0, ',', '.'); ?></p>
-            <button class="order-button" onclick="tambahKeKeranjang('<?php echo htmlspecialchars($row['nama_makanan']); ?>', <?php echo $row['harga']; ?>)">
-              <i class="fas fa-shopping-cart"></i> Pesan
-            </button>
+            <?php
+            // Debug: tampilkan path gambar yang digunakan
+            $image_path = '';
+            
+            // Coba beberapa kemungkinan path
+            $possible_paths = [
+                'uploads/menu/' . basename($row['gambar']),           // uploads/menu/filename.jpg
+                '../uploads/menu/' . basename($row['gambar']),        // ../uploads/menu/filename.jpg  
+                '../../uploads/menu/' . basename($row['gambar']),     // ../../uploads/menu/filename.jpg
+                'uploads/menu/' . basename($row['gambar']),    // uploads/menu/filename.jpg
+                '../uploads/menu/' . basename($row['gambar']), // ../uploads/menu/filename.jpg
+                $row['gambar']                               // Path asli dari database
+            ];
+            
+            // Pilih path yang ada
+            foreach ($possible_paths as $path) {
+                if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/' . $path) || 
+                    file_exists($path) || 
+                    filter_var($path, FILTER_VALIDATE_URL)) {
+                    $image_path = $path;
+                    break;
+                }
+            }
+            
+            // Jika tidak ada yang ditemukan, gunakan path default
+            if (empty($image_path)) {
+                $image_path = 'uploads/menu/' . basename($row['gambar']);
+            }
+            ?>
+            
+            <!-- Area konten yang bisa diklik untuk menuju detail -->
+            <div class="card-content" onclick="window.location.href='detail.php?id=<?php echo $row['id']; ?>'">
+              <img 
+                src="<?php echo htmlspecialchars($image_path); ?>" 
+                alt="<?php echo htmlspecialchars($row['nama_makanan']); ?>"
+                onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';"
+              />
+              <!-- Placeholder jika gambar tidak bisa dimuat -->
+              <div class="image-placeholder" style="display: none;">
+                <div>
+                  <i class="fas fa-image" style="font-size: 2rem; color: #ccc;"></i><br>
+                  Gambar tidak tersedia<br>
+                  <small><?php echo htmlspecialchars($row['nama_makanan']); ?></small>
+                </div>
+              </div>
+              
+              <h2><?php echo htmlspecialchars($row['nama_makanan']); ?></h2>
+              <p><?php echo htmlspecialchars($row['deskripsi'] ?? ''); ?></p>
+              <p>Harga: Rp <?php echo number_format($row['harga'], 0, ',', '.'); ?></p>
+            </div>
+            
+            <!-- Area button yang tidak ikut onclick ke detail -->
+            <div class="card-buttons">
+              <a href="detail.php?id=<?php echo $row['id']; ?>" class="detail-button">
+                <i class="fas fa-info-circle"></i> Detail
+              </a>
+              <button class="order-button" onclick="event.stopPropagation(); tambahKeKeranjang('<?php echo htmlspecialchars($row['nama_makanan']); ?>', <?php echo $row['harga']; ?>)">
+                <i class="fas fa-shopping-cart"></i> Pesan
+              </button>
+            </div>
           </div>
         <?php endwhile; ?>
       <?php else: ?>
@@ -217,9 +323,9 @@ $result = $conn->query($sql);
     </div>
   </div>
 
-  <footer>|
+  <footer>
     <a href="saran.php">Kritik & Saran</a>
-  |</footer>
+  </footer>
 
   <script>
     // Periksa keranjang saat halaman dimuat
@@ -295,15 +401,13 @@ $result = $conn->query($sql);
       }
     }
     
-    // Tambahan menu makanan
+    // Tambahan untuk menangkap perubahan pada storage di tab/window lain
     window.addEventListener('storage', function(e) {
       if (e.key === 'keranjang') {
         updateCartPanel();
       }
     });
   </script>
-  
-  <script src="assets/js/script.js"></script>
 </body>
 </html>
 

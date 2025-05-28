@@ -205,7 +205,7 @@ if (session_status() === PHP_SESSION_NONE) {
           <h3>Mulai Perjalanan Kuliner Anda dengan Satu Klik!</h3>
           <h1>BOLOOO</h1>
           <div class="hero-cta">
-            <a href="formPemesanan.php">
+            <a href="proses/formPemesanan.php">
               <button class="cta-button">Pesan Sekarang</button>
             </a>
 
