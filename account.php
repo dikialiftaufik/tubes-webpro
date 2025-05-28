@@ -26,21 +26,21 @@
         <div class="nav large-container">
           <ul>
             <li data-aos="fade-down" data-aos-duration="500">
-              <a href="index.html">Home</a>
+              <a href="index.php">Home</a>
             </li>
             <li
               data-aos="fade-down"
               data-aos-duration="500"
               data-aos-delay="100"
             >
-              <a href="AboutUs.html">About</a>
+              <a href="AboutUs.php">About</a>
             </li>
             <li
               data-aos="fade-down"
               data-aos-duration="500"
               data-aos-delay="200"
             >
-              <a href="Makanan.html">Menu</a>
+              <a href="Makanan.php">Menu</a>
             </li>
             <li
               data-aos="fade-down"
@@ -74,14 +74,14 @@
               data-aos-duration="500"
               data-aos-delay="600"
             >
-              <a href="findJobs.html">Karir</a>
+              <a href="findJobs.php">Karir</a>
             </li>
             <li
               data-aos="fade-down"
               data-aos-duration="500"
               data-aos-delay="700"
             >
-              <a href="findJobs.html">
+              <a href="findJobs.php">
                 <i class="fas fa-shopping-cart"></i>
               </a>
             </li>
@@ -138,17 +138,17 @@
       <div class="user-name">dikialift13</div>
     </div>
     <div class="dropdown-divider"></div>
-    <a href="account.html" class="dropdown-item">
+    <a href="account.php" class="dropdown-item">
       <i class="fas fa-user-cog"></i> <p> Akun Saya</p>
     </a>
-    <a href="orders.html" class="dropdown-item">
+    <a href="orders.php" class="dropdown-item">
       <i class="fas fa-box"></i> <p> Pesanan Saya</p>
     </a>
-    <a href="reservations.html" class="dropdown-item">
+    <a href="reservations.php" class="dropdown-item">
       <i class="fas fa-calendar-alt"></i> <p> Reservasi Saya</p>
     </a>
     <div class="dropdown-divider"></div>
-    <a href="signout.html" class="dropdown-item logout">
+    <a href="signout.php" class="dropdown-item logout">
       <i class="fas fa-sign-out-alt"></i> <p> Sign Out</p>
     </a>
   </div>
@@ -181,13 +181,13 @@
 
         <div class="nav-mobile-main">
           <div>
-            <a href="index.html">Home</a>
+            <a href="index.php">Home</a>
           </div>
           <div>
-            <a href="about.html">About Us</a>
+            <a href="about.php">About Us</a>
           </div>
           <div>
-            <a href="Makanan.html">Menu</a>
+            <a href="Makanan.php">Menu</a>
           </div>
           <div>
             <a href="#reservation">Reservation</a>
@@ -196,7 +196,7 @@
             <a href="#location">Location</a>
           </div>
           <div>
-            <a href="findJobs.html">Find Jobs</a>
+            <a href="findJobs.php">Find Jobs</a>
           </div>
         </div>
       </nav>
@@ -213,19 +213,19 @@
     </div>
     <ul class="sidebar-menu">
       <li>
-        <a href="account.html">
+        <a href="account.php">
           <i class="fas fa-user"></i>
           <span>Akun Saya</span>
         </a>
       </li>
       <li>
-        <a href="orders.html" class="active">
+        <a href="orders.php" class="active">
           <i class="fas fa-box"></i>
           <span>Pesanan Saya</span>
         </a>
       </li>
       <li>
-        <a href="reservations.html">
+        <a href="reservations.php">
           <i class="fas fa-calendar-alt"></i>
           <span>Reservasi Saya</span>
         </a>
@@ -322,57 +322,12 @@
 
         <form class="security-form" id="securityForm">
             <div class="form-group">
-                <label for="currentPassword">Current Password</label>
+                <label for="currentPassword">Password</label>
                 <input type="password" id="currentPassword" name="currentPassword" disabled placeholder="••••••••">
-            </div>
-
-            <div class="form-group">
-                <label for="newPassword">New Password</label>
-                <input type="password" id="newPassword" name="newPassword" disabled placeholder="••••••••">
-            </div>
-
-            <div class="form-group">
-                <label for="confirmPassword">Confirm New Password</label>
-                <input type="password" id="confirmPassword" name="confirmPassword" disabled placeholder="••••••••">
             </div>
 
             <button type="submit" class="btn save-btn" style="display: none;">
                 <i class="fas fa-save"></i> Save Changes
-            </button>
-        </form>
-    </section>
-
-    <!-- Notification Settings Section -->
-    <section class="account-section">
-        <div class="section-header">
-            <h2>Notification Settings</h2>
-        </div>
-
-        <form class="notification-form" id="notificationForm">
-            <!-- Updated Notification Settings HTML -->
-<div class="notification-group">
-    <label class="toggle-label">
-        <div class="toggle-container">
-            <input type="checkbox" class="toggle-input" checked>
-            <span class="toggle-slider"></span>
-        </div>
-        <span class="toggle-text">Notifikasi email untuk informasi penawaran spesial</span>
-    </label>
-</div>
-
-            <!-- Updated Notification Settings HTML -->
-<div class="notification-group">
-    <label class="toggle-label">
-        <div class="toggle-container">
-            <input type="checkbox" class="toggle-input" checked>
-            <span class="toggle-slider"></span>
-        </div>
-        <span class="toggle-text">Pemberitahuan melalui email untuk diskon dan keuntungan eksklusif</span>
-    </label>
-</div>
-
-            <button type="submit" class="btn save-notifications-btn">
-                <i class="fas fa-bell"></i> Save Notification Preferences
             </button>
         </form>
     </section>
@@ -410,7 +365,7 @@
           <div data-aos="fade-up" data-aos-delay="200">
             <h3>Unduh Aplikasi</h3>
             <div>
-              <a href="formPemesanan.html">
+              <a href="formPemesanan.php">
                 <img
                   src="img/logo/google-play-icon.png"
                   alt="Google Play"
@@ -420,7 +375,7 @@
             </div>
 
             <div>
-              <a href="formPemesanan.html">
+              <a href="formPemesanan.php">
                 <img
                   src="img/logo/app-store-icon.png"
                   alt="App Store"
@@ -434,7 +389,7 @@
 
       <div class="footer-copyright">
         <div class="footer-items large-container">
-          <div class="footer-left">&copy; 2024 BOLOOO. All Rights Reserved</div>
+          <div class="footer-left">&copy; <?= date('Y') ?> BOLOOO. All Rights Reserved</div>
 
           <div class="footer-mid">
             <img
@@ -481,7 +436,7 @@ function updateActiveSidebarMenu() {
     });
 
     // Add active class to the Account menu item
-    const accountMenuItem = document.querySelector('.sidebar-menu a[href="account.html"]');
+    const accountMenuItem = document.querySelector('.sidebar-menu a[href="account.php"]');
     if (accountMenuItem) {
         accountMenuItem.classList.add('active');
     }
@@ -704,7 +659,7 @@ function initializeNotificationSettings() {
 
                     // Simpan data ke localStorage sementara (simulasi)
                     localStorage.setItem("reservasiData", JSON.stringify(reservasiData));
-                    window.location.href = "admin/reservation.html";
+                    window.location.href = "admin/reservation.php";
                 }
             });
         } else {
@@ -714,7 +669,7 @@ function initializeNotificationSettings() {
                 position: "topRight",
                 timeout: 3000,
                 onClosing: function () {
-                    window.location.href = "login-register.html";
+                    window.location.href = "login-register.php";
                 }
             });
         }

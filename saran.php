@@ -130,7 +130,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <div class="nav large-container">
         <ul>
           <li data-aos="fade-down" data-aos-duration="500">
-            <a href="index.html">Home</a>
+            <a href="index.php">Home</a>
           </li>
           <li
             data-aos="fade-down"
@@ -144,14 +144,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             data-aos-duration="500"
             data-aos-delay="200"
           >
-            <a href="Makanan.html">Menu</a>
+            <a href="Makanan.php">Menu</a>
           </li>
           <li
             data-aos="fade-down"
             data-aos-duration="500"
             data-aos-delay="400"
           >
-            <a href="#reservation">Reservasi</a>
+            <a href="index.php #reservation">Reservasi</a>
           </li>
         </ul>
 
@@ -171,14 +171,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             data-aos-duration="500"
             data-aos-delay="500"
           >
-            <a href="#location">Lokasi</a>
+            <a href="index.php #location">Lokasi</a>
           </li>
           <li
             data-aos="fade-down"
             data-aos-duration="500"
             data-aos-delay="600"
           >
-            <a href="findJobs.html">Karir</a>
+            <a href="findJobs.php">Karir</a>
           </li>
           <li
             data-aos="fade-down"
@@ -285,13 +285,13 @@ data-aos-delay="900"
 
       <div class="nav-mobile-main">
         <div>
-          <a href="index.html">Home</a>
+          <a href="index.php">Home</a>
         </div>
         <div>
           <a href="about.html">About Us</a>
         </div>
         <div>
-          <a href="Makanan.html">Menu</a>
+          <a href="Makanan.php">Menu</a>
         </div>
         <div>
           <a href="#reservation">Reservation</a>

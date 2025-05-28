@@ -1132,6 +1132,11 @@ input[type="time"]:hover::-webkit-calendar-picker-indicator {
   border: 1px solid #eee;
 }
 
+.dropdown-item[href="account.html"] i,
+.dropdown-item[href="account.html"] p {
+  color: #007bff;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .username {
