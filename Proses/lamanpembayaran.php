@@ -4,14 +4,7 @@ session_start();
 // Cek apakah ada data pesanan dari localStorage yang dikirim via POST
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['pesanan_data'])) {
     $_SESSION['pesanan'] = json_decode($_POST['pesanan_data'], true);
-}
-
-// Jika tidak ada pesanan di session, coba ambil dari localStorage via JavaScript
-if (!isset($_SESSION['pesanan']) || empty($_SESSION['pesanan'])) {
-    // Jangan langsung redirect, beri kesempatan JavaScript untuk mengirim data
-    if (!isset($_GET['from_js'])) {
-        // Tampilkan halaman loading untuk menunggu data dari JavaScript
-    }
+    $_SESSION['data_loaded'] = true;
 }
 
 // Buat CSRF token
@@ -51,8 +44,8 @@ function validate_input($data) {
     return $errors;
 }
 
-// Jika form disubmit
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['nama'])) {
+// Jika form disubmit untuk pembayaran (bukan untuk loading data)
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['nama']) && !isset($_POST['pesanan_data'])) {
     $formData = [
         'nama' => trim($_POST['nama'] ?? ''),
         'email' => trim($_POST['email'] ?? ''),
@@ -63,6 +56,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['nama'])) {
     $errors = validate_input($formData);
 
     if (empty($errors)) {
+        // Hitung total jika belum ada
+        if (!isset($_SESSION['totalQuantity']) || !isset($_SESSION['totalPrice'])) {
+            $totalQuantity = 0;
+            $totalPrice = 0;
+            if (isset($_SESSION['pesanan'])) {
+                foreach ($_SESSION['pesanan'] as $item) {
+                    $totalQuantity += $item['quantity'];
+                    $totalPrice += $item['price'] * $item['quantity'];
+                }
+                $_SESSION['totalQuantity'] = $totalQuantity;
+                $_SESSION['totalPrice'] = $totalPrice;
+            }
+        }
+
         $_SESSION['data_pembayaran'] = [
             'nama' => $formData['nama'],
             'email' => $formData['email'],
@@ -76,6 +83,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['nama'])) {
         exit();
     }
 }
+
+// Hitung total pesanan jika ada
+$totalQuantity = 0;
+$totalPrice = 0;
+if (isset($_SESSION['pesanan']) && !empty($_SESSION['pesanan'])) {
+    foreach ($_SESSION['pesanan'] as $item) {
+        $totalQuantity += $item['quantity'];
+        $totalPrice += $item['price'] * $item['quantity'];
+    }
+    $_SESSION['totalQuantity'] = $totalQuantity;
+    $_SESSION['totalPrice'] = $totalPrice;
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -83,59 +102,73 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['nama'])) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pembayaran</title>
-    <!-- Perbaikan path CSS - sesuaikan dengan struktur folder Anda -->
-    <link rel="stylesheet" href="../css/lamanpembayaran.css" />
-    <!-- Alternatif path CSS jika tidak ada -->
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
             color: white;
             margin: 0;
             padding: 20px;
             min-height: 100vh;
         }
 
-        .container {
-            max-width: 600px;
+        .main-container {
+            max-width: 800px;
             margin: 0 auto;
-            background-color: #222;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            padding: 20px 0;
         }
 
-        .form-pembayaran {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #333;
-            padding: 30px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+        .payment-container {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+
+        .section-title {
+            color: #ff4500;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-divider {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ff4500, transparent);
+            margin: 30px 0;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
+            margin-bottom: 10px;
+            font-weight: 600;
             color: #fff;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         input[type="text"],
         input[type="email"],
         input[type="tel"] {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #555;
-            border-radius: 5px;
-            background-color: #444;
+            padding: 15px;
+            border: 2px solid #444;
+            border-radius: 10px;
+            background-color: #333;
             color: white;
             font-size: 16px;
             box-sizing: border-box;
+            transition: all 0.3s ease;
         }
 
         input[type="text"]:focus,
@@ -143,60 +176,144 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['nama'])) {
         input[type="tel"]:focus {
             outline: none;
             border-color: #ff4500;
-            background-color: #555;
+            background-color: #3a3a3a;
+            box-shadow: 0 0 15px rgba(255, 69, 0, 0.3);
         }
 
-        button {
+        .submit-btn {
             width: 100%;
-            padding: 15px;
-            background-color: #ff4500;
+            padding: 18px;
+            background: linear-gradient(135deg, #ff4500 0%, #e03e00 100%);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 20px;
         }
 
-        button:hover {
-            background-color: #e03e00;
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 69, 0, 0.4);
+        }
+
+        .submit-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         .error-message {
-            color: #dc3545;
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-            text-align: center;
-        }
-
-        h2 {
-            color: #ff4500;
+            color: #ff6b6b;
+            background: linear-gradient(135deg, #2d1b1b 0%, #1a1111 100%);
+            border: 1px solid #ff6b6b;
+            padding: 15px;
             margin-bottom: 20px;
+            border-radius: 8px;
             text-align: center;
+            font-weight: 500;
         }
 
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        li {
-            padding: 10px;
-            background-color: #444;
-            margin-bottom: 5px;
-            border-radius: 5px;
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: #333;
+            margin-bottom: 10px;
+            border-radius: 10px;
             border-left: 4px solid #ff4500;
+            transition: all 0.3s ease;
         }
 
-        .loading-message {
+        .order-item:hover {
+            background-color: #3a3a3a;
+            transform: translateX(5px);
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .item-quantity {
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        .item-price {
+            font-weight: bold;
+            color: #ff4500;
+            font-size: 16px;
+        }
+
+        .total-section {
+            margin-top: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, #333 0%, #2a2a2a 100%);
+            border-radius: 10px;
+            border: 2px solid #ff4500;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .total-row.grand-total {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff4500;
+            border-top: 2px solid #444;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-content {
             text-align: center;
             color: #ff4500;
             font-size: 18px;
-            margin: 50px 0;
+        }
+
+        .spinner {
+            border: 4px solid #333;
+            border-top: 4px solid #ff4500;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .no-data-message {
@@ -204,87 +321,138 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['nama'])) {
             color: #ccc;
             font-size: 16px;
             margin: 30px 0;
+            padding: 30px;
+            background-color: #333;
+            border-radius: 10px;
+        }
+
+        .no-data-message a {
+            color: #ff4500;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .no-data-message a:hover {
+            text-decoration: underline;
+        }
+
+        .order-summary-section {
+            margin-bottom: 30px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 10px;
+            }
+            
+            .payment-container {
+                padding: 25px;
+            }
+            
+            body {
+                padding: 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Loading message -->
-    <div id="loading-message" class="loading-message">
-        Memuat data pesanan...
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Memuat data pesanan...</p>
+        </div>
     </div>
 
     <!-- Main content -->
-    <div id="main-content" style="display: none;">
-        <div class="form-pembayaran">
-            <h2>Form Pembayaran</h2>
-            
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                <?php
-                if (!empty($errors)) {
-                    foreach ($errors as $error) {
-                        display_error($error);
-                    }
-                }
-                ?>
-                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+    <div id="main-content">
+        <div class="main-container">
+            <div class="payment-container">
+                <h1 class="section-title">Pembayaran</h1>
+                
+                <!-- Rincian Pesanan Section -->
+                <div class="order-summary-section">
+                    <h3 style="color: #ff4500; margin-bottom: 20px; font-size: 18px;">Rincian Pesanan</h3>
+                    <div id="order-items">
+                        <?php if (isset($_SESSION['pesanan']) && !empty($_SESSION['pesanan'])): ?>
+                            <?php foreach ($_SESSION['pesanan'] as $item): ?>
+                                <div class="order-item">
+                                    <div class="item-info">
+                                        <div class="item-name"><?php echo htmlspecialchars($item['name']); ?></div>
+                                        <div class="item-quantity">Jumlah: <?php echo $item['quantity']; ?></div>
+                                    </div>
+                                    <div class="item-price">
+                                        Rp <?php echo number_format($item['price'] * $item['quantity'], 0, ',', '.'); ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="no-data-message" id="no-data-msg">
+                                Tidak ada data pesanan.<br>
+                                <a href="makanan.php">Kembali ke menu</a>
+                            </div>
+                        <?php endif; ?>
+                    </div>
 
-                <div class="form-group">
-                    <label for="nama">Nama Pelanggan</label>
-                    <input type="text" name="nama" id="nama" required pattern="[a-zA-Z ]+"
-                           value="<?php echo htmlspecialchars($_POST['nama'] ?? ''); ?>" 
-                           placeholder="Masukkan nama lengkap" />
+                    <div class="total-section">
+                        <div class="total-row">
+                            <span>Total Item:</span>
+                            <span id="total-quantity"><?php echo $totalQuantity; ?></span>
+                        </div>
+                        <div class="total-row grand-total">
+                            <span>Total Harga:</span>
+                            <span>Rp <span id="total-price"><?php echo number_format($totalPrice, 0, ',', '.'); ?></span></span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="email">Email Pelanggan</label>
-                    <input type="email" name="email" id="email" required
-                           value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" 
-                           placeholder="contoh@email.com" />
+                <hr class="section-divider">
+
+                <!-- Form Pembayaran Section -->
+                <div class="form-section">
+                    <h3 style="color: #ff4500; margin-bottom: 20px; font-size: 18px;">Data Pembeli</h3>
+                    
+                    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" id="payment-form">
+                        <?php
+                        if (!empty($errors)) {
+                            foreach ($errors as $error) {
+                                display_error($error);
+                            }
+                        }
+                        ?>
+                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+
+                        <div class="form-group">
+                            <label for="nama">Nama Pelanggan</label>
+                            <input type="text" name="nama" id="nama" required pattern="[a-zA-Z ]+"
+                                   value="<?php echo htmlspecialchars($_POST['nama'] ?? ''); ?>" 
+                                   placeholder="Masukkan nama lengkap" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email Pelanggan</label>
+                            <input type="email" name="email" id="email" required
+                                   value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" 
+                                   placeholder="contoh@email.com" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="telepon">Nomor Telepon</label>
+                            <input type="tel" name="telepon" id="telepon" required pattern="[0-9]{10,15}"
+                                   value="<?php echo htmlspecialchars($_POST['telepon'] ?? ''); ?>" 
+                                   placeholder="08xxxxxxxxxx" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="metode">Metode Pembayaran</label>
+                            <input type="text" id="metode" name="metode" value="QRIS" readonly 
+                                   style="background-color: #555; cursor: not-allowed;" />
+                        </div>
+
+                        <button type="submit" class="submit-btn" id="submit-btn">Lanjutkan Pembayaran</button>
+                    </form>
                 </div>
-
-                <div class="form-group">
-                    <label for="telepon">Nomor Telepon</label>
-                    <input type="tel" name="telepon" id="telepon" required pattern="[0-9]{10,15}"
-                           value="<?php echo htmlspecialchars($_POST['telepon'] ?? ''); ?>" 
-                           placeholder="08xxxxxxxxxx" />
-                </div>
-
-                <div class="form-group">
-                    <label for="metode">Metode Pembayaran</label>
-                    <input type="text" id="metode" name="metode" value="QRIS" readonly 
-                           style="background-color: #555; cursor: not-allowed;" />
-                </div>
-
-                <button type="submit">Lanjutkan Pembayaran</button>
-            </form>
-        </div>
-
-        <div class="container">
-            <h2>Rincian Pesanan</h2>
-            <ul id="pesanan-list">
-                <?php
-                if (isset($_SESSION['pesanan']) && !empty($_SESSION['pesanan'])) {
-                    $totalQuantity = 0;
-                    $totalPrice = 0;
-                    foreach ($_SESSION['pesanan'] as $item) {
-                        $itemTotal = $item['price'] * $item['quantity'];
-                        echo "<li>{$item['name']} ({$item['quantity']}) - Rp " . number_format($itemTotal, 0, ',', '.') . "</li>";
-                        $totalQuantity += $item['quantity'];
-                        $totalPrice += $itemTotal;
-                    }
-                    $_SESSION['totalQuantity'] = $totalQuantity;
-                    $_SESSION['totalPrice'] = $totalPrice;
-                } else {
-                    echo "<li class='no-data-message'>Pesanan akan dimuat...</li>";
-                    $_SESSION['totalQuantity'] = 0;
-                    $_SESSION['totalPrice'] = 0;
-                }
-                ?>
-            </ul>
-
-            <div style="margin-top: 20px; padding: 15px; background-color: #444; border-radius: 5px;">
-                <p><strong>Total Makanan: <span id="total-quantity"><?php echo $_SESSION['totalQuantity'] ?? 0; ?></span></strong></p>
-                <p><strong>Total Harga: Rp <span id="total-price"><?php echo number_format($_SESSION['totalPrice'] ?? 0, 0, ',', '.'); ?></span></strong></p>
             </div>
         </div>
     </div>
@@ -296,48 +464,70 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['nama'])) {
     
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const loadingMessage = document.getElementById('loading-message');
-        const mainContent = document.getElementById('main-content');
-        const pesananList = document.getElementById('pesanan-list');
-        const totalQuantitySpan = document.getElementById('total-quantity');
-        const totalPriceSpan = document.getElementById('total-price');
+        const hasSessionData = <?php echo isset($_SESSION['pesanan']) && !empty($_SESSION['pesanan']) ? 'true' : 'false'; ?>;
+        const dataLoaded = <?php echo isset($_SESSION['data_loaded']) ? 'true' : 'false'; ?>;
         
-        // Cek apakah ada data pesanan di localStorage
-        const pesananData = localStorage.getItem('pesanan');
+        // Jika belum ada data di session dan belum pernah load data
+        if (!hasSessionData && !dataLoaded) {
+            loadDataFromLocalStorage();
+        } else {
+            // Data sudah ada, tampilkan form
+            enableForm();
+        }
         
-        if (pesananData) {
-            try {
-                const pesanan = JSON.parse(pesananData);
-                
-                if (pesanan && pesanan.length > 0) {
-                    // Kirim data ke session PHP
-                    document.getElementById('pesanan_data').value = pesananData;
-                    document.getElementById('pesanan-form').submit();
-                } else {
+        function loadDataFromLocalStorage() {
+            const pesananData = localStorage.getItem('keranjang');
+            
+            if (pesananData) {
+                try {
+                    const pesanan = JSON.parse(pesananData);
+                    
+                    if (pesanan && pesanan.length > 0) {
+                        // Tampilkan loading
+                        showLoading();
+                        
+                        // Kirim data ke server
+                        document.getElementById('pesanan_data').value = pesananData;
+                        document.getElementById('pesanan-form').submit();
+                    } else {
+                        showNoDataMessage();
+                    }
+                } catch (e) {
+                    console.error('Error parsing pesanan data:', e);
                     showNoDataMessage();
                 }
-            } catch (e) {
-                console.error('Error parsing pesanan data:', e);
+            } else {
                 showNoDataMessage();
             }
-        } else {
-            showNoDataMessage();
+        }
+        
+        function showLoading() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+        
+        function enableForm() {
+            hideLoading();
+            document.getElementById('submit-btn').disabled = false;
         }
         
         function showNoDataMessage() {
-            loadingMessage.style.display = 'none';
-            mainContent.style.display = 'block';
-            
-            pesananList.innerHTML = '<li class="no-data-message">Tidak ada data pesanan. <a href="makanan.php" style="color: #ff4500;">Kembali ke menu</a></li>';
-            totalQuantitySpan.textContent = '0';
-            totalPriceSpan.textContent = '0';
+            hideLoading();
+            document.getElementById('no-data-msg').style.display = 'block';
+            document.getElementById('submit-btn').disabled = true;
         }
         
-        // Jika sudah ada data di session, tampilkan langsung
-        <?php if (isset($_SESSION['pesanan']) && !empty($_SESSION['pesanan'])): ?>
-        loadingMessage.style.display = 'none';
-        mainContent.style.display = 'block';
-        <?php endif; ?>
+        // Disable form submission jika tidak ada data
+        document.getElementById('payment-form').addEventListener('submit', function(e) {
+            if (!hasSessionData && !<?php echo isset($_SESSION['pesanan']) && !empty($_SESSION['pesanan']) ? 'true' : 'false'; ?>) {
+                e.preventDefault();
+                alert('Tidak ada data pesanan. Silakan kembali ke menu untuk memilih makanan.');
+                return false;
+            }
+        });
     });
     </script>
 </body>

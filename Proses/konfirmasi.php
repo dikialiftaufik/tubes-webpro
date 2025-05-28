@@ -277,6 +277,7 @@ $dataPembayaran = $_SESSION['data_pembayaran'];
             <button type="submit" name="simulasi_pembayaran" class="btn">Simulasi Pembayaran Berhasil</button>
         </form>
         
+        
         <a href="index.php" class="btn" style="background-color: #f44336; margin-top: 10px;">Batalkan Pesanan</a>
     </div>
     
