@@ -279,7 +279,7 @@ if (!$stmt) {
     die("Error preparing query: " . $conn->error);
 }
 
-// PERBAIKAN 1: Membuat referensi untuk parameter binding
+// PERBAIKAN: Binding parameter yang benar
 $ref_params = [];
 foreach ($params as $key => $value) {
     $ref_params[$key] = &$params[$key];
@@ -315,7 +315,7 @@ if (!$stmt_total) {
     die("Error preparing total query: " . $conn->error);
 }
 
-// PERBAIKAN 2: Membuat referensi untuk parameter binding
+// PERBAIKAN: Binding parameter yang benar
 $ref_total_params = [];
 foreach ($total_params as $key => $value) {
     $ref_total_params[$key] = &$total_params[$key];
@@ -374,15 +374,10 @@ include '../views/sidebar.php';
                 <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#createTransactionModal">
                     <i class="bi bi-plus-circle"></i> Tambah Transaksi
                 </button>
-                <div class="btn-group">
-                    <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown">
-                        <i class="bi bi-download"></i> Export
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="?export=pdf&start_date=<?= isset($_GET['start_date']) ? urlencode($_GET['start_date']) : '' ?>&end_date=<?= isset($_GET['end_date']) ? urlencode($_GET['end_date']) : '' ?>"><i class="bi bi-file-pdf"></i> Export PDF</a></li>
-                        <li><a class="dropdown-item" href="?export=excel&start_date=<?= isset($_GET['start_date']) ? urlencode($_GET['start_date']) : '' ?>&end_date=<?= isset($_GET['end_date']) ? urlencode($_GET['end_date']) : '' ?>"><i class="bi bi-file-excel"></i> Export Excel</a></li>
-                    </ul>
-                </div>
+                <a href="?export=excel&amp;start_date=<?= !empty($start_date) ? urlencode($start_date) : '' ?>&amp;end_date=<?= !empty($end_date) ? urlencode($end_date) : '' ?>" 
+                class="btn btn-success me-2">
+                    <i class="bi bi-file-excel"></i> Export Excel
+                </a>
             </div>
         </div>
     </div>
@@ -452,7 +447,7 @@ include '../views/sidebar.php';
                             </th>
                             <th>Nama Pelanggan</th>
                             <th>Email</th>
-                            <th>Tanggal & Waktu Transaksi</th>
+                            <th>Tanggal Transaksi</th>
                             <th>Pesanan</th>
                             <th>Total Harga</th>
                             <th>Metode Pembayaran</th>
@@ -486,7 +481,12 @@ include '../views/sidebar.php';
                                 <button type="button" class="btn btn-sm btn-info view-btn" data-id="<?= $trans['id_transaksi'] ?>" title="Lihat Detail">
                                     <i class="bi bi-eye"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-primary print-btn" data-id="<?= $trans['id_transaksi'] ?>" title="Cetak">
+                                <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-primary print-btn" 
+                                    data-id="<?= htmlspecialchars($trans['id_transaksi'], ENT_QUOTES, 'UTF-8') ?>" 
+                                    title="Cetak"
+                                >
                                     <i class="bi bi-printer"></i>
                                 </button>
                             </td>
@@ -575,7 +575,13 @@ include '../views/sidebar.php';
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Pesanan:</label>
-                                <textarea name="pesanan" class="form-control" rows="6" placeholder="Masukkan detail pesanan..." required></textarea>
+                                <div id="pesanan-container">
+                                    <div class="input-group mb-2">
+                                        <input type="text" name="pesanan[]" class="form-control" placeholder="Nama menu" required>
+                                        <button type="button" class="btn btn-outline-danger remove-pesanan"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                </div>
+                                <button type="button" id="add-pesanan" class="btn btn-sm btn-secondary">Tambah Pesanan</button>
                             </div>
                         </div>
                     </div>
@@ -625,10 +631,16 @@ include '../views/sidebar.php';
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 <script>
 $(document).ready(function() {
+
     // Set default date to today (only date, no time)
     $('input[name="tanggal_transaksi"]').val(new Date().toISOString().split('T')[0]);
     
@@ -674,6 +686,19 @@ $(document).ready(function() {
         }).always(function() {
             submitBtn.prop('disabled', false).html('<i class="bi bi-save"></i> Simpan Transaksi');
         });
+    });
+
+    $('#add-pesanan').click(function() {
+    $('#pesanan-container').append(`
+        <div class="input-group mb-2">
+            <input type="text" name="pesanan[]" class="form-control" placeholder="Nama menu" required>
+            <button type="button" class="btn btn-outline-danger remove-pesanan"><i class="bi bi-trash"></i></button>
+        </div>
+    `);
+    });
+
+    $(document).on('click', '.remove-pesanan', function() {
+        $(this).closest('.input-group').remove();
     });
 
     // Handle View Detail
@@ -758,3 +783,47 @@ $(document).ready(function() {
 include '../views/footer.php'; 
 $conn->close();
 ?>
+
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+
+<script>
+    $('#exportExcel').on('click', function () {
+        table.button().add(0, {
+            extend: 'excelHtml5',
+            title: 'Laporan_Transaksi',
+            exportOptions: {
+                columns: ':visible'
+            }
+        }).trigger();
+    });
+
+    $('#exportWord').on('click', function () {
+        let html = "<table border='1'><tr>";
+        $('#tabel-laporan thead th').each(function () {
+            html += "<th>" + $(this).text() + "</th>";
+        });
+        html += "</tr>";
+
+        $('#tabel-laporan tbody tr').each(function () {
+            html += "<tr>";
+            $(this).find('td').each(function () {
+                html += "<td>" + $(this).text() + "</td>";
+            });
+            html += "</tr>";
+        });
+
+        html += "</table>";
+
+        const blob = new Blob(['﻿' + html], {
+            type: 'application/msword'
+        });
+        saveAs(blob, 'Laporan_Transaksi.doc');
+    });
+});
+</script>

@@ -1,5 +1,5 @@
 <?php
-// pages/print_transaction.php
+// pages/print_transaksi.php
 session_start();
 require_once '../configdb.php';
 
@@ -9,11 +9,12 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-$transaction_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+// PERBAIKAN: Gunakan string untuk ID transaksi
+$transaction_id = isset($_GET['id']) ? $_GET['id'] : '';
 
-if ($transaction_id > 0) {
-    $stmt = $conn->prepare("SELECT * FROM laporan WHERE id = ?");
-    $stmt->bind_param("i", $transaction_id);
+if (!empty($transaction_id)) {
+    $stmt = $conn->prepare("SELECT * FROM laporan WHERE id_transaksi = ?");
+    $stmt->bind_param("s", $transaction_id);
     $stmt->execute();
     $result = $stmt->get_result();
     $transaction = $result->fetch_assoc();
@@ -31,7 +32,7 @@ if ($transaction_id > 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Print Transaksi #<?= $transaction['id'] ?></title>
+    <title>Print Transaksi</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -62,8 +63,8 @@ if ($transaction_id > 0) {
         .transaction-info {
             margin-bottom: 30px;
         }
-        
-        .info-table {
+
+         .info-table {
             width: 100%;
             border-collapse: collapse;
         }
@@ -77,7 +78,7 @@ if ($transaction_id > 0) {
             font-weight: bold;
             width: 30%;
         }
-        
+       
         .order-details {
             margin-top: 30px;
         }
@@ -97,7 +98,7 @@ if ($transaction_id > 0) {
             white-space: pre-wrap;
             line-height: 1.6;
         }
-        
+
         .total-section {
             margin-top: 30px;
             text-align: right;
@@ -116,15 +117,95 @@ if ($transaction_id > 0) {
         
         .footer {
             margin-top: 50px;
-            text-align: center;
-            color: #666;
-            font-size: 12px;
+            color: #333;
+            font-size: 20px;
             border-top: 1px solid #eee;
             padding-top: 20px;
         }
         
         .payment-badge {
             display: inline-block;
-            padding: 5px 10px;
             border-radius: 15px;
-            font-size: 12
+            font-size: 12px;
+        }
+
+        @media print {    
+        @page {
+            @top-center {
+                content: ""; 
+            }
+            @bottom-center {
+                content: ""; 
+            }
+        }
+    }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">BOLOOO</div>
+        <div class="company-info">
+            Sate Solo Pak Komar
+        Jl. Sukapura No.76, Cipagalo, Kec. Bojongsoang<br>
+        Kabupaten Bandung | Telp: (021) 555-1234<br>
+            www.bolooo-resto.com | info@bolooo-resto.com
+        </div>
+    </div>
+
+    <div class="transaction-info">
+        <table class="info-table">
+            <tr>
+                <td>ID Transaksi</td>
+                <td>: <?= $transaction['id_transaksi'] ?></td>
+            </tr>
+            <tr>
+                <td>Tanggal Transaksi</td>
+                <td>: <?= date('d/m/Y H:i', strtotime($transaction['tanggal_transaksi'])) ?></td>
+            </tr>
+            <tr>
+                <td>Nama Pelanggan</td>
+                <td>: <?= htmlspecialchars($transaction['nama_pelanggan'], ENT_QUOTES, 'UTF-8') ?></td>
+            </tr>
+            <tr>
+                <td>Email</td>
+                <td>: <?= htmlspecialchars($transaction['email'], ENT_QUOTES, 'UTF-8') ?></td>
+            </tr>
+            <tr>
+                <td>Metode Pembayaran</td>
+                <td>: 
+                    <span class="payment-badge bg-<?= $transaction['metode_pembayaran'] == 'cash' ? 'success' : 'info' ?>">
+                        <?= $transaction['metode_pembayaran'] ?>
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="order-details">
+        <div class="order-title">Detail Pesanan</div>
+        <div class="order-content"><?= htmlspecialchars($transaction['pesanan'], ENT_QUOTES, 'UTF-8') ?></div>
+    </div>
+
+    <div class="total-section">
+        <div class="total-amount">
+            Total: Rp <?= number_format($transaction['total_harga'], 0, ',', '.') ?>
+        </div>
+    </div>
+
+    <div class="footer"></div>
+
+    <script>
+        document.title = " ";
+
+        window.addEventListener('load', function() {
+            window.print();
+        });
+        
+        window.addEventListener('afterprint', function() {
+            window.close();
+        });
+        
+        window.print();
+    </script>
+</body>
+</html>
