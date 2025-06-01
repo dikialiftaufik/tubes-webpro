@@ -195,12 +195,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Gabungkan tanggal dan waktu
         $tanggal_waktu = $tanggal_transaksi . ' ' . $waktu_transaksi . ':00';
         
-        $pesanan = filter_var($_POST['pesanan'], FILTER_SANITIZE_STRING);
+        // Ambil pesanan sebagai array
+        $pesanan = $_POST['pesanan'];
+        // Validasi: pastikan setidaknya ada satu pesanan
+        if (empty($pesanan)) {
+            http_response_code(400);
+            die(json_encode(['message' => 'Pesanan tidak boleh kosong']));
+        }
+        // Konversi array pesanan menjadi JSON
+        $pesanan_json = json_encode($pesanan);
+        
         $total_harga = filter_var($_POST['total_harga'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
         $metode_pembayaran = filter_var($_POST['metode_pembayaran'], FILTER_SANITIZE_STRING);
 
         // Debugging: log input data
-        error_log("Inserting transaction: $id_transaksi, $nama_pelanggan, $email, $tanggal_waktu, $pesanan, $total_harga, $metode_pembayaran");
+        error_log("Inserting transaction: $id_transaksi, $nama_pelanggan, $email, $tanggal_waktu, $pesanan_json, $total_harga, $metode_pembayaran");
 
         // Query INSERT menggunakan kolom id_transaksi
         $stmt = $conn->prepare("INSERT INTO laporan 
@@ -220,7 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nama_pelanggan, 
             $email, 
             $tanggal_waktu, 
-            $pesanan, 
+            $pesanan_json,  // Gunakan JSON
             $total_harga, 
             $metode_pembayaran
         );
@@ -280,7 +289,7 @@ if (!$stmt) {
 }
 
 // PERBAIKAN: Binding parameter yang benar
-$ref_params = [];
+$ref_params = []; // Array of references
 foreach ($params as $key => $value) {
     $ref_params[$key] = &$params[$key];
 }
@@ -316,7 +325,7 @@ if (!$stmt_total) {
 }
 
 // PERBAIKAN: Binding parameter yang benar
-$ref_total_params = [];
+$ref_total_params = []; // Array of references
 foreach ($total_params as $key => $value) {
     $ref_total_params[$key] = &$total_params[$key];
 }
@@ -458,8 +467,12 @@ include '../views/sidebar.php';
                         <?php 
                         $no = ($page - 1) * $selected_per_page + 1;
                         foreach($transaksi as $trans): 
+                            // Parse pesanan jika JSON, jika tidak, gunakan string biasa
+                            $pesanan = $trans['pesanan'];
+                            $pesananArray = json_decode($pesanan);
+                            $isArray = is_array($pesananArray);
                         ?>
-                        <tr>
+                        <tr data-pesanan="<?= htmlspecialchars($pesanan, ENT_QUOTES, 'UTF-8') ?>">
                             <td><?= $no++ ?></td>
                             <td><span class="badge bg-primary"><?= htmlspecialchars($trans['id_transaksi'], ENT_QUOTES, 'UTF-8') ?></span></td>
                             <td><?= htmlspecialchars($trans['nama_pelanggan'], ENT_QUOTES, 'UTF-8') ?></td>
@@ -467,9 +480,17 @@ include '../views/sidebar.php';
                             <!-- Tampilkan tanggal dan jam -->
                             <td><?= date('d/m/Y H:i', strtotime($trans['tanggal_transaksi'])) ?></td>
                             <td>
-                                <span class="text-truncate d-inline-block" style="max-width: 200px;" title="<?= htmlspecialchars($trans['pesanan'], ENT_QUOTES, 'UTF-8') ?>">
-                                    <?= htmlspecialchars($trans['pesanan'], ENT_QUOTES, 'UTF-8') ?>
-                                </span>
+                                <?php if ($isArray): ?>
+                                    <ul class="mb-0">
+                                        <?php foreach($pesananArray as $item): ?>
+                                            <li><?= htmlspecialchars($item, ENT_QUOTES, 'UTF-8') ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php else: ?>
+                                    <span class="text-truncate d-inline-block" style="max-width: 200px;" title="<?= htmlspecialchars($pesanan, ENT_QUOTES, 'UTF-8') ?>">
+                                        <?= htmlspecialchars($pesanan, ENT_QUOTES, 'UTF-8') ?>
+                                    </span>
+                                <?php endif; ?>
                             </td>
                             <td><strong class="text-success">Rp <?= number_format($trans['total_harga'], 0, ',', '.') ?></strong></td>
                             <td>
@@ -633,11 +654,6 @@ include '../views/sidebar.php';
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 <script>
 $(document).ready(function() {
 
@@ -688,34 +704,29 @@ $(document).ready(function() {
         });
     });
 
-    $('#add-pesanan').click(function() {
-    $('#pesanan-container').append(`
-        <div class="input-group mb-2">
-            <input type="text" name="pesanan[]" class="form-control" placeholder="Nama menu" required>
-            <button type="button" class="btn btn-outline-danger remove-pesanan"><i class="bi bi-trash"></i></button>
-        </div>
-    `);
-    });
-
-    $(document).on('click', '.remove-pesanan', function() {
-        $(this).closest('.input-group').remove();
-    });
-
     // Handle View Detail
     $(document).on('click', '.view-btn', function() {
-        const id = $(this).data('id');
-        
-        // Find transaction data from current page
         const row = $(this).closest('tr');
-        const cells = row.find('td');
+        const pesanan = row.data('pesanan');
         
-        $('#detailId').text($(cells[1]).find('.badge').text());
-        $('#detailNama').text(cells[2].textContent);
-        $('#detailEmail').text(cells[3].textContent);
-        $('#detailTanggal').text(cells[4].textContent);
-        $('#detailTotal').text(cells[6].textContent);
-        $('#detailMetode').html($(cells[7]).html());
-        $('#detailPesanan').text($(cells[5]).find('span').attr('title'));
+        try {
+            const pesananArray = JSON.parse(pesanan);
+            let html = '<ul>';
+            pesananArray.forEach(item => {
+                html += `<li>${item}</li>`;
+            });
+            html += '</ul>';
+            $('#detailPesanan').html(html);
+        } catch (e) {
+            $('#detailPesanan').text(pesanan);
+        }
+        
+        $('#detailId').text(row.find('td:eq(1) span.badge').text());
+        $('#detailNama').text(row.find('td:eq(2)').text());
+        $('#detailEmail').text(row.find('td:eq(3)').text());
+        $('#detailTanggal').text(row.find('td:eq(4)').text());
+        $('#detailTotal').text(row.find('td:eq(6) strong').text());
+        $('#detailMetode').html(row.find('td:eq(7) span').clone().wrap('<div>').parent().html());
         
         $('#detailTransactionModal').modal('show');
     });
@@ -776,6 +787,21 @@ $(document).ready(function() {
     <?php if ($end_date): ?>
         $('#endDate').val('<?= $end_date ?>');
     <?php endif; ?>
+
+    // Tambah input pesanan
+    $('#add-pesanan').click(function() {
+        $('#pesanan-container').append(`
+            <div class="input-group mb-2">
+                <input type="text" name="pesanan[]" class="form-control" placeholder="Nama menu" required>
+                <button type="button" class="btn btn-outline-danger remove-pesanan"><i class="bi bi-trash"></i></button>
+            </div>
+        `);
+    });
+
+    // Hapus input pesanan
+    $(document).on('click', '.remove-pesanan', function() {
+        $(this).closest('.input-group').remove();
+    });
 });
 </script>
 
@@ -783,47 +809,3 @@ $(document).ready(function() {
 include '../views/footer.php'; 
 $conn->close();
 ?>
-
-
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
-
-<script>
-    $('#exportExcel').on('click', function () {
-        table.button().add(0, {
-            extend: 'excelHtml5',
-            title: 'Laporan_Transaksi',
-            exportOptions: {
-                columns: ':visible'
-            }
-        }).trigger();
-    });
-
-    $('#exportWord').on('click', function () {
-        let html = "<table border='1'><tr>";
-        $('#tabel-laporan thead th').each(function () {
-            html += "<th>" + $(this).text() + "</th>";
-        });
-        html += "</tr>";
-
-        $('#tabel-laporan tbody tr').each(function () {
-            html += "<tr>";
-            $(this).find('td').each(function () {
-                html += "<td>" + $(this).text() + "</td>";
-            });
-            html += "</tr>";
-        });
-
-        html += "</table>";
-
-        const blob = new Blob(['﻿' + html], {
-            type: 'application/msword'
-        });
-        saveAs(blob, 'Laporan_Transaksi.doc');
-    });
-});
-</script>

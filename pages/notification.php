@@ -1,122 +1,90 @@
 <?php
-// pages/notification.php
+// pages/notification_admin.php
 session_start();
 require_once '../configdb.php';
 
 // Cek auth admin
-if (!isset($_SESSION['user'])) {
+if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
     header("Location: login.php");
     exit();
 }
-if ($_SESSION['user']['role'] !== 'admin') {
-    header("Location: dashboard.php");
-    exit();
-}
 
-// Fungsi untuk handle delete
+// Handle CRUD operations
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         $action = $_POST['action'];
-        $id = $_POST['id'];
-
-        if ($action === 'delete') {
+        
+        if ($action === 'create') {
+            $title = $_POST['title'];
+            $message = $_POST['message'];
+            $image_path = '';
+            
+            // Handle image upload
+            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                $target_dir = "../img/notification/";
+                $target_file = $target_dir . basename($_FILES["image"]["name"]);
+                move_uploaded_file($_FILES["image"]["tmp_name"], $target_file);
+                $image_path = "img/notification/" . basename($_FILES["image"]["name"]);
+            }
+            
+            $stmt = $conn->prepare("INSERT INTO notifications (title, message, image_path) VALUES (?, ?, ?)");
+            $stmt->bind_param("sss", $title, $message, $image_path);
+            $stmt->execute();
+        }
+        elseif ($action === 'delete') {
+            $id = $_POST['id'];
             $stmt = $conn->prepare("DELETE FROM notifications WHERE id = ?");
             $stmt->bind_param("i", $id);
-            if ($stmt->execute()) {
-                echo json_encode(['message' => 'Notifikasi berhasil dihapus']);
-            } else {
-                echo json_encode(['message' => 'Gagal menghapus notifikasi']);
-            }
-            exit();
+            $stmt->execute();
+        }
+        elseif ($action === 'toggle') {
+            $id = $_POST['id'];
+            $is_active = $_POST['is_active'] ? 0 : 1;
+            $stmt = $conn->prepare("UPDATE notifications SET is_active = ? WHERE id = ?");
+            $stmt->bind_param("ii", $is_active, $id);
+            $stmt->execute();
         }
     }
 }
 
-// Konfigurasi pagination
-$per_page_options = [10, 25, 50, 100];
-$selected_per_page = isset($_GET['per_page']) && in_array($_GET['per_page'], $per_page_options) 
-                    ? (int)$_GET['per_page'] 
-                    : 10;
-$page = isset($_GET['page']) ? max((int)$_GET['page'], 1) : 1;
-$search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
-$sort_column = in_array($_GET['sort'] ?? '', ['id','user_id','order_id','reservation_id','type','is_read']) 
-               ? $_GET['sort'] 
-               : 'id';
-$sort_order = isset($_GET['order']) && strtoupper($_GET['order']) === 'DESC' ? 'DESC' : 'ASC';
-$search_term = "%$search%";
-$offset = ($page - 1) * $selected_per_page;
-
-// Query data notifikasi
-$query = "SELECT id, user_id, order_id, reservation_id, type, message, is_read 
-          FROM notifications 
-          WHERE message LIKE ? 
-             OR type LIKE ? 
-          ORDER BY $sort_column $sort_order 
-          LIMIT $selected_per_page OFFSET $offset";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("ss", $search_term, $search_term);
+// Ambil data notifikasi
+$stmt = $conn->prepare("SELECT * FROM notifications ORDER BY created_at DESC");
 $stmt->execute();
 $result = $stmt->get_result();
 $notifications = $result->fetch_all(MYSQLI_ASSOC);
 
-// Query total data
-$total_query = "SELECT COUNT(*) AS total FROM notifications 
-                WHERE message LIKE ? 
-                   OR type LIKE ?";
-$stmt_total = $conn->prepare($total_query);
-$stmt_total->bind_param("ss", $search_term, $search_term);
-$stmt_total->execute();
-$total_result = $stmt_total->get_result();
-$total_row = $total_result->fetch_assoc();
-$total_notifications = $total_row['total'];
-$total_pages = ceil($total_notifications / $selected_per_page);
-
-// Redirect jika halaman melebihi total
-if ($total_pages > 0 && $page > $total_pages) {
-    $query_params = [
-        'search' => $search,
-        'sort' => $sort_column,
-        'order' => $sort_order,
-        'per_page' => $selected_per_page,
-        'page' => $total_pages
-    ];
-    header("Location: notification.php?" . http_build_query($query_params));
-    exit();
-}
-
-$title = "Data Notifikasi"; 
+$title = "Kelola Notifikasi";
 include '../views/header.php';
 include '../views/navbar.php';
 include '../views/sidebar.php';
 ?>
+
 <div class="main-content">
-    <?php include '../views/alerts.php'; ?>
-    <div class="card shadow-sm mb-4">
+    <!-- Tombol untuk menampilkan form -->
+    <div class="mb-4">
+        <button id="showFormButton" class="btn btn-primary">Tambah Notifikasi Baru</button>
+    </div>
+
+    <!-- Form Tambah Notifikasi (awalnya tersembunyi) -->
+    <div id="notificationForm" class="card shadow-sm mb-4 d-none">
         <div class="card-body">
-            <form method="GET" class="row g-3 align-items-center">
-                <div class="col-md-3">
-                    <div class="input-group">
-                        <span class="input-group-text">Show</span>
-                        <select class="form-select" name="per_page" onchange="this.form.submit()">
-                            <?php foreach($per_page_options as $option): ?>
-                            <option value="<?= $option ?>" <?= $selected_per_page == $option ? 'selected' : '' ?>>
-                                <?= $option ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+            <h4>Tambah Notifikasi Baru</h4>
+            <form method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label class="form-label">Judul</label>
+                    <input type="text" name="title" class="form-control" required>
                 </div>
-                <div class="col-md-9">
-                    <div class="input-group">
-                        <input type="text" name="search" class="form-control" placeholder="Cari notifikasi..." value="<?= htmlspecialchars($search) ?>">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-search"></i>
-                        </button>
-                        <a href="notification.php" class="btn btn-secondary">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </a>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label">Pesan</label>
+                    <textarea name="message" class="form-control" rows="3" required></textarea>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label">Gambar (Opsional)</label>
+                    <input type="file" name="image" class="form-control" accept="image/*">
+                </div>
+                <input type="hidden" name="action" value="create">
+                <button type="submit" class="btn btn-primary">Tambah</button>
+                <button type="button" id="cancelFormButton" class="btn btn-secondary">Batal</button>
             </form>
         </div>
     </div>
@@ -124,36 +92,46 @@ include '../views/sidebar.php';
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover align-middle" id="notificationTable">
-                    <thead class="table-light">
+                <table class="table table-hover">
+                    <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>User ID</th>
-                            <th>Order ID</th>
-                            <th>Reservation ID</th>
-                            <th>Tipe</th>
+                            <th>Gambar</th>
+                            <th>Judul</th>
                             <th>Pesan</th>
-                            <th>Status Baca</th>
-                            <th style="width: 100px;">Aksi</th>
+                            <th>Status</th>
+                            <th>Tanggal</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach($notifications as $notif): ?>
                         <tr>
-                            <td><?= htmlspecialchars($notif['id']) ?></td>
-                            <td><?= htmlspecialchars($notif['user_id']) ?></td>
-                            <td><?= htmlspecialchars($notif['order_id']) ?></td>
-                            <td><?= htmlspecialchars($notif['reservation_id']) ?></td>
-                            <td><?= htmlspecialchars($notif['type']) ?></td>
-                            <td><?= htmlspecialchars($notif['message']) ?></td>
-                            <td><?= $notif['is_read'] ? 'Sudah dibaca' : 'Belum dibaca' ?></td>
                             <td>
-                                <button type="button" class="btn btn-sm btn-info view-btn" data-id="<?= $notif['id'] ?>">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-danger delete-btn" data-id="<?= $notif['id'] ?>">
-                                    <i class="bi bi-trash"></i>
-                                </button>
+                                <?php if (!empty($notif['image_path'])): ?>
+                                    <img src="../<?= htmlspecialchars($notif['image_path']) ?>" width="50" height="50" style="object-fit: cover;">
+                                <?php else: ?>
+                                    <div class="bg-secondary" style="width:50px;height:50px;"></div>
+                                <?php endif; ?>
+                            </td>
+                            <td><?= htmlspecialchars($notif['title']) ?></td>
+                            <td><?= htmlspecialchars($notif['message']) ?></td>
+                            <td>
+                                <form method="POST" class="d-inline">
+                                    <input type="hidden" name="action" value="toggle">
+                                    <input type="hidden" name="id" value="<?= $notif['id'] ?>">
+                                    <input type="hidden" name="is_active" value="<?= $notif['is_active'] ?>">
+                                    <button type="submit" class="btn btn-sm <?= $notif['is_active'] ? 'btn-success' : 'btn-secondary' ?>">
+                                        <?= $notif['is_active'] ? 'Aktif' : 'Nonaktif' ?>
+                                    </button>
+                                </form>
+                            </td>
+                            <td><?= $notif['created_at'] ?></td>
+                            <td>
+                                <form method="POST" class="d-inline">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="id" value="<?= $notif['id'] ?>">
+                                    <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
+                                </form>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -164,89 +142,23 @@ include '../views/sidebar.php';
     </div>
 </div>
 
-<!-- Modal View -->
-<div class="modal fade" id="showNotificationModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Detail Notifikasi</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="mb-2">
-          <label>ID:</label>
-          <input type="text" id="showId" class="form-control" readonly>
-        </div>
-        <div class="mb-2">
-          <label>User ID:</label>
-          <input type="text" id="showUserId" class="form-control" readonly>
-        </div>
-        <div class="mb-2">
-          <label>Order ID:</label>
-          <input type="text" id="showOrderId" class="form-control" readonly>
-        </div>
-        <div class="mb-2">
-          <label>Reservation ID:</label>
-          <input type="text" id="showReservationId" class="form-control" readonly>
-        </div>
-        <div class="mb-2">
-          <label>Tipe:</label>
-          <input type="text" id="showType" class="form-control" readonly>
-        </div>
-        <div class="mb-2">
-          <label>Pesan:</label>
-          <textarea id="showMessage" class="form-control" readonly></textarea>
-        </div>
-        <div class="mb-2">
-          <label>Status Baca:</label>
-          <input type="text" id="showIsRead" class="form-control" readonly>
-        </div>
-        <div class="mb-2">
-          <label>Dibuat Pada:</label>
-          <input type="text" id="showCreatedAt" class="form-control" readonly>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  // View detail notifikasi
-  $(document).on('click', '.view-btn', function() {
-    const id = $(this).data('id');
-    $.get('get_notification.php', { id }, function(data) {
-      if (!data || typeof data !== 'object') {
-        console.error('Data kosong atau bukan object:', data);
-        return;
-      }
-      $('#showId').val(data.id);
-      $('#showUserId').val(data.user_id);
-      $('#showOrderId').val(data.order_id);
-      $('#showReservationId').val(data.reservation_id);
-      $('#showType').val(data.type);
-      $('#showMessage').val(data.message);
-      $('#showIsRead').val(data.is_read ? 'Sudah dibaca' : 'Belum dibaca');
-      $('#showCreatedAt').val(data.created_at);
-      
-      const modal = new bootstrap.Modal(document.getElementById('showNotificationModal'));
-      modal.show();
-    }, 'json');
-  });
+    // Toggle tampilan form
+    const showFormButton = document.getElementById('showFormButton');
+    const notificationForm = document.getElementById('notificationForm');
+    const cancelFormButton = document.getElementById('cancelFormButton');
 
-  // Hapus notifikasi
-  $(document).on('click', '.delete-btn', function() {
-    const id = $(this).data('id');
-    if (confirm('Apakah Anda yakin ingin menghapus notifikasi ini?')) {
-      $.post('notification.php', { action: 'delete', id }, function(response) {
-        alert(response.message || 'Notifikasi berhasil dihapus');
-        location.reload();
-      }, 'json');
-    }
-  });
-});
+    showFormButton.addEventListener('click', function() {
+        notificationForm.classList.remove('d-none');
+        showFormButton.classList.add('d-none');
+    });
+
+    cancelFormButton.addEventListener('click', function() {
+        notificationForm.classList.add('d-none');
+        showFormButton.classList.remove('d-none');
+        // Reset form saat batal
+        document.querySelector('#notificationForm form').reset();
+    });
 </script>
 
 <?php include '../views/footer.php'; $conn->close(); ?>
