@@ -4,217 +4,250 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+// Include database configuration with correct path
+$config_path = dirname(dirname(__FILE__)) . '/configdb.php';
+if (file_exists($config_path)) {
+    require_once $config_path;
+} else {
+    die("Database configuration file not found");
+}
+
+// Fetch active notifications from database
+$notifications = [];
+$notification_count = 0;
+
+if (isset($conn)) {
+    $sql = "SELECT * FROM notifications WHERE is_active = 1 ORDER BY created_at DESC LIMIT 3";
+    $result = $conn->query($sql);
+    
+    if ($result && $result->num_rows > 0) {
+        $notifications = $result->fetch_all(MYSQLI_ASSOC);
+        $notification_count = count($notifications);
+    }
+}
 ?>
 
-    <header>
-      <nav id="nav-desktop">
-        <div class="nav large-container">
-          <ul>
-            <li data-aos="fade-down" data-aos-duration="500">
-              <a href="index.php">Home</a>
-            </li>
-            <li
-              data-aos="fade-down"
-              data-aos-duration="500"
-              data-aos-delay="100"
-            >
-              <a href="zufar/AboutUs.php">About</a>
-            </li>
-            <li
-              data-aos="fade-down"
-              data-aos-duration="500"
-              data-aos-delay="200"
-            >
-              <a href="Makanan.php">Menu</a>
-            </li>
-            <li
-              data-aos="fade-down"
-              data-aos-duration="500"
-              data-aos-delay="400"
-            >
-              <a href="#reservation">Reservasi</a>
-            </li>
-          </ul>
+<header>
+  <nav id="nav-desktop">
+    <div class="nav large-container">
+      <ul>
+        <li data-aos="fade-down" data-aos-duration="500">
+          <a href="index.php">Home</a>
+        </li>
+        <li
+          data-aos="fade-down"
+          data-aos-duration="500"
+          data-aos-delay="100"
+        >
+          <a href="zufar/AboutUs.php">About</a>
+        </li>
+        <li
+          data-aos="fade-down"
+          data-aos-duration="500"
+          data-aos-delay="200"
+        >
+          <a href="Makanan.php">Menu</a>
+        </li>
+        <li
+          data-aos="fade-down"
+          data-aos-duration="500"
+          data-aos-delay="400"
+        >
+          <a href="#reservation">Reservasi</a>
+        </li>
+      </ul>
 
-          <img
-            src="img/logo/logo2.png"
-            data-aos="fade-down"
-            data-aos-duration="500"
-            data-aos-delay="300"
-            alt="logo"
-            width="150px"
-            height="75px"
-          />
+      <img
+        src="img/logo/logo2.png"
+        data-aos="fade-down"
+        data-aos-duration="500"
+        data-aos-delay="300"
+        alt="logo"
+        width="150px"
+        height="75px"
+      />
 
-          <ul>
-            <li
-              data-aos="fade-down"
-              data-aos-duration="500"
-              data-aos-delay="500"
-            >
-              <a href="#location">Lokasi</a>
-            </li>
-            <li
-              data-aos="fade-down"
-              data-aos-duration="500"
-              data-aos-delay="600"
-            >
-              <a href="#">Karir</a>
-            </li>
-            <li
-              data-aos="fade-down"
-              data-aos-duration="500"
-              data-aos-delay="700"
-            >
-              <a href="findJobs.html">
-                <i class="fas fa-shopping-cart"></i>
-              </a>
-            </li>
+      <ul>
+        <li
+          data-aos="fade-down"
+          data-aos-duration="500"
+          data-aos-delay="500"
+        >
+          <a href="#location">Lokasi</a>
+        </li>
+        <li
+          data-aos="fade-down"
+          data-aos-duration="500"
+          data-aos-delay="600"
+        >
+          <a href="#">Karir</a>
+        </li>
+        <li
+          data-aos="fade-down"
+          data-aos-duration="500"
+          data-aos-delay="700"
+        >
+          <a href="findJobs.html">
+            <i class="fas fa-shopping-cart"></i>
+          </a>
+        </li>
 
-            <!-- Notification -->
-            <li
-              class="notification-dropdown"
-              data-aos="fade-down"
-              data-aos-duration="500"
-              data-aos-delay="800"
-            >
-
-  <a href="#">
-    <i class="fas fa-bell"></i>
-    <span class="notification-badge">3</span>
-  </a>
-  <div class="dropdown-content">
-    <div class="notification-item">
-      <img src="img/notification/1.avif" alt="Promo Tahun Baru" />
-      <div class="notification-text">
-        <h4>Promo Tahun Baru</h4>
-        <p>Diskon hingga 50% untuk semua menu!</p>
-      </div>
+        <!-- Notification -->
+        <li
+          class="notification-dropdown"
+          data-aos="fade-down"
+          data-aos-duration="500"
+          data-aos-delay="800"
+        >
+        <a href="#">
+        <i class="fas fa-bell"></i>
+        <?php if($notification_count > 0): ?>
+            <span class="notification-badge"><?= $notification_count ?></span>
+        <?php endif; ?>
+        </a>
+    <div class="dropdown-content">
+        <?php if($notification_count > 0): ?>
+            <?php foreach($notifications as $notif): ?>
+            <div class="notification-item">
+                <?php if(!empty($notif['image_path'])): ?>
+                    <img src="<?= htmlspecialchars($notif['image_path']) ?>" 
+                         alt="<?= htmlspecialchars($notif['title']) ?>"
+                         style="width: 50px; height: 50px; object-fit: cover;">
+                <?php else: ?>
+                    <div class="bg-secondary d-flex align-items-center justify-content-center" 
+                         style="width:50px;height:50px;">
+                        <i class="fas fa-image text-white"></i>
+                    </div>
+                <?php endif; ?>
+                <div class="notification-text">
+                    <h4><?= htmlspecialchars($notif['title']) ?></h4>
+                    <p><?= htmlspecialchars($notif['message']) ?></p>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="notification-item">
+                <div class="bg-secondary d-flex align-items-center justify-content-center" 
+                     style="width:50px;height:50px;">
+                    <i class="fas fa-bell text-white"></i>
+                </div>
+                <div class="notification-text">
+                    <h4>Tidak ada notifikasi</h4>
+                    <p>Belum ada notifikasi aktif saat ini</p>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
-    <div class="notification-item">
-      <img src="img/notification/sate-goreng.jpg" alt="Promo Makan Hemat" />
-      <div class="notification-text">
-        <h4>Menu Baru Wajib Coba!</h4>
-        <p>Rasakan kenikmatan sate goreng ayam!</p>
-      </div>
-    </div>
-    <div class="notification-item">
-      <img src="img/notification/4.webp" alt="Reservasi Spesial" />
-      <div class="notification-text">
-        <h4>Jam Operasional Baru</h4>
-        <p>Sekarang kami buka hingga pukul 21:00!</p>
-      </div>
-    </div>
-  </div>
 </li>
 
-<!-- User -->
-<?php if(isset($_SESSION['loggedin']) && $_SESSION['loggedin']): ?>
-<li
-  class="user-dropdown"
-  data-aos="fade-down"
-  data-aos-duration="500"
-  data-aos-delay="900"
-><a href="#">
-              <i class="fas fa-user"></i>
-            </a>
-            <div class="dropdown-content-user">
-              <div class="user-info">
-                <img src="<?= file_exists($_SESSION['user']['profile']) ? $_SESSION['user']['profile'] : 'uploads/profiles/default.jpg' ?>" 
-     class="profile-pic" 
-     alt="<?= htmlspecialchars($_SESSION['user']['username']) ?>">
-                <div class="user-name"><?= htmlspecialchars($_SESSION['user']['username']) ?></div>
-              </div>
-              <div class="dropdown-divider"></div>
-              <a href="account.php" class="dropdown-item">
-                <i class="fas fa-user-cog"></i> <p> Akun Saya</p>
-              </a>
-              <a href="orders.html" class="dropdown-item">
-                <i class="fas fa-box"></i> <p> Pesanan Saya</p>
-              </a>
-              <a href="reservations.html" class="dropdown-item">
-                <i class="fas fa-calendar-alt"></i> <p> Reservasi Saya</p>
-              </a>
-              <div class="dropdown-divider"></div>
-              <a href="auth/logout.php" class="dropdown-item logout">
-                <i class="fas fa-sign-out-alt"></i> <p> Sign Out</p>
-              </a>
-            </div>
-          </li>
-          <?php else: ?>
-<li data-aos="fade-down" data-aos-duration="500" data-aos-delay="900">
+        <!-- User -->
+        <?php if(isset($_SESSION['loggedin']) && $_SESSION['loggedin']): ?>
+        <li
+          class="user-dropdown"
+          data-aos="fade-down"
+          data-aos-duration="500"
+          data-aos-delay="900"
+        ><a href="#">
+          <i class="fas fa-user"></i>
+        </a>
+        <div class="dropdown-content-user">
+          <div class="user-info">
+            <img src="<?= file_exists($_SESSION['user']['profile']) ? $_SESSION['user']['profile'] : 'uploads/profiles/default.jpg' ?>" 
+ class="profile-pic" 
+ alt="<?= htmlspecialchars($_SESSION['user']['username']) ?>">
+            <div class="user-name"><?= htmlspecialchars($_SESSION['user']['username']) ?></div>
+          </div>
+          <div class="dropdown-divider"></div>
+          <a href="account.php" class="dropdown-item">
+            <i class="fas fa-user-cog"></i> <p> Akun Saya</p>
+          </a>
+          <a href="orders.html" class="dropdown-item">
+            <i class="fas fa-box"></i> <p> Pesanan Saya</p>
+          </a>
+          <a href="reservations.html" class="dropdown-item">
+            <i class="fas fa-calendar-alt"></i> <p> Reservasi Saya</p>
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="auth/logout.php" class="dropdown-item logout">
+            <i class="fas fa-sign-out-alt"></i> <p> Sign Out</p>
+          </a>
+        </div>
+      </li>
+      <?php else: ?>
+      <li data-aos="fade-down" data-aos-duration="500" data-aos-delay="900">
         <a href="login-register.php" class="login-link">
             <i class="fas fa-sign-in-alt"></i>
             <span class="login-text">Login</span>
         </a>
-</li>
-<?php endif; ?>
-          </ul>
-        </div>
-      </nav>
+      </li>
+      <?php endif; ?>
+      </ul>
+    </div>
+  </nav>
 
-      <nav id="nav-mobile">
-        <div class="nav-mobile">
-          <div class="nav large-container">
-            <img
-              src="img/logo/logo-alt.png"
-              data-aos="fade-down"
-              data-aos-duration="500"
-              data-aos-delay="200"
-              alt="logo-alt"
-              width="50px"
-              height="50px"
-            />
-            <div id="burger-navigation">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-          </div>
+  <nav id="nav-mobile">
+    <div class="nav-mobile">
+      <div class="nav large-container">
+        <img
+          src="img/logo/logo-alt.png"
+          data-aos="fade-down"
+          data-aos-duration="500"
+          data-aos-delay="200"
+          alt="logo-alt"
+          width="50px"
+          height="50px"
+        />
+        <div id="burger-navigation">
+          <span></span>
+          <span></span>
+          <span></span>
         </div>
+      </div>
+    </div>
 
-        <div class="nav-mobile-main">
-          <div>
-            <a href="index.html">Home</a>
-          </div>
-          <div>
-            <a href="about.html">About Us</a>
-          </div>
-          <div>
-            <a href="Makanan.html">Menu</a>
-          </div>
-          <div>
-            <a href="#reservation">Reservation</a>
-          </div>
-          <div>
-            <a href="#location">Location</a>
-          </div>
-          <div>
-            <a href="findJobs.html">Find Jobs</a>
-          </div>
-        </div>
-      </nav>
+    <div class="nav-mobile-main">
+      <div>
+        <a href="index.html">Home</a>
+      </div>
+      <div>
+        <a href="about.html">About Us</a>
+      </div>
+      <div>
+        <a href="Makanan.html">Menu</a>
+      </div>
+      <div>
+        <a href="#reservation">Reservation</a>
+      </div>
+      <div>
+        <a href="#location">Location</a>
+      </div>
+      <div>
+        <a href="findJobs.html">Find Jobs</a>
+      </div>
+    </div>
+  </nav>
 
-      <!-- Hero -->
-      <section id="hero">
-        <div
-          class="hero main-container"
-          data-aos="fade-in"
-          data-aos-duration="1000"
-          data-aos-delay="800"
-        >
-          <h3>Mulai Perjalanan Kuliner Anda dengan Satu Klik!</h3>
-          <h1>BOLOOO</h1>
-          <div class="hero-cta">
-            <a href="proses/formPemesanan.php">
-              <button class="cta-button">Pesan Sekarang</button>
-            </a>
+  <!-- Hero -->
+  <section id="hero">
+    <div
+      class="hero main-container"
+      data-aos="fade-in"
+      data-aos-duration="1000"
+      data-aos-delay="800"
+    >
+      <h3>Mulai Perjalanan Kuliner Anda dengan Satu Klik!</h3>
+      <h1>BOLOOO</h1>
+      <div class="hero-cta">
+        <a href="proses/formPemesanan.php">
+          <button class="cta-button">Pesan Sekarang</button>
+        </a>
 
-            <a href="#reservation">
-              <button class="cta-button">Reservasi Meja</button>
-            </a>
-          </div>
-        </div>
-      </section>
-      <div class="header-shadow"></div>
-    </header>
+        <a href="#reservation">
+          <button class="cta-button">Reservasi Meja</button>
+        </a>
+      </div>
+    </div>
+  </section>
+  <div class="header-shadow"></div>
+</header>

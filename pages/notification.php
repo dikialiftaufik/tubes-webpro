@@ -1,5 +1,5 @@
 <?php
-// pages/notification_admin.php
+// pages/notification.php
 session_start();
 require_once '../configdb.php';
 
@@ -27,7 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $image_path = "img/notification/" . basename($_FILES["image"]["name"]);
             }
             
-            $stmt = $conn->prepare("INSERT INTO notifications (title, message, image_path) VALUES (?, ?, ?)");
+            // Buat notifikasi langsung aktif (is_active=1)
+            $stmt = $conn->prepare("INSERT INTO notifications (title, message, image_path, is_active) VALUES (?, ?, ?, 1)");
             $stmt->bind_param("sss", $title, $message, $image_path);
             $stmt->execute();
         }
@@ -37,13 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param("i", $id);
             $stmt->execute();
         }
-        elseif ($action === 'toggle') {
-            $id = $_POST['id'];
-            $is_active = $_POST['is_active'] ? 0 : 1;
-            $stmt = $conn->prepare("UPDATE notifications SET is_active = ? WHERE id = ?");
-            $stmt->bind_param("ii", $is_active, $id);
-            $stmt->execute();
-        }
+        // Hapus fungsi toggle karena tidak diperlukan lagi
     }
 }
 
@@ -60,8 +55,9 @@ include '../views/sidebar.php';
 ?>
 
 <div class="main-content">
-    <!-- Tombol untuk menampilkan form -->
-    <div class="mb-4">
+    <!-- Header dengan tombol di kanan -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">Kelola Notifikasi</h4>
         <button id="showFormButton" class="btn btn-primary">Tambah Notifikasi Baru</button>
     </div>
 
@@ -79,7 +75,7 @@ include '../views/sidebar.php';
                     <textarea name="message" class="form-control" rows="3" required></textarea>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Gambar (Opsional)</label>
+                    <label class="form-label">Gambar</label>
                     <input type="file" name="image" class="form-control" accept="image/*">
                 </div>
                 <input type="hidden" name="action" value="create">
@@ -116,14 +112,9 @@ include '../views/sidebar.php';
                             <td><?= htmlspecialchars($notif['title']) ?></td>
                             <td><?= htmlspecialchars($notif['message']) ?></td>
                             <td>
-                                <form method="POST" class="d-inline">
-                                    <input type="hidden" name="action" value="toggle">
-                                    <input type="hidden" name="id" value="<?= $notif['id'] ?>">
-                                    <input type="hidden" name="is_active" value="<?= $notif['is_active'] ?>">
-                                    <button type="submit" class="btn btn-sm <?= $notif['is_active'] ? 'btn-success' : 'btn-secondary' ?>">
-                                        <?= $notif['is_active'] ? 'Aktif' : 'Nonaktif' ?>
-                                    </button>
-                                </form>
+                                <span class="badge bg-<?= $notif['is_active'] ? 'success' : 'secondary' ?>">
+                                    <?= $notif['is_active'] ? 'Aktif' : 'Nonaktif' ?>
+                                </span>
                             </td>
                             <td><?= $notif['created_at'] ?></td>
                             <td>
