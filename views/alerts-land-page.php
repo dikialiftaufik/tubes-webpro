@@ -1,3 +1,16 @@
+<?php if(isset($_SESSION['info'])): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    iziToast.info({
+        title: 'Info!',
+        message: '<?= addslashes($_SESSION["info"]) ?>',
+        position: 'topRight',
+        timeout: 5000
+    });
+});
+</script>
+<?php unset($_SESSION['info']); endif; ?>
+
 <?php
 if (isset($_SESSION['reservation_success'])) {
     echo '<script>

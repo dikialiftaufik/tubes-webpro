@@ -1,5 +1,18 @@
 <?php
 session_start();
+
+// Tampilkan notifikasi jika ada session login_success
+if (isset($_SESSION['login_success'])) {
+  $login_success = $_SESSION['login_success'];
+  unset($_SESSION['login_success']);
+}
+
+// Periksa jika user belum login tapi mengakses halaman ini
+if (!isset($_SESSION['loggedin'])) {
+    $_SESSION['loggedin'] = false;
+}
+
+// ... kode selanjutnya ...
 require_once 'views/header-land-page.php';
 require_once 'views/navbar-land-page.php';
 require_once 'views/alerts-land-page.php';
@@ -196,6 +209,19 @@ require_once 'views/alerts-land-page.php';
         </div>
       </div>
     </section>
+
+    <?php if(isset($login_success)): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    iziToast.success({
+        title: 'Berhasil Masuk!',
+        message: '<?= addslashes($login_success) ?>',
+        position: 'topRight',
+        timeout: 5000
+    });
+});
+</script>
+<?php endif; ?>
 
     <!-- Footer -->
     <?php

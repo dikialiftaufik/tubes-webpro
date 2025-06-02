@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../configdb.php';
 
-include './views/header.php';
+include '../views/header.php';
 
 // Ambil ID dari parameter URL
 $menu_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -651,4 +651,4 @@ $menu = $result->fetch_assoc();
 </body>
 </html>
 
-<?php include 'views/footer.php'; ?>
+<?php include '../views/footer.php'; ?>

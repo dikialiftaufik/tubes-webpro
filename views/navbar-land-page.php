@@ -110,43 +110,50 @@ if (session_status() === PHP_SESSION_NONE) {
 
 <!-- User -->
 <?php if(isset($_SESSION['loggedin']) && $_SESSION['loggedin']): ?>
-<li
+  <li
   class="user-dropdown"
   data-aos="fade-down"
   data-aos-duration="500"
   data-aos-delay="900"
-><a href="#">
-              <i class="fas fa-user"></i>
-            </a>
-            <div class="dropdown-content-user">
-              <div class="user-info">
-                <img src="<?= file_exists($_SESSION['user']['profile']) ? $_SESSION['user']['profile'] : 'uploads/profiles/default.jpg' ?>" 
-     class="profile-pic" 
-     alt="<?= htmlspecialchars($_SESSION['user']['username']) ?>">
-                <div class="user-name"><?= htmlspecialchars($_SESSION['user']['username']) ?></div>
-              </div>
-              <div class="dropdown-divider"></div>
-              <a href="account.php" class="dropdown-item">
-                <i class="fas fa-user-cog"></i> <p> Akun Saya</p>
-              </a>
-              <a href="orders.html" class="dropdown-item">
-                <i class="fas fa-box"></i> <p> Pesanan Saya</p>
-              </a>
-              <a href="reservations.html" class="dropdown-item">
-                <i class="fas fa-calendar-alt"></i> <p> Reservasi Saya</p>
-              </a>
-              <div class="dropdown-divider"></div>
-              <a href="auth/logout.php" class="dropdown-item logout">
-                <i class="fas fa-sign-out-alt"></i> <p> Sign Out</p>
-              </a>
-            </div>
-          </li>
-          <?php else: ?>
+>
+  <a href="#">
+    <i class="fas fa-user"></i>
+  </a>
+  <div class="dropdown-content-user">
+    <div class="user-info">
+      <img src="<?= $_SESSION['user']['profile'] ?>" 
+           class="profile-pic" 
+           alt="<?= htmlspecialchars($_SESSION['user']['username']) ?>">
+      <div class="user-name"><?= htmlspecialchars($_SESSION['user']['full_name']) ?></div>
+    </div>
+    <div class="dropdown-divider"></div>
+    
+    <!-- Tambahkan class khusus untuk setiap item -->
+    <a href="account.php" class="dropdown-item account-item">
+      <i class="fas fa-user-cog"></i> <p> Akun Saya</p>
+    </a>
+    
+    <a href="orders.php" class="dropdown-item orders-item">
+      <i class="fas fa-box"></i> <p> Pesanan Saya</p>
+    </a>
+    
+    <a href="reservations.php" class="dropdown-item reservations-item">
+      <i class="fas fa-calendar-alt"></i> <p> Reservasi Saya</p>
+    </a>
+    
+    <div class="dropdown-divider"></div>
+    
+    <a href="auth/logout.php" class="dropdown-item logout-item">
+      <i class="fas fa-sign-out-alt"></i> <p> Sign Out</p>
+    </a>
+  </div>
+</li>
+<?php else: ?>
 <li data-aos="fade-down" data-aos-duration="500" data-aos-delay="900">
-        <a href="login-register.php" class="login-link">
-            <i class="fas fa-sign-in-alt"></i>
-            <span class="login-text">Login</span>
-        </a>
+  <a href="login-register.php" class="login-link">
+    <i class="fas fa-sign-in-alt"></i>
+    <span class="login-text">Login</span>
+  </a>
 </li>
 <?php endif; ?>
           </ul>

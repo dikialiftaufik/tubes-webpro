@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../configdb.php';
 
-include './views/header.php';
+include '../views/header.php';
 // Query untuk mengambil data makanan - tambahkan ID
 $sql = "SELECT id, name AS nama_makanan, price AS harga, image_url AS gambar, description AS deskripsi FROM menu";
 
@@ -411,4 +411,4 @@ $result = $conn->query($sql);
 </body>
 </html>
 
-<?php include 'views/footer.php'; ?>
+<?php include '../views/footer.php'; ?>
