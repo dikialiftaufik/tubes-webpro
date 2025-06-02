@@ -15,7 +15,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_reservation'])
     $tanggal = mysqli_real_escape_string($conn, $_POST['order_date']);
     $jam_mulai = mysqli_real_escape_string($conn, $_POST['start_time']);
     $jam_selesai = mysqli_real_escape_string($conn, $_POST['jam_selesai']);
-    $pesanan = mysqli_real_escape_string($conn, $_POST['order']);
+    $pesanan_array = $_POST['order'];
+    $pesanan_escaped_array = array_map(function($item) use ($conn) {
+        return mysqli_real_escape_string($conn, $item);
+    }, $pesanan_array);
+    $pesanan = implode(", ", $pesanan_escaped_array);
+
     $status = 'Pending'; // Status default
 
     // Query untuk insert data reservasi

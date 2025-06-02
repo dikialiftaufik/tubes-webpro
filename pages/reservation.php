@@ -213,7 +213,12 @@ include '../views/sidebar.php';
         </div>
         <div class="mb-2">
           <label>Status:</label>
-          <input type="text" id="showStatus" class="form-control">
+          <input type="text" id="showStatus" class="form-control" readonly>
+          <!-- Dropdown untuk mode edit -->
+          <select id="editStatus" class="form-select d-none">
+            <option value="Dikonfirmasi">Dikonfirmasi</option>
+            <option value="Dibatalkan">Dibatalkan</option>
+          </select>
         </div>
         <div class="text-end">
           <button type="button" id="saveChangesBtn" class="btn btn-primary d-none">Simpan Perubahan</button>

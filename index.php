@@ -179,11 +179,25 @@ require_once 'views/alerts-land-page.php';
               </div>
             </div>
 
-            <div class="form-column">
-              <div class="form-group">
-                <label for="order">Pesan Disini</label>
-                <textarea name="order" id="order" placeholder="Kosongkan jika Anda ingin memesan di tempat" cols="30" rows="10"></textarea>
-              </div>
+            <div class="form-group">
+              <label for="order">Pesan Disini</label>
+              <select
+                class="form-control menu-select"
+                id="order"
+                name="order[]"
+                multiple="multiple"
+                required
+              >
+                <option value="Sate Ayam">Sate Ayam</option>
+                <option value="Sate Kambing">Sate Kambing</option>
+                <option value="Tongseng">Tongseng Ayam</option>
+                <option value="Nasi Goreng">Sate Sapi</option>
+                <option value="Tongseng">Nasi</option>
+                <option value="Teh Manis">Es Teh Manis</option>
+                <option value="Es Jeruk">Es Jeruk</option>
+                <option value="Teh Manis">Es Teh Tawar</option>
+              </select>
+            </div>
 
               <div class="form-group">
                 <button type="submit" name="submit_reservation">Kirim</button>
@@ -223,6 +237,54 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <?php endif; ?>
 
+
+  <style>
+  /* Custom styling untuk Select2 agar warnanya hitam-putih */
+  .select2-container--default .select2-selection--multiple {
+    background-color: #000;       /* Hitam */
+    color: #fff;                  /* Putih */
+    border: 1px solid #444;
+    padding: 4px;
+  }
+
+  .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    color: #fff; /* Teks putih di dalam field */
+  }
+
+  .select2-container--default .select2-results__option {
+    background-color: #000;       /* Warna item dropdown */
+    color: #fff;
+  }
+
+  .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #333;       /* Saat disorot */
+    color: #fff;
+  }
+
+  .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #333;
+    border-color: #555;
+    color: #fff;
+  }
+
+  label {
+    color: #fff;
+  }
+</style>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+      $(document).ready(function() {
+        $('.menu-select').select2({
+          placeholder: "Klik untuk memilih menu",
+          dropdownAutoWidth: true,
+          width: '100%'
+        });
+      });
+    </script>
+    
     <!-- Footer -->
     <?php
     require_once 'views/footer-land-page.php';
