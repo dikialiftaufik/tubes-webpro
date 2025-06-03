@@ -13,8 +13,17 @@ $user = $_SESSION['user'] ?? [
     'email' => 'dikia@example.com',
     'full_name' => 'John Doe'
 ];
-?>
 
+// Tentukan foto profil berdasarkan username
+$profileImage = "uploads/profile/default.jpg"; // default
+
+// Periksa username dan atur foto profil yang sesuai
+if ($user['username'] === 'diki') {
+    $profileImage = "uploads/profiles/1746731699_fotodiki.jpg";
+} elseif ($user['username'] === 'ega') {
+    $profileImage = "uploads/profiles/1746347113_fotoega.jpg";
+}
+?>
 
 <!doctype html>
 <html lang="en">
@@ -217,7 +226,7 @@ $user = $_SESSION['user'] ?? [
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="user-profile">
-  <img src="img/profile-pic.png" alt="User Profile" class="profile-image">
+  <img src="<?= $profileImage ?>" alt="User Profile" class="profile-image">
   <h3><?= htmlspecialchars($user['full_name']) ?></h3>
   <p>Member since 2024</p>
 </div>
@@ -260,7 +269,7 @@ $user = $_SESSION['user'] ?? [
         
         <div class="account-info-container">
             <div class="profile-image-container">
-                <img src="img/profile-pic.png" alt="Profile Picture" class="account-profile-image">
+                <img src="<?= $profileImage ?>" alt="Profile Picture" class="account-profile-image">
                 <div class="image-upload-overlay" style="display: none;">
                     <label for="profileImageInput" class="upload-label">
                         <i class="fas fa-camera"></i>
