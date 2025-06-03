@@ -60,19 +60,40 @@ body {
   margin: auto; /* terpusat dalam cell grid */
 }
 
+#main-content {
+  margin-left: 250px; /* HARUS SAMA DENGAN LEBAR .sidebar */
+  width: calc(100% - 250px); /* Opsional, tapi membantu konsistensi */
+  padding: 0; /* Navbar dan Footer akan mengatur paddingnya sendiri atau container-fluid di dalamnya */
+  transition:
+    margin-left 0.3s ease,
+    width 0.3s ease;
+  min-height: 100vh; /* Untuk layout sticky footer */
+  display: flex;
+  flex-direction: column;
+  background-color: #f4f6f9; /* Warna latar area konten jika berbeda dari body */
+}
+
+/* Kontainer utama di dalam #main-content */
+#main-content > .container-fluid {
+  padding: 1.5rem; /* Padding untuk konten halaman */
+  flex-grow: 1; /* Agar konten mengisi ruang dan mendorong footer ke bawah */
+}
+
 body {
   font-family: "Poppins", sans-serif;
   background-color: #f8f9fa;
 }
 .sidebar {
-  height: 100vh;
   position: fixed;
-  background-color: #343a40;
-  color: white;
-  width: 250px;
-  transition: width 0.3s;
-  z-index: 1000;
-  overflow-y: scroll;
+  top: 0;
+  left: 0;
+  width: 250px; /* Sesuaikan dengan lebar sidebar Anda */
+  height: 100vh; /* Tinggi penuh viewport */
+  background-color: #343a40; /* Warna latar sidebar */
+  padding-top: 1rem; /* Padding atas di dalam sidebar */
+  z-index: 1030; /* Di atas konten lain, di bawah modal jika ada */
+  overflow-y: auto; /* Scroll jika konten sidebar panjang */
+  transition: width 0.3s ease;
 }
 .sidebar.collapsed {
   width: 80px;
@@ -282,6 +303,15 @@ body {
 }
 .badge:hover {
   transform: scale(1.05); /* Sedikit membesarkan badge saat hover */
+}
+
+.footer {
+  background-color: #ffffff; /* Warna latar footer */
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #dee2e6;
+  text-align: center;
+  margin-top: auto; /* Kunci untuk sticky footer dengan flexbox */
+  /* box-shadow: 0 -2px 4px rgba(0,0,0,0.05); /* Bayangan halus jika diinginkan */
 }
 
 .footer-custom {
