@@ -1,34 +1,6 @@
 <?php 
 session_start();
-if(isset($_SESSION['error'])): ?>
-<script>
-iziToast.error({
-    title: 'Error!',
-    message: '<?= $_SESSION["error"] ?>',
-    position: 'topRight'
-});
-</script>
-<?php unset($_SESSION['error']); endif; ?>
-
-<?php if(isset($_SESSION['success'])): ?>
-<script>
-iziToast.success({
-    title: 'Success!',
-    message: '<?= $_SESSION["success"] ?>',
-    position: 'topRight'
-});
-</script>
-<?php unset($_SESSION['success']); endif; ?>
-
-<?php if(isset($_SESSION['info'])): ?>
-<script>
-iziToast.info({
-    title: 'Info!',
-    message: '<?= $_SESSION["info"] ?>',
-    position: 'topRight'
-});
-</script>
-<?php unset($_SESSION['info']); endif; ?>
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -42,8 +14,13 @@ iziToast.info({
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
+<!-- Di dalam <head> -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/js/iziToast.min.js"></script>
 
+<!-- Pastikan jQuery dimuat sebelum iziToast jika menggunakan fitur tertentu -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 

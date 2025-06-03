@@ -2,11 +2,11 @@
 // navbar.php
 require_once '../configdb.php';
 
-// Query notifikasi
+// Query notifikasi - DIPERBAIKI
 $notification_count = 0;
 if(isset($_SESSION['user']['id'])) {
-    $stmt = $conn->prepare("SELECT COUNT(*) AS count FROM notifications WHERE user_id = ? AND is_read = 0");
-    $stmt->bind_param("i", $_SESSION['user']['id']);
+    // Query yang diperbaiki sesuai struktur baru
+    $stmt = $conn->prepare("SELECT COUNT(*) AS count FROM notifications WHERE is_active = 1");
     $stmt->execute();
     $result = $stmt->get_result();
     $notification_count = $result->fetch_assoc()['count'];
@@ -47,7 +47,7 @@ if(isset($_SESSION['user']['id'])) {
             <!-- Right Section -->
             <ul class="navbar-nav ms-auto align-items-center">
                 
-                <!-- Notifikasi -->
+                <!-- Notifikasi - DIPERBAIKI -->
                 <li class="nav-item dropdown me-3">
                     <a class="nav-link dropdown-toggle fs-4 position-relative" href="#" role="button" data-bs-toggle="dropdown">
                         <i class="bi bi-bell-fill"></i>
@@ -59,22 +59,20 @@ if(isset($_SESSION['user']['id'])) {
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end p-2" style="min-width: 300px;">
                         <?php
-                        $stmt = $conn->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 5");
-                        $stmt->bind_param("i", $_SESSION['user']['id']);
+                        // Query yang diperbaiki sesuai struktur baru
+                        $stmt = $conn->prepare("SELECT * FROM notifications WHERE is_active = 1 ORDER BY created_at DESC LIMIT 5");
                         $stmt->execute();
                         $notifications = $stmt->get_result();
                         
                         if($notifications->num_rows > 0): 
                             while($notif = $notifications->fetch_assoc()): ?>
                                 <li>
-                                    <a class="dropdown-item <?= $notif['is_read'] ? 'text-muted' : 'fw-bold' ?>">
+                                    <a class="dropdown-item">
                                         <div class="d-flex justify-content-between">
                                             <small><?= date('d M H:i', strtotime($notif['created_at'])) ?></small>
-                                            <?php if(!$notif['is_read']): ?>
-                                                <span class="badge bg-primary">Baru</span>
-                                            <?php endif; ?>
                                         </div>
-                                        <?= htmlspecialchars($notif['message']) ?>
+                                        <strong><?= htmlspecialchars($notif['title']) ?></strong><br>
+                                        <?= htmlspecialchars($notif['content']) ?>
                                     </a>
                                 </li>
                             <?php endwhile; 

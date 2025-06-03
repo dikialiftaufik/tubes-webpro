@@ -1,7 +1,8 @@
 <?php
+<?php
 require_once __DIR__ . '/../configdb.php';
 
-include './views/header.php';
+include '../views/header.php';
 
 // Query data menu + stok (kolom quantity)
 $sql = "
@@ -25,24 +26,22 @@ $result = $conn->query($sql);
   <title>Menu Makanan</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
-    /* === TIDAK TEBEL DAN TIDAK DIUBAH ===
-       Semua CSS persis sama seperti kode awal Anda. */
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: rgb(4, 4, 4);
       margin: 0;
       padding: 0;
-      padding-bottom: 70px; /* Untuk memberi ruang bagi panel keranjang */
+      padding-bottom: 70px;
       display: flex;
       flex-direction: column;
-      min-height: 100vh; /* Ensure the body takes at least the full viewport height */
+      min-height: 100vh;
     }
     .container {
       width: 90%;
       max-width: 1200px;
       margin: auto;
       padding: 40px 0;
-      flex: 1; /* Allow the container to grow and take available space */
+      flex: 1;
     }
     h1 {
       text-align: center;
@@ -62,7 +61,7 @@ $result = $conn->query($sql);
       width: 300px;
       overflow: hidden;
       transition: transform 0.3s ease;
-      position: relative; /* Untuk positioning button */
+      position: relative;
     }
     .card:hover {
       transform: translateY(-5px);
@@ -71,7 +70,7 @@ $result = $conn->query($sql);
       width: 100%;
       height: 200px;
       object-fit: cover;
-      background-color: #f0f0f0; /* Background untuk loading */
+      background-color: #f0f0f0;
     }
     .card h2 {
       font-size: 1.5rem;
@@ -81,8 +80,6 @@ $result = $conn->query($sql);
       margin: 0 16px 16px;
       color: #555;
     }
-    
-    /* Area konten yang bisa diklik untuk ke detail */
     .card-content {
       cursor: pointer;
       transition: background-color 0.2s ease;
@@ -90,14 +87,11 @@ $result = $conn->query($sql);
     .card-content:hover {
       background-color: #f8f9fa;
     }
-    
-    /* Modifikasi untuk button area */
     .card-buttons {
       display: flex;
       gap: 8px;
       margin: 0 16px 16px;
     }
-    
     .detail-button {
       flex: 1;
       padding: 10px;
@@ -118,7 +112,6 @@ $result = $conn->query($sql);
     .detail-button:hover {
       background-color: #0056b3;
     }
-    
     .order-button {
       flex: 1;
       padding: 10px;
@@ -142,7 +135,7 @@ $result = $conn->query($sql);
     .sold-out {
       flex: 1;
       padding: 10px;
-      background-color: #6c757d; /* abu-abu */
+      background-color: #6c757d;
       color: #fff;
       border: none;
       border-radius: 5px;
@@ -155,8 +148,6 @@ $result = $conn->query($sql);
       gap: 5px;
       cursor: not-allowed;
     }
-    
-    /* Style untuk panel keranjang */
     .cart-panel {
       position: fixed;
       bottom: 0;
@@ -172,7 +163,7 @@ $result = $conn->query($sql);
       box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
       cursor: pointer;
       transition: all 0.3s ease;
-      display: none; /* Awalnya tersembunyi */
+      display: none;
     }
     .cart-panel:hover {
       background-color: rgb(201, 15, 15);
@@ -201,7 +192,6 @@ $result = $conn->query($sql);
       font-weight: bold;
       font-size: 1.2rem;
     }
-    
     .notification {
       position: fixed;
       bottom: 80px;
@@ -216,14 +206,12 @@ $result = $conn->query($sql);
       max-width: 80%;
       text-align: center;
     }
-
-    /* Footer Styles */
     footer {
       background-color: #333;
       color: white;
       text-align: center;
       padding: 10px 0;
-      margin-top: 20px; /* Add some space above the footer */
+      margin-top: 20px;
     }
     footer a {
       color: white;
@@ -233,8 +221,6 @@ $result = $conn->query($sql);
     footer a:hover {
       text-decoration: underline;
     }
-
-    /* Style untuk gambar error/tidak ditemukan */
     .image-placeholder {
       width: 100%;
       height: 200px;
@@ -258,7 +244,7 @@ $result = $conn->query($sql);
         <?php while ($row = $result->fetch_assoc()): ?>
           <div class="card" data-menu-id="<?= $row['id'] ?>">
             <?php
-            // Tentukan $image_path (sama logikanya seperti sebelumnya)
+            // Cek path gambar, fallback ke default jika tidak ada
             $image_path = '';
             $possible_paths = [
                 'uploads/menu/' . basename($row['gambar']),
@@ -267,19 +253,20 @@ $result = $conn->query($sql);
                 $row['gambar']
             ];
             foreach ($possible_paths as $path) {
-                if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/' . $path) ||
-                    file_exists($path) ||
-                    filter_var($path, FILTER_VALIDATE_URL)) {
+                if (
+                    (file_exists($_SERVER['DOCUMENT_ROOT'] . '/' . $path) && is_file($_SERVER['DOCUMENT_ROOT'] . '/' . $path)) ||
+                    (file_exists($path) && is_file($path)) ||
+                    filter_var($path, FILTER_VALIDATE_URL)
+                ) {
                     $image_path = $path;
                     break;
                 }
             }
             if (empty($image_path)) {
-                $image_path = 'uploads/menu/' . basename($row['gambar']);
+                $image_path = 'uploads/menu/default.jpg';
             }
             ?>
 
-            <!-- Area konten yang bisa diklik menuju detail -->
             <div class="card-content" onclick="window.location.href='detail.php?id=<?= $row['id'] ?>'">
               <img 
                 src="<?= htmlspecialchars($image_path) ?>" 
@@ -295,18 +282,15 @@ $result = $conn->query($sql);
               <h2><?= htmlspecialchars($row['nama_makanan']) ?></h2>
               <p><?= htmlspecialchars($row['deskripsi'] ?? '') ?></p>
               <p>Harga: Rp <?= number_format($row['harga'], 0, ',', '.') ?></p>
-              <!-- Stok Tersedia -->
-              <p class="stok-info"><strong>Stok Tersedia: <?= (int)$row['stok'] ?></strong></p>
+              <p class="stok-info"><strong><?= (int)$row['stok'] ?></strong></p>
             </div>
             
-            <!-- Area tombol yang tidak ikut onclick ke detail -->
             <div class="card-buttons">
               <a href="detail.php?id=<?= $row['id'] ?>" class="detail-button">
                 <i class="fas fa-info-circle"></i> Detail
               </a>
 
               <?php if ($row['stok'] > 0): ?>
-                <!-- Jika stok masih ada, tombol Pesan memanggil JS baru: pesanDanKurangiStok(...) -->
                 <button 
                   class="order-button" 
                   onclick="event.stopPropagation(); pesanDanKurangiStok(
@@ -319,7 +303,6 @@ $result = $conn->query($sql);
                   <i class="fas fa-shopping-cart"></i> Pesan
                 </button>
               <?php else: ?>
-                <!-- Jika stok habis, tombol Habis -->
                 <button class="sold-out" disabled>
                   <i class="fas fa-times-circle"></i> Habis
                 </button>
@@ -352,12 +335,10 @@ $result = $conn->query($sql);
   </footer>
 
   <script>
-    // Inisialisasi tampilan keranjang saat halaman diload
     document.addEventListener('DOMContentLoaded', function() {
       updateCartPanel();
     });
 
-    // Fungsi untuk menampilkan notifikasi (saat menambah ke keranjang)
     function showNotification(message) {
       const notification = document.getElementById('notification');
       notification.textContent = message;
@@ -367,7 +348,6 @@ $result = $conn->query($sql);
       }, 2000);
     }
 
-    // Fungsi untuk update panel keranjang (jumlah item & total harga)
     function updateCartPanel() {
       const keranjang = JSON.parse(localStorage.getItem('keranjang')) || [];
       const cartPanel  = document.getElementById('cart-panel');
@@ -391,15 +371,7 @@ $result = $conn->query($sql);
       }
     }
 
-    // =================================================================
-    // Fungsi baru: pesanDanKurangiStok()
-    //  - idMenu: ID (integer) dari menu
-    //  - nama: nama makanan (string)
-    //  - harga: harga per unit (integer)
-    //  - elemCard: elemen .card yang memuat item tersebut (untuk update DOM stok)
-    // =================================================================
     function pesanDanKurangiStok(idMenu, nama, harga, elemCard) {
-      // 1) Kirim permintaan POST ke order_action.php untuk mengurangi stok di DB
       fetch('order_action.php', {
         method: 'POST',
         headers: {
@@ -410,7 +382,6 @@ $result = $conn->query($sql);
       .then(response => response.json())
       .then(data => {
         if (data.status === 'success') {
-          // 2.a) Jika berhasil mengurangi stok, simpan ke localStorage (keranjang)
           let keranjang = JSON.parse(localStorage.getItem('keranjang')) || [];
           const idx = keranjang.findIndex(item => item.name === nama);
 
@@ -427,13 +398,11 @@ $result = $conn->query($sql);
           showNotification(nama + " telah ditambahkan ke keranjang");
           updateCartPanel();
 
-          // 2.b) Perbarui teks stok di dalam kartu (elemCard)
           const stokInfo = elemCard.querySelector('.stok-info strong');
           if (stokInfo) {
             stokInfo.textContent = data.new_stock;
           }
 
-          // 2.c) Jika stok baru = 0, ganti tombol “Pesan” menjadi “Habis”
           if (data.new_stock <= 0) {
             const buttonArea = elemCard.querySelector('.card-buttons');
             buttonArea.innerHTML = `
@@ -447,9 +416,7 @@ $result = $conn->query($sql);
           }
         }
         else if (data.status === 'out_of_stock') {
-          // 3.a) Jika stok sudah habis di server
           alert("Maaf, stok \"" + nama + "\" sudah habis.");
-          // 3.b) Pastikan tombol “Pesan” menjadi “Habis”
           const buttonArea = elemCard.querySelector('.card-buttons');
           buttonArea.innerHTML = `
             <a href="detail.php?id=${idMenu}" class="detail-button">
@@ -459,14 +426,12 @@ $result = $conn->query($sql);
               <i class="fas fa-times-circle"></i> Habis
             </button>
           `;
-          // Jika ada label stok di card, perbarui langsung menjadi 0
           const stokInfo = elemCard.querySelector('.stok-info strong');
           if (stokInfo) {
             stokInfo.textContent = '0';
           }
         }
         else {
-          // 4) Jika error (status:"error"), tampilkan pesan
           alert("Terjadi kesalahan: " + data.message);
         }
       })
@@ -475,9 +440,7 @@ $result = $conn->query($sql);
         alert("Gagal terhubung ke server untuk memesan \"" + nama + "\"");
       });
     }
-    // =================================================================
 
-    // Handle perubahan localStorage di tab lain
     window.addEventListener('storage', function(e) {
       if (e.key === 'keranjang') {
         updateCartPanel();
@@ -487,4 +450,4 @@ $result = $conn->query($sql);
 </body>
 </html>
 
-<?php include 'views/footer.php'; ?>
+<?php include '../views/footer.php'; ?>

@@ -1,5 +1,18 @@
 <?php
 session_start();
+
+// Tampilkan notifikasi jika ada session login_success
+if (isset($_SESSION['login_success'])) {
+  $login_success = $_SESSION['login_success'];
+  unset($_SESSION['login_success']);
+}
+
+// Periksa jika user belum login tapi mengakses halaman ini
+if (!isset($_SESSION['loggedin'])) {
+    $_SESSION['loggedin'] = false;
+}
+
+// ... kode selanjutnya ...
 require_once 'views/header-land-page.php';
 require_once 'views/navbar-land-page.php';
 require_once 'views/alerts-land-page.php';
@@ -152,25 +165,39 @@ require_once 'views/alerts-land-page.php';
             <div class="form-row">
               <div class="form-group">
                 <label for="order_date">Tanggal</label>
-                <input type="text" name="order_date" id="order_date" placeholder="Pilih Tanggal" class="form-control" required>
+                <input type="date" name="order_date" id="order_date" class="form-control" required min="<?php echo date('Y-m-d'); ?>">
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label for="start-time">Jam Mulai</label>
-                  <input type="time" name="start_time" id="start-time" placeholder="Masukkan Jam" required>
+                  <label for="start_time">Jam Mulai</label>
+                  <input type="time" name="start_time" id="start_time" placeholder="Masukkan Jam" required>
                 </div>
                 <div class="form-group">
-                  <label for="end-time">Jam Selesai</label>
-                  <input type="time" name="end_time" id="end-time" placeholder="Masukkan Jam" required>
+                  <label for="end_time">Jam Selesai</label>
+                  <input type="time" name="jam_selesai" id="end_time" placeholder="Masukkan Jam" required>
                 </div>
               </div>
             </div>
 
-            <div class="form-column">
-              <div class="form-group">
-                <label for="order">Pesan Disini</label>
-                <textarea name="order" id="order" placeholder="Kosongkan jika Anda ingin memesan di tempat" cols="30" rows="10"></textarea>
-              </div>
+            <div class="form-group">
+              <label for="order">Pesan Disini</label>
+              <select
+                class="form-control menu-select"
+                id="order"
+                name="order[]"
+                multiple="multiple"
+                required
+              >
+                <option value="Sate Ayam">Sate Ayam</option>
+                <option value="Sate Kambing">Sate Kambing</option>
+                <option value="Tongseng">Tongseng Ayam</option>
+                <option value="Nasi Goreng">Sate Sapi</option>
+                <option value="Tongseng">Nasi</option>
+                <option value="Teh Manis">Es Teh Manis</option>
+                <option value="Es Jeruk">Es Jeruk</option>
+                <option value="Teh Manis">Es Teh Tawar</option>
+              </select>
+            </div>
 
               <div class="form-group">
                 <button type="submit" name="submit_reservation">Kirim</button>
@@ -197,6 +224,67 @@ require_once 'views/alerts-land-page.php';
       </div>
     </section>
 
+    <?php if(isset($login_success)): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    iziToast.success({
+        title: 'Berhasil Masuk!',
+        message: '<?= addslashes($login_success) ?>',
+        position: 'topRight',
+        timeout: 5000
+    });
+});
+</script>
+<?php endif; ?>
+
+
+  <style>
+  /* Custom styling untuk Select2 agar warnanya hitam-putih */
+  .select2-container--default .select2-selection--multiple {
+    background-color: #000;       /* Hitam */
+    color: #fff;                  /* Putih */
+    border: 1px solid #444;
+    padding: 4px;
+  }
+
+  .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    color: #fff; /* Teks putih di dalam field */
+  }
+
+  .select2-container--default .select2-results__option {
+    background-color: #000;       /* Warna item dropdown */
+    color: #fff;
+  }
+
+  .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #333;       /* Saat disorot */
+    color: #fff;
+  }
+
+  .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #333;
+    border-color: #555;
+    color: #fff;
+  }
+
+  label {
+    color: #fff;
+  }
+</style>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+      $(document).ready(function() {
+        $('.menu-select').select2({
+          placeholder: "Klik untuk memilih menu",
+          dropdownAutoWidth: true,
+          width: '100%'
+        });
+      });
+    </script>
+    
     <!-- Footer -->
     <?php
     require_once 'views/footer-land-page.php';

@@ -1,3 +1,30 @@
+<?php
+session_start();
+
+// Redirect jika belum login
+if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin']) {
+    header("Location: login-register.php");
+    exit;
+}
+
+// Ambil data user dari session
+$user = $_SESSION['user'] ?? [
+    'username' => 'dikialift13',
+    'email' => 'dikia@example.com',
+    'full_name' => 'John Doe'
+];
+
+// Tentukan foto profil berdasarkan username
+$profileImage = "uploads/profile/default.jpg"; // default
+
+// Periksa username dan atur foto profil yang sesuai
+if ($user['username'] === 'dikialift') {
+    $profileImage = "uploads/profiles/1746731699_fotodiki.jpg";
+} elseif ($user['username'] === 'egafiandra') {
+    $profileImage = "uploads/profiles/1746347113_fotoega.jpg";
+}
+?>
+
 <!doctype html>
 <html lang="en">
     <meta charset="UTF-8" />
@@ -112,13 +139,6 @@
         <p>Rasakan kenikmatan sate goreng ayam!</p>
       </div>
     </div>
-    <div class="notification-item">
-      <img src="img/notification/4.webp" alt="Reservasi Spesial" />
-      <div class="notification-text">
-        <h4>Jam Operasional Baru</h4>
-        <p>Sekarang kami buka hingga pukul 21:00!</p>
-      </div>
-    </div>
   </div>
 </li>
 
@@ -134,9 +154,8 @@
   </a>
   <div class="dropdown-content-user">
     <div class="user-info">
-      <img src="img/profile-pic.png" alt="User Profile" />
-      <div class="user-name">dikialift13</div>
-    </div>
+  <div class="user-name"><?= htmlspecialchars($user['username']) ?></div>
+</div>
     <div class="dropdown-divider"></div>
     <a href="account.php" class="dropdown-item">
       <i class="fas fa-user-cog"></i> <p> Akun Saya</p>
@@ -207,10 +226,10 @@
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="user-profile">
-      <img src="img/profile-pic.png" alt="User Profile" class="profile-image">
-      <h3>John Doe</h3>
-      <p>Member since 2024</p>
-    </div>
+  <img src="<?= $profileImage ?>" alt="User Profile" class="profile-image">
+  <h3><?= htmlspecialchars($user['full_name']) ?></h3>
+  <p>Member since 2024</p>
+</div>
     <ul class="sidebar-menu">
       <li>
         <a href="account.php">
@@ -250,7 +269,7 @@
         
         <div class="account-info-container">
             <div class="profile-image-container">
-                <img src="img/profile-pic.png" alt="Profile Picture" class="account-profile-image">
+                <img src="<?= $profileImage ?>" alt="Profile Picture" class="account-profile-image">
                 <div class="image-upload-overlay" style="display: none;">
                     <label for="profileImageInput" class="upload-label">
                         <i class="fas fa-camera"></i>
@@ -261,19 +280,23 @@
             </div>
 
             <form class="personal-info-form" id="personalInfoForm">
+                <<form class="personal-info-form" id="personalInfoForm">
                 <div class="form-group">
-                    <label for="fullName">Full Name</label>
-                    <input type="text" id="fullName" name="fullName" disabled value="John Doe">
+                  <label for="fullName">Full Name</label>
+                  <input type="text" id="fullName" name="fullName" disabled 
+                        value="<?= htmlspecialchars($user['full_name']) ?>">
                 </div>
 
                 <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" disabled value="johndoe123">
+                  <label for="username">Username</label>
+                  <input type="text" id="username" name="username" disabled 
+                        value="<?= htmlspecialchars($user['username']) ?>">
                 </div>
 
                 <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" disabled value="john.doe@example.com">
+                  <label for="email">Email Address</label>
+                  <input type="email" id="email" name="email" disabled 
+                        value="<?= htmlspecialchars($user['email']) ?>">
                 </div>
 
                 <div class="form-group">
@@ -411,6 +434,29 @@
     <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/js/iziToast.min.js"></script>
     <script>
+function loadUserData() {
+    // Ini contoh static, di real app harus fetch dari server
+    const userData = {
+        username: "<?= $user['username'] ?>",
+        email: "<?= $user['email'] ?>",
+        full_name: "<?= $user['full_name'] ?>",
+        phone: "+1234567890",
+        gender: "male",
+        address: "123 Main Street, Apt 4B, City, Country"
+    };
+    
+    document.getElementById('fullName').value = userData.full_name;
+    document.getElementById('username').value = userData.username;
+    document.getElementById('email').value = userData.email;
+    document.getElementById('phone').value = userData.phone;
+    document.querySelector(`input[name="gender"][value="${userData.gender}"]`).checked = true;
+    document.getElementById('address').value = userData.address;
+}
+
+// Panggil saat halaman dimuat
+document.addEventListener('DOMContentLoaded', function() {
+    loadUserData();
+    
       AOS.init();
 
       // Wait for the DOM to be fully loaded

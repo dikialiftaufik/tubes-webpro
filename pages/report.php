@@ -1,2304 +1,811 @@
-<!DOCTYPE html>
-<html lang="en">
+<?php
+// pages/laporan.php
+session_start();
+require_once '../configdb.php';
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Report</title>
-  <link rel="icon" type="image/x-icon" href="logoapk.png" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
-  <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
-  <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
-  <link rel="stylesheet" href="css/style.css">
-  <style>
-    .btn-status {
-      transition: all 0.3s;
+// Generate CSRF token
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// Cek auth admin
+if (!isset($_SESSION['user'])) {
+    header("Location: login.php");
+    exit();
+}
+if ($_SESSION['user']['role'] !== 'admin') {
+    header("Location: dashboard.php");
+    exit();
+}
+
+// Tangkap parameter filter tanggal
+$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : null;
+$end_date = isset($_GET['end_date']) ? $_GET['end_date'] : null;
+
+// Handle export PDF
+if (isset($_GET['export']) && $_GET['export'] === 'pdf') {
+    // Include library PDF (misalnya TCPDF atau FPDF)
+    require_once '../vendor/tcpdf/tcpdf.php';
+    
+    // Query untuk export dengan filter tanggal jika ada
+    $export_query = "SELECT id_transaksi, nama_pelanggan, email, tanggal_transaksi, pesanan, total_harga, metode_pembayaran FROM laporan";
+    
+    $where = [];
+    $params = [];
+    
+    if (!empty($start_date)) {
+        $where[] = "DATE(tanggal_transaksi) >= ?";
+        $params[] = $start_date;
     }
-
-    .btn-status-pending {
-      background-color: #ffc107;
-      border-color: #ffc107;
-      color: white;
+    
+    if (!empty($end_date)) {
+        $where[] = "DATE(tanggal_transaksi) <= ?";
+        $params[] = $end_date;
     }
-
-    .btn-status-completed {
-      background-color: #28a745;
-      border-color: #28a745;
-      color: white;
+    
+    if (!empty($where)) {
+        $export_query .= " WHERE " . implode(" AND ", $where);
     }
-
-    .btn-status-canceled {
-      background-color: #dc3545;
-      border-color: #dc3545;
-      color: white;
+    
+    $export_query .= " ORDER BY tanggal_transaksi DESC";
+    
+    $stmt = $conn->prepare($export_query);
+    if ($params) {
+        $types = str_repeat('s', count($params));
+        $stmt->bind_param($types, ...$params);
     }
-
-    .btn-payment-dibayar {
-      background-color: #4caf50;
-      border-color: #4caf50;
-      color: white;
+    $stmt->execute();
+    $export_result = $stmt->get_result();
+    
+    // Setup PDF
+    $pdf = new TCPDF();
+    $pdf->AddPage();
+    $pdf->SetFont('helvetica', 'B', 16);
+    $pdf->Cell(0, 10, 'Laporan Transaksi', 0, 1, 'C');
+    
+    // Tambahkan informasi filter tanggal jika ada
+    if (!empty($start_date) || !empty($end_date)) {
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->Cell(0, 8, 'Periode: ' . (!empty($start_date) ? date('d/m/Y', strtotime($start_date)) : 'Awal') . 
+                     ' - ' . (!empty($end_date) ? date('d/m/Y', strtotime($end_date)) : 'Akhir'), 0, 1, 'C');
     }
-
-    .btn-payment-belumdibayar {
-      background-color: #f44336;
-      border-color: #f44336;
-      color: white;
+    
+    $pdf->Ln(5);
+    
+    // Table header
+    $pdf->SetFont('helvetica', 'B', 10);
+    $pdf->Cell(20, 8, 'No', 1);
+    $pdf->Cell(30, 8, 'ID Transaksi', 1);
+    $pdf->Cell(40, 8, 'Nama Pelanggan', 1);
+    $pdf->Cell(50, 8, 'Email', 1);
+    $pdf->Cell(30, 8, 'Tanggal', 1);
+    $pdf->Cell(40, 8, 'Total Harga', 1);
+    $pdf->Cell(30, 8, 'Metode', 1);
+    $pdf->Ln();
+    
+    // Table content
+    $pdf->SetFont('helvetica', '', 9);
+    $no = 1;
+    while($row = $export_result->fetch_assoc()) {
+        $pdf->Cell(20, 8, $no++, 1);
+        $pdf->Cell(30, 8, $row['id_transaksi'], 1);
+        $pdf->Cell(40, 8, substr($row['nama_pelanggan'], 0, 15), 1);
+        $pdf->Cell(50, 8, substr($row['email'], 0, 20), 1);
+        // Tampilkan tanggal dan jam
+        $pdf->Cell(30, 8, date('d/m/Y H:i', strtotime($row['tanggal_transaksi'])), 1);
+        $pdf->Cell(40, 8, 'Rp ' . number_format($row['total_harga'], 0, ',', '.'), 1);
+        $pdf->Cell(30, 8, $row['metode_pembayaran'], 1);
+        $pdf->Ln();
     }
+    
+    $pdf->Output('laporan_transaksi.pdf', 'D');
+    exit();
+}
 
-    #showModal .modal-header {
-      background-color: #ffc107;
-      color: white;
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
+// Handle export Excel
+if (isset($_GET['export']) && $_GET['export'] === 'excel') {
+    header('Content-Type: application/vnd.ms-excel');
+    header('Content-Disposition: attachment;filename="laporan_transaksi.xls"');
+    header('Cache-Control: max-age=0');
+    
+    echo '<table border="1">';
+    echo '<tr><th colspan="8">Laporan Transaksi</th></tr>';
+    
+    // Tambahkan informasi filter tanggal jika ada
+    if (!empty($start_date) || !empty($end_date)) {
+        echo '<tr><th colspan="8">Periode: ' . 
+             (!empty($start_date) ? date('d/m/Y', strtotime($start_date)) : 'Awal') . 
+             ' - ' . (!empty($end_date) ? date('d/m/Y', strtotime($end_date)) : 'Akhir') . 
+             '</th></tr>';
     }
-
-    #editModal .modal-header {
-      background-color: #007bff;
-      color: white;
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
+    
+    echo '<tr><th>No</th><th>ID Transaksi</th><th>Nama Pelanggan</th><th>Email</th><th>Tanggal Transaksi</th><th>Pesanan</th><th>Total Harga</th><th>Metode Pembayaran</th></tr>';
+    
+    // Query untuk export dengan filter tanggal jika ada
+    $export_query = "SELECT id_transaksi, nama_pelanggan, email, tanggal_transaksi, pesanan, total_harga, metode_pembayaran FROM laporan";
+    
+    $where = [];
+    $params = [];
+    
+    if (!empty($start_date)) {
+        $where[] = "DATE(tanggal_transaksi) >= ?";
+        $params[] = $start_date;
     }
-
-    @media (max-width: 768px) {
-      .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-      }
-
-      .sidebar.collapsed {
-        display: none;
-      }
-
-      .content {
-        margin-left: 0;
-      }
-
-      .logo-container {
-        display: none;
-        /* Sembunyikan logo pada desktop view */
-      }
-
-      #sidebar .d-flex.align-items-center.justify-content-between {
-        display: flex;
-      }
-
-      .row {
-        gap: 15px;
-      }
+    
+    if (!empty($end_date)) {
+        $where[] = "DATE(tanggal_transaksi) <= ?";
+        $params[] = $end_date;
     }
-
-    @media (max-width: 576px) {
-      .card-title {
-        font-size: 1.5rem;
-      }
-
-      .chart-controls {
-        flex-direction: column;
-      }
+    
+    if (!empty($where)) {
+        $export_query .= " WHERE " . implode(" AND ", $where);
     }
-
-    .chart-container {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      margin-top: 20px;
+    
+    $export_query .= " ORDER BY tanggal_transaksi DESC";
+    
+    $stmt = $conn->prepare($export_query);
+    if ($params) {
+        $types = str_repeat('s', count($params));
+        $stmt->bind_param($types, ...$params);
     }
-
-    .stat-card {
-      transition: transform 0.3s;
+    $stmt->execute();
+    $export_result = $stmt->get_result();
+    $no = 1;
+    
+    while($row = $export_result->fetch_assoc()) {
+        echo '<tr>';
+        echo '<td>' . $no++ . '</td>';
+        echo '<td>' . $row['id_transaksi'] . '</td>';
+        echo '<td>' . $row['nama_pelanggan'] . '</td>';
+        echo '<td>' . $row['email'] . '</td>';
+        // Tampilkan tanggal dan jam
+        echo '<td>' . date('d/m/Y H:i', strtotime($row['tanggal_transaksi'])) . '</td>';
+        echo '<td>' . $row['pesanan'] . '</td>';
+        echo '<td>Rp ' . number_format($row['total_harga'], 0, ',', '.') . '</td>';
+        echo '<td>' . $row['metode_pembayaran'] . '</td>';
+        echo '</tr>';
     }
+    echo '</table>';
+    exit();
+}
 
-    .stat-card:hover {
-      transform: translateY(-5px);
+// Fungsi untuk handle create transaksi
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // CSRF Validation
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        http_response_code(403);
+        die(json_encode(['message' => 'Invalid CSRF token']));
     }
+    
+    if (isset($_POST['action']) && $_POST['action'] === 'create') {
+        // Sanitize input
+        $id_transaksi = filter_var($_POST['id_transaksi'], FILTER_SANITIZE_STRING);
+        $nama_pelanggan = filter_var($_POST['nama_pelanggan'], FILTER_SANITIZE_STRING);
+        $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+        $tanggal_transaksi = $_POST['tanggal_transaksi'];
+        $waktu_transaksi = $_POST['waktu_transaksi'];
+        
+        // Validasi format tanggal (YYYY-MM-DD) dan waktu (HH:MM)
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal_transaksi) || 
+            !preg_match('/^\d{2}:\d{2}$/', $waktu_transaksi)) {
+            http_response_code(400);
+            die(json_encode(['message' => 'Format tanggal atau waktu tidak valid']));
+        }
+        
+        // Gabungkan tanggal dan waktu
+        $tanggal_waktu = $tanggal_transaksi . ' ' . $waktu_transaksi . ':00';
+        
+        // Ambil pesanan sebagai array
+        $pesanan = $_POST['pesanan'];
+        // Validasi: pastikan setidaknya ada satu pesanan
+        if (empty($pesanan)) {
+            http_response_code(400);
+            die(json_encode(['message' => 'Pesanan tidak boleh kosong']));
+        }
+        // Konversi array pesanan menjadi JSON
+        $pesanan_json = json_encode($pesanan);
+        
+        $total_harga = filter_var($_POST['total_harga'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        $metode_pembayaran = filter_var($_POST['metode_pembayaran'], FILTER_SANITIZE_STRING);
 
-    .chart-controls {
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
+        // Debugging: log input data
+        error_log("Inserting transaction: $id_transaksi, $nama_pelanggan, $email, $tanggal_waktu, $pesanan_json, $total_harga, $metode_pembayaran");
+
+        // Query INSERT menggunakan kolom id_transaksi
+        $stmt = $conn->prepare("INSERT INTO laporan 
+            (id_transaksi, nama_pelanggan, email, tanggal_transaksi, pesanan, total_harga, metode_pembayaran, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
+        
+        // Handle prepare error
+        if (!$stmt) {
+            $error = $conn->error;
+            error_log("Prepare failed: $error");
+            http_response_code(500);
+            die(json_encode(['message' => 'Database error: ' . $error]));
+        }
+        
+        $stmt->bind_param("sssssss", 
+            $id_transaksi,
+            $nama_pelanggan, 
+            $email, 
+            $tanggal_waktu, 
+            $pesanan_json,  // Gunakan JSON
+            $total_harga, 
+            $metode_pembayaran
+        );
+        
+        if ($stmt->execute()) {
+            echo json_encode(['message' => 'Transaksi berhasil ditambahkan']);
+        } else {
+            $error = $stmt->error;
+            error_log("Execute failed: $error");
+            error_log("ERROR DETAILS: " . print_r($stmt->error_list, true));
+            http_response_code(500);
+            echo json_encode(['message' => 'Gagal menambahkan transaksi: ' . $error]);
+        }
+        exit();
     }
+}
 
-    .chart-title {
-      font-size: 1.2rem;
-      font-weight: bold;
-      margin-bottom: 15px;
-    }
+// Konfigurasi pagination dan sorting
+$per_page_options = [10, 25, 50, 100];
+$selected_per_page = isset($_GET['per_page']) && in_array($_GET['per_page'], $per_page_options) 
+                    ? (int)$_GET['per_page'] 
+                    : 10;
+$page = isset($_GET['page']) ? max((int)$_GET['page'], 1) : 1;
+$search = isset($_GET['search']) ? $conn->real_escape_string(strip_tags($_GET['search'])) : '';
+$sort_column = in_array($_GET['sort'] ?? '', ['id_transaksi','nama_pelanggan','email','tanggal_transaksi','total_harga']) ? $_GET['sort'] : 'tanggal_transaksi';
+$sort_order = isset($_GET['order']) && strtoupper($_GET['order']) === 'ASC' ? 'ASC' : 'DESC';
+$search_term = "%$search%";
+$offset = ($page - 1) * $selected_per_page;
 
-    .footer-custom {
-      background-color: #dcdcdc;
-      /* Warna latar */
-      padding: 15px 0;
-      /* Padding vertikal */
-      font-size: 0.875rem;
-      /* Ukuran font */
-      color: #000;
-      /* Warna teks */
-      display: flex;
-      /* Gunakan flexbox */
-      justify-content: center;
-      /* Pusatkan horizontal */
-      align-items: center;
-      /* Pusatkan vertikal */
-      text-align: center;
-      /* Pusatkan teks */
-      width: 100%;
-      /* Lebar penuh */
-      position: relative;
-      /* Posisi default */
-    }
+// Query untuk mengambil data transaksi dengan filter
+$query = "SELECT id_transaksi, nama_pelanggan, email, tanggal_transaksi, pesanan, total_harga, metode_pembayaran FROM laporan 
+          WHERE (nama_pelanggan LIKE ? 
+             OR email LIKE ? 
+             OR pesanan LIKE ? 
+             OR metode_pembayaran LIKE ?)";
+$params = ["ssss", $search_term, $search_term, $search_term, $search_term];
 
-    .footer-custom a {
-      text-decoration: none;
-      color: inherit;
-    }
+// Tambahkan filter rentang tanggal jika ada
+if (!empty($start_date)) {
+    $query .= " AND DATE(tanggal_transaksi) >= ?";
+    $params[0] .= "s";
+    $params[] = $start_date;
+}
 
-    .footer-custom a:hover {
-      text-decoration: underline;
-    }
-  </style>
-</head>
+if (!empty($end_date)) {
+    $query .= " AND DATE(tanggal_transaksi) <= ?";
+    $params[0] .= "s";
+    $params[] = $end_date;
+}
 
-<body>
-  <!-- Sidebar -->
-  <div id="sidebar" class="sidebar">
-    <div class="d-flex align-items-center justify-content-between d-md-none p-2">
-      <!-- Logo dan Judul Website -->
-      <div class="d-flex align-items-center">
-        <img src="logoapk.png" alt="Logo" style="width: 40px; height: 40px;" />
-        <span class="ms-2 fw-bold">BOLOOO</span>
-      </div>
-      <!-- Tombol Toggle -->
-      <button class="btn btn-outline-light" id="toggleSidebarMobile">
-        <i class="bi bi-list"></i>
-      </button>
-    </div>
+$query .= " ORDER BY $sort_column $sort_order 
+          LIMIT $selected_per_page OFFSET $offset";
 
-    <div class="logo-container d-none d-md-flex">
-      <img src="logoapk.png" alt="Logo" />
-      <span>BOLOOO</span>
-    </div>
+$stmt = $conn->prepare($query);
+if (!$stmt) {
+    die("Error preparing query: " . $conn->error);
+}
 
-    <div class="menu-item active-menu-item">
-      <a href="dashboard.html"><i class="bi bi-house-door me-2"></i> <span>Dashboard</span></a>
-    </div>
-    <div class="menu-item">
-      <a href="report.html"><i class="bi bi-bar-chart-line me-2"></i> <span>Report</span></a>
-    </div>
-    <div class="menu-item">
-      <a href="mainCourse.html"><i class="bi bi-egg-fried me-2"></i> <span>Main Course</span></a>
-    </div>
-    <div class="menu-item">
-      <a href="drinks.html"><i class="bi bi-cup me-2"></i> <span>Drinks</span></a>
-    </div>
-    <div class="menu-item">
-      <a href="sideDish.html"><i class="bi bi-egg me-2"></i></i> <span>Side Dish</span></a>
-    </div>
-    <div class="menu-item">
-      <a href="package.html"><i class="bi bi-basket3 me-2"></i></i> <span>Paket</span></a>
-    </div>
-    <div class="menu-item">
-      <a href="order.html"><i class="bi bi-cart3 me-2"></i> <span>Pesanan</span></a>
-    </div>
-    <div class="menu-item">
-      <a href="reservation.html"><i class="bi bi-calendar2-check me-2"></i> <span>Reservasi</span></a>
-    </div>
-    <div class="menu-item">
-      <a href="users.html"><i class="bi bi-person me-2"></i> <span>Users</span></a>
-    </div>
-    <div class="menu-item dropdown" id="dropdownMenu">
-      <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-        <i class="bi bi-briefcase me-2"></i> <span>Karir</span>
-      </a>
-      <ul class="dropdown-menu dropdown-menu-start">
-        <li>
-          <a class="dropdown-item" href="jobs.html">
-            <i class="bi bi-person-badge me-2"></i>Lowongan
-          </a>
-        </li>
-        <li>
-          <a class="dropdown-item" href="applicant.html">
-            <i class="bi bi-person-badge me-2"></i>Pelamar
-          </a>
-        </li>
-      </ul>
-    </div>
+// PERBAIKAN: Binding parameter yang benar
+$ref_params = []; // Array of references
+foreach ($params as $key => $value) {
+    $ref_params[$key] = &$params[$key];
+}
+call_user_func_array([$stmt, 'bind_param'], $ref_params);
 
-  </div>
+$stmt->execute();
+$result = $stmt->get_result();
+$transaksi = $result->fetch_all(MYSQLI_ASSOC);
 
+// Total data untuk pagination
+$total_query = "SELECT COUNT(*) AS total FROM laporan 
+                WHERE (nama_pelanggan LIKE ? 
+                   OR email LIKE ? 
+                   OR pesanan LIKE ? 
+                   OR metode_pembayaran LIKE ?)";
+$total_params = ["ssss", $search_term, $search_term, $search_term, $search_term];
 
-  <!-- Main Content -->
-  <div id="content" class="content">
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm rounded">
-      <div class="container-fluid">
-        <button id="toggleSidebar" class="btn btn-outline-secondary me-3">
-          <i class="bi bi-list"></i>
-        </button>
-        <a class="navbar-brand" href="#">Report</a>
-        <div class="dropdown ms-auto">
-          <button class="profile-button rounded" type="button" id="profileDropdown" data-bs-toggle="dropdown"
-            aria-expanded="false">
-            <img src="fotozufar.jpg" alt="Profile" class="rounded-circle" />
-            <div class="text-start">
-              <strong>Ahmad Zufar</strong><br />
-              <small class="text-muted">Super Admin</small>
-            </div>
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end profile-dropdown shadow" aria-labelledby="profileDropdown">
-            <li>
-              <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
-                <i class="bi bi-person me-2"></i>Profil
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider" />
-            </li>
-            <li>
-              <a class="dropdown-item text-danger" href="login.html"><i
-                  class="bi bi-box-arrow-right me-2"></i>Keluar</a>
-            </li>
-          </ul>
-        </div>
+if (!empty($start_date)) {
+    $total_query .= " AND DATE(tanggal_transaksi) >= ?";
+    $total_params[0] .= "s";
+    $total_params[] = $start_date;
+}
 
-        <!-- Profile Modal -->
-        <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="profileModalLabel">Profil</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+if (!empty($end_date)) {
+    $total_query .= " AND DATE(tanggal_transaksi) <= ?";
+    $total_params[0] .= "s";
+    $total_params[] = $end_date;
+}
+
+$stmt_total = $conn->prepare($total_query);
+if (!$stmt_total) {
+    die("Error preparing total query: " . $conn->error);
+}
+
+// PERBAIKAN: Binding parameter yang benar
+$ref_total_params = []; // Array of references
+foreach ($total_params as $key => $value) {
+    $ref_total_params[$key] = &$total_params[$key];
+}
+call_user_func_array([$stmt_total, 'bind_param'], $ref_total_params);
+
+$stmt_total->execute();
+$total_result = $stmt_total->get_result();
+$total_row = $total_result->fetch_assoc();
+$total_transaksi = $total_row['total'];
+$total_pages = ceil($total_transaksi / $selected_per_page);
+$page = min($page, $total_pages);
+
+$title = "Laporan Transaksi";
+include '../views/header.php';
+include '../views/navbar.php';
+include '../views/sidebar.php';
+?>
+
+<div class="main-content">
+    <?php include '../views/alerts.php'; ?>
+    
+    <div class="d-flex justify-content-between mb-3 mt-4">
+        <h2>Laporan Transaksi</h2>
+        <div class="d-flex align-items-center">
+            <!-- Date Range Picker -->
+            <div class="input-group me-3" style="width: 450px;">
+                <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                <input 
+                    type="date" 
+                    id="startDate" 
+                    class="form-control" 
+                    value="<?= htmlspecialchars($start_date ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                    placeholder="Tanggal Mulai"
+                >
+                <span class="input-group-text">s/d</span>
+                <input 
+                    type="date" 
+                    id="endDate" 
+                    class="form-control" 
+                    value="<?= htmlspecialchars($end_date ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                    placeholder="Tanggal Akhir"
+                >
+                <button 
+                    class="btn btn-outline-secondary" 
+                    type="button" 
+                    id="clearDate"
+                    title="Clear filter"
+                >
+                    <i class="bi bi-x-lg"></i>
                 </button>
-              </div>
-              <div class="modal-body">
-                <form id="profileForm">
-                  <div class="mb-3 text-center">
-                    <img id="profilePicturePreview" src="fotozufar.jpg" alt="Profile Picture"
-                      class="rounded-circle mb-2" style="width: 100px; height: 100px" />
-                    <br />
-                    <button type="button" id="editPictureButton" class="btn btn-outline-primary btn-sm mt-2"
-                      style="display: none">
-                      Ubah Foto Profil</button><br /><br />
-                    <input type="file" id="profilePictureInput" class="form-control" style="display: none"
-                      accept="image/*" />
-                  </div>
+            </div>
+            
+            <!-- Tombol Tambah dan Export -->
+            <div>
+                <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#createTransactionModal">
+                    <i class="bi bi-plus-circle"></i> Tambah Transaksi
+                </button>
+                <a href="?export=excel&amp;start_date=<?= !empty($start_date) ? urlencode($start_date) : '' ?>&amp;end_date=<?= !empty($end_date) ? urlencode($end_date) : '' ?>" 
+                class="btn btn-success me-2">
+                    <i class="bi bi-file-excel"></i> Export Excel
+                </a>
+            </div>
+        </div>
+    </div>
 
-                  <!-- Two-Column Layout -->
-                  <div class="row g-3">
-                    <div class="col-md-6">
-                      <label for="name" class="form-label">Nama Lengkap</label>
-                      <div class="input-group">
-                        <span class="input-group-text">
-                          <i class="bi bi-person"></i>
-                        </span>
-                        <input type="text" id="name" class="form-control" value="Ahmad Zufar Fathoni" disabled />
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <label for="username" class="form-label">Username</label>
-                      <div class="input-group">
-                        <span class="input-group-text">
-                          <i class="bi bi-person"></i>
-                        </span>
-                        <input type="text" id="username" class="form-control" value="Ahmad Zufar" disabled />
-                      </div>
-                    </div>
+    <?php if ($start_date || $end_date): ?>
+    <div class="alert alert-info d-flex align-items-center py-2 mb-3">
+        <i class="bi bi-info-circle me-2"></i>
+        Menampilkan transaksi dari tanggal: 
+        <strong class="mx-1"><?= !empty($start_date) ? htmlspecialchars($start_date, ENT_QUOTES, 'UTF-8') : 'Awal' ?></strong> 
+        sampai 
+        <strong class="mx-1"><?= !empty($end_date) ? htmlspecialchars($end_date, ENT_QUOTES, 'UTF-8') : 'Akhir' ?></strong>
+        <a href="?" class="ms-2 text-danger">
+            <i class="bi bi-x-circle"></i> Hapus filter
+        </a>
+    </div>
+    <?php endif; ?>
 
-                    <div class="col-md-6">
-                      <label for="email" class="form-label">Email</label>
-                      <div class="input-group">
-                        <span class="input-group-text">
-                          <i class="bi bi-envelope"></i>
-                        </span>
-                        <input type="email" id="email" class="form-control" value="zufar25@gmail.com" disabled />
-                      </div>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-center">
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <span class="input-group-text">Show</span>
+                        <select class="form-select" name="per_page" onchange="this.form.submit()">
+                            <?php foreach($per_page_options as $option): ?>
+                            <option value="<?= $option ?>" <?= $selected_per_page == $option ? 'selected' : '' ?>>
+                                <?= $option ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
-                    <div class="col-md-6">
-                      <label for="password" class="form-label">Password</label>
-                      <div class="input-group">
-                        <span class="input-group-text">
-                          <i class="bi bi-lock"></i>
-                        </span>
-                        <input type="password" id="password" class="form-control" value="admin123" disabled />
-                      </div>
+                </div>
+                <div class="col-md-9">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" placeholder="Cari transaksi..." value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i>
+                        </button>
+                        <a href="report.php" class="btn btn-secondary">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </a>
                     </div>
+                </div>
+                <!-- Sembunyikan input rentang tanggal agar tidak hilang saat form search disubmit -->
+                <?php if ($start_date): ?>
+                <input type="hidden" name="start_date" value="<?= htmlspecialchars($start_date, ENT_QUOTES, 'UTF-8') ?>">
+                <?php endif; ?>
+                <?php if ($end_date): ?>
+                <input type="hidden" name="end_date" value="<?= htmlspecialchars($end_date, ENT_QUOTES, 'UTF-8') ?>">
+                <?php endif; ?>
+            </form>
+        </div>
+    </div>
 
-                  </div>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="transactionTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>No</th>
+                            <th>ID Transaksi
+                                    <?php if($sort_column == 'id_transaksi'): ?>
+                                        
+                                    <?php endif; ?>
+                            </th>
+                            <th>Nama Pelanggan</th>
+                            <th>Email</th>
+                            <th>Tanggal Transaksi</th>
+                            <th>Pesanan</th>
+                            <th>Total Harga</th>
+                            <th>Metode Pembayaran</th>
+                            <th style="width: 120px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $no = ($page - 1) * $selected_per_page + 1;
+                        foreach($transaksi as $trans): 
+                            // Parse pesanan jika JSON, jika tidak, gunakan string biasa
+                            $pesanan = $trans['pesanan'];
+                            $pesananArray = json_decode($pesanan);
+                            $isArray = is_array($pesananArray);
+                        ?>
+                        <tr data-pesanan="<?= htmlspecialchars($pesanan, ENT_QUOTES, 'UTF-8') ?>">
+                            <td><?= $no++ ?></td>
+                            <td><span class="badge bg-primary"><?= htmlspecialchars($trans['id_transaksi'], ENT_QUOTES, 'UTF-8') ?></span></td>
+                            <td><?= htmlspecialchars($trans['nama_pelanggan'], ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars($trans['email'], ENT_QUOTES, 'UTF-8') ?></td>
+                            <!-- Tampilkan tanggal dan jam -->
+                            <td><?= date('d/m/Y H:i', strtotime($trans['tanggal_transaksi'])) ?></td>
+                            <td>
+                                <?php if ($isArray): ?>
+                                    <ul class="mb-0">
+                                        <?php foreach($pesananArray as $item): ?>
+                                            <li><?= htmlspecialchars($item, ENT_QUOTES, 'UTF-8') ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php else: ?>
+                                    <span class="text-truncate d-inline-block" style="max-width: 200px;" title="<?= htmlspecialchars($pesanan, ENT_QUOTES, 'UTF-8') ?>">
+                                        <?= htmlspecialchars($pesanan, ENT_QUOTES, 'UTF-8') ?>
+                                    </span>
+                                <?php endif; ?>
+                            </td>
+                            <td><strong class="text-success">Rp <?= number_format($trans['total_harga'], 0, ',', '.') ?></strong></td>
+                            <td>
+                                <span class="badge bg-<?= $trans['metode_pembayaran'] == 'cash' ? 'success' : 'info' ?>">
+                                    <?= htmlspecialchars($trans['metode_pembayaran'], ENT_QUOTES, 'UTF-8') ?>
+                                </span>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-info view-btn" data-id="<?= $trans['id_transaksi'] ?>" title="Lihat Detail">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-primary print-btn" 
+                                    data-id="<?= htmlspecialchars($trans['id_transaksi'], ENT_QUOTES, 'UTF-8') ?>" 
+                                    title="Cetak"
+                                >
+                                    <i class="bi bi-printer"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <?php if($total_pages > 1): ?>
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?page=<?= $page-1 ?>&per_page=<?= $selected_per_page ?>&search=<?= urlencode($search) ?><?= $start_date ? '&start_date='.urlencode($start_date) : '' ?><?= $end_date ? '&end_date='.urlencode($end_date) : '' ?>">Previous</a>
+                    </li>
+                    
+                    <?php for($i = max(1, $page-2); $i <= min($total_pages, $page+2); $i++): ?>
+                    <li class="page-item <?= $i == $page ? 'active' : '' ?>">
+                        <a class="page-link" href="?page=<?= $i ?>&per_page=<?= $selected_per_page ?>&search=<?= urlencode($search) ?><?= $start_date ? '&start_date='.urlencode($start_date) : '' ?><?= $end_date ? '&end_date='.urlencode($end_date) : '' ?>"><?= $i ?></a>
+                    </li>
+                    <?php endfor; ?>
+                    
+                    <li class="page-item <?= $page >= $total_pages ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?page=<?= $page+1 ?>&per_page=<?= $selected_per_page ?>&search=<?= urlencode($search) ?><?= $start_date ? '&start_date='.urlencode($start_date) : '' ?><?= $end_date ? '&end_date='.urlencode($end_date) : '' ?>">Next</a>
+                    </li>
+                </ul>
+            </nav>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Create Transaction -->
+<div class="modal fade" id="createTransactionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tambah Transaksi Baru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTransactionForm">
+                    <!-- FIX: Add CSRF token to form -->
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <input type="hidden" name="action" value="create">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">ID Transaksi:</label>
+                                <input type="text" name="id_transaksi" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Nama Pelanggan:</label>
+                                <input type="text" name="nama_pelanggan" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email:</label>
+                                <input type="email" name="email" class="form-control" placeholder="nama@gmail.com" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Tanggal & Waktu Transaksi:</label>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <input type="date" name="tanggal_transaksi" class="form-control" required>
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="time" name="waktu_transaksi" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Total Harga:</label>
+                                <input type="number" step="500" min="1000" name="total_harga" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Metode Pembayaran:</label>
+                                <select name="metode_pembayaran" class="form-select" required>
+                                    <option value="">Pilih Metode</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Qris">Qris</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Pesanan:</label>
+                                <div id="pesanan-container">
+                                    <div class="input-group mb-2">
+                                        <input type="text" name="pesanan[]" class="form-control" placeholder="Nama menu" required>
+                                        <button type="button" class="btn btn-outline-danger remove-pesanan"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                </div>
+                                <button type="button" id="add-pesanan" class="btn btn-sm btn-secondary">Tambah Pesanan</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Simpan Transaksi
+                        </button>
+                    </div>
                 </form>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                  Tutup
-                </button>
-                <button type="button" id="editButton" class="btn btn-success">
-                  Edit
-                </button>
-                <button type="button" id="saveButton" class="btn btn-success" style="display: none">
-                  Simpan
-                </button>
-              </div>
             </div>
-          </div>
         </div>
-      </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="main-content">
-      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addMenuModal">
-        <i class="bi bi-plus-circle me-2"></i>Tambah Laporan
-      </button><br>
-      <hr>
-      <div class="filter-date">
-        <input type="date" id="start-date" />
-        <input type="date" id="end-date" />
-        <button onclick="filterByDate()">Temukan</button>
-        <button onclick="resetFilter()">Reset</button>
-      </div>
-      <div class="container mt-4">
-        <table id="orderTable" class="table table-bordered table-striped">
-          <thead>
-            <tr>
-              <th>No.</th>
-              <th>Nama Pemesan</th>
-              <th>Pesanan</th>
-              <th>Jumlah</th>
-              <th>Total Bayar</th>
-              <th>Tanggal Pesanan</th>
-              <th>Status Pembayaran</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Data akan diisi menggunakan JavaScript -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Modal Show -->
-      <div class="modal fade" id="showModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header bg-warning text-white">
-              <h5 class="modal-title">
-                <i class="bi bi-card-list me-2"></i> Detail
-              </h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-              <form id="showForm">
-                <div class="row">
-                  <div class="col-md-12">
-                    <div class="card shadow-sm border-0">
-                      <div class="card-body">
-                        <div class="mb-3">
-                          <label class="form-label fw-bold">Nama Pelanggan</label>
-                          <input type="text" class="form-control" value="Rehan" id="showCustomerName" disabled />
-                        </div>
-                        <div class="row">
-                          <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Email</label>
-                            <input type="email" value="rhn240@gmail.com" class="form-control" id="showEmail" disabled />
-                          </div>
-                          <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Nomor Telepon</label>
-                            <input type="text" value="089357636798" class="form-control" id="showPhone" disabled />
-                          </div>
-                        </div>
-                        <div class="mb-3">
-                          <label class="form-label fw-bold">Pesanan</label>
-                          <input id="showOrder" value="Nasi Goreng" class="form-control" disabled />
-                        </div>
-                        <div class="row">
-                          <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Jumlah</label>
-                            <input type="number" value="2" class="form-control" id="showQuantity" disabled />
-                          </div>
-                          <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Total Bayar</label>
-                            <input type="text" class="form-control" value="40.000" id="showTotal" disabled />
-                          </div>
-                        </div>
-                        <div class="row">
-                          <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Tanggal Pesanan</label>
-                            <input class="form-control" value="12/25/2024" id="showOrderStatus" disabled />
-                          </div>
-                          <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Status Pembayaran</label>
-                            <input class="form-control" value="Dibayar" id="showPaymentStatus" disabled />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </form>
-            </div>
-            <div class="modal-footer d-flex justify-content-between">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                <i class="bi bi-x-circle"></i> Tutup
-              </button>
-              <button type="button" class="btn btn-warning" data-bs-dismiss="modal">
-                <i class="bi bi-check-circle"></i> Selesai
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modal Edit -->
-      <div class="modal fade" id="editModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-              <h5 class="modal-title">
-                <i class="bi bi-pencil-square me-2"></i> Edit Pesanan
-              </h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-              <form id="editForm">
-                <div class="row">
-                  <div class="col-md-12">
-                    <div class="card shadow-sm border-0">
-                      <div class="card-body">
-                       <div class="row">
-                         <div class="col-md-6 mb-3">
-                          <label class="form-label fw-bold">Nama Pelanggan</label>
-                          <input type="text" class="form-control" value="Rehan" id="editCustomerName" />
-                         </div>
-                          <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Email</label>
-                            <input type="email" value="rhn240@gmail.com" class="form-control" id="editEmail" />
-                          </div>
-                        </div>
-                        <div class="row">
-                          <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Nomor Telepon</label>
-                            <input type="text" value="089357636798" class="form-control" id="editPhone" />
-                          </div>
-                          <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Pesanan</label>
-                            <select id="editOrder" class="form-select">
-                              <option>Sate Ayam</option>
-                              <option>Tongseng Ayam</option>
-                              <option>Sate Sapi</option>
-                              <option>Nasi Goreng</option>
-                              <option>Sate Kambing</option>
-                              <option>Tongseng Sapi</option>
-                            </select>
-                          </div>
-                        </div>
-                        <div class="row">
-                          <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Jumlah</label>
-                            <input type="number" class="form-control" id="editQuantity" />
-                          </div>
-                          <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Total Bayar</label>
-                            <input type="text" class="form-control" id="editTotal" />
-                          </div>
-                        </div>
-                        <div class="row">
-                          <div class="col-md-6 mb-3">
-                            <label for="editOrderDate" class="form-label fw-bold">Tanggal Pesanan</label>
-                            <input type="date" id="editOrderDate" class="form-control" />
-                          </div>
-                          <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Status Pembayaran</label>
-                            <select id="editPaymentStatus" class="form-select">
-                              <option value="dibayar">Dibayar</option>
-                              <option value="belumdibayar">Belum Dibayar</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-              </form>
-            </div>
-            <div class="modal-footer d-flex justify-content-between">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                <i class="bi bi-x-circle"></i> Batal
-              </button>
-              <button type="button" class="btn btn-primary" id="updateMenu">
-                Perbarui
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Delete Confirmation Modal -->
-      <div class="modal fade" id="deleteMenuModal" tabindex="-1">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Delete Menu</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-              <p>
-                Apakah Kamu Yakin Menghapus Laporan Ini?
-              </p>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                Cancel
-              </button>
-              <button type="button" class="btn btn-danger" id="confirmDelete">
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Add Menu Modal -->
-      <div class="modal fade" id="addMenuModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-              <h5 class="modal-title">
-                <i class="bi bi-plus-circle me-2"></i> Tambah Laporan Baru
-              </h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-              <form id="addMenuForm">
-                <div class="mb-3">
-                  <label class="form-label fw-bold">Nama Pemesan</label>
-                  <input type="text" class="form-control" id="menuName" placeholder="Masukkan Nama Customer" required />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label fw-bold">Pesanan</label>
-                  <select id="menuOrder" class="form-select">
-                    <option>Sate Ayam</option>
-                    <option>Tongseng Ayam</option>
-                    <option>Sate Sapi</option>
-                    <option>Nasi Goreng</option>
-                    <option>Sate Kambing</option>
-                    <option>Tongseng Sapi</option>
-                  </select>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label fw-bold">Jumlah</label>
-                  <input type="number" step="1" class="form-control" id="menuQuantity"
-                    placeholder="Masukkan Jumlah Pesanan" required min="0" />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label fw-bold">Total Bayar</label>
-                  <input type="number" step="0.001" class="form-control" id="menuTotal"
-                    placeholder="Masukkan Total Bayar" required min="0" />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label fw-bold">Tanggal Pesanan</label>
-                  <input type="date" class="form-control" id="menuOrderDate" placeholder="Pilih Tanggal" required />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label fw-bold">Status Pembayaran</label>
-                  <select id="menuPaymentStatus" class="form-select">
-                    <option value="dibayar">Dibayar</option>
-                    <option value="belumdibayar">Belum Dibayar</option>
-                  </select>
-                </div>
-              </form>
-            </div>
-            <div class="modal-footer d-flex justify-content-between">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                <i class="bi bi-x-circle"></i> Batal
-              </button>
-              <button type="button" class="btn btn-success" id="saveMenu">
-                <i class="bi bi-check-circle"></i> Simpan
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Edit Menu Modal -->
-      <div class="modal fade" id="editMenuModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Edit Menu</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-              <form id="editMenuForm">
-                <input type="hidden" id="editMenuId" />
-                <div class="mb-3">
-                  <label class="form-label">Gambar Menu</label>
-                  <input type="file" class="form-control" id="editMenuImage" accept="image/*" />
-                  <div id="editImagePreview"></div>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Nama Menu</label>
-                  <input type="text" class="form-control" id="editMenuName" required />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Harga (Rp)</label>
-                  <input type="number" step="0.001" class="form-control" id="editMenuPrice" required min="0" />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Kalori (kkal)</label>
-                  <input type="number" class="form-control" id="editMenuCalories" required min="0" />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label" for="editMenuIngredients">Bahan Utama</label>
-                  <input id="editMenuIngredients" required />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Deskripsi</label>
-                  <textarea class="form-control" id="editMenuDescription" rows="3" required></textarea>
-                </div>
-
-              </form>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                Batal
-              </button>
-              <button type="button" class="btn btn-primary" id="updateMenu">
-                Perbarui
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Delete Confirmation Modal -->
-      <div class="modal fade" id="deleteMenuModal" tabindex="-1">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Delete Menu</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-              <p>
-                Are you sure you want to delete this menu item? This action cannot
-                be undone.
-              </p>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                Cancel
-              </button>
-              <button type="button" class="btn btn-danger" id="confirmDelete">
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
-  <footer class="footer-custom text-center">
-    <div class="container">
-      <div class="row">
-        <div class="col-12">
-          <p class="mb-0">
-            © 2024 BOLOOO: All Rights Reserved
-          </p>
+</div>
+
+<!-- Modal Detail Transaction -->
+<div class="modal fade" id="detailTransactionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detail Transaksi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr><td><strong>ID Transaksi:</strong></td><td id="detailId"></td></tr>
+                            <tr><td><strong>Nama Pelanggan:</strong></td><td id="detailNama"></td></tr>
+                            <tr><td><strong>Email:</strong></td><td id="detailEmail"></td></tr>
+                            <tr><td><strong>Tanggal & Waktu:</strong></td><td id="detailTanggal"></td></tr>
+                            <tr><td><strong>Total Harga:</strong></td><td id="detailTotal" class="text-success fw-bold"></td></tr>
+                            <tr><td><strong>Metode Pembayaran:</strong></td><td id="detailMetode"></td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><strong>Detail Pesanan:</strong></h6>
+                        <div id="detailPesanan" class="border p-3 rounded bg-light" style="min-height: 200px; white-space: pre-wrap;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="printDetailBtn">
+                    <i class="bi bi-printer"></i> Cetak
+                </button>
+            </div>
         </div>
-      </div>
     </div>
-  </footer>
+</div>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
-  <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
-  <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
-  <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
-  <script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script>
+$(document).ready(function() {
 
-    $(document).ready(function () {
-      $('#saveMenu').on('click', function () {
-        // Ambil nilai dari form
-        const customerName = $('#menuName').val();
-        const order = $('#menuOrder').val();
-        const quantity = $('#menuQuantity').val();
-        const total = $('#menuTotal').val();
-        const orderDate = $('#menuOrderDate').val();
-        const paymentStatus = $('#menuPaymentStatus').val();
+    // Set default date to today (only date, no time)
+    $('input[name="tanggal_transaksi"]').val(new Date().toISOString().split('T')[0]);
+    
+    // Set default time to current time
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    $('input[name="waktu_transaksi"]').val(`${hours}:${minutes}`);
 
-        // Validasi form
-        if (!customerName || !order || !quantity || !total || !orderDate || !paymentStatus) {
-          alert("Harap isi semua field!");
-          return;
+    // Handle Create Transaction
+    $('#createTransactionForm').submit(function(e) {
+        e.preventDefault();
+        
+        // Validasi tanggal dan waktu
+        const tanggalInput = $('input[name="tanggal_transaksi"]').val();
+        const waktuInput = $('input[name="waktu_transaksi"]').val();
+        
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggalInput) || 
+            !/^\d{2}:\d{2}$/.test(waktuInput)) {
+            alert('Format tanggal atau waktu tidak valid');
+            return;
         }
 
-        // Fungsi untuk memformat angka dengan titik
-        function formatPrice(input) {
-          let cursorPosition = input.selectionStart; // Simpan posisi kursor
-          let value = input.value.replace(/\./g, ''); // Hapus semua titik
-
-          if (!isNaN(value)) {
-            // Format ulang angka dengan titik
-            const formattedValue = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-            input.value = formattedValue;
-
-            // Kembalikan posisi kursor ke tempat yang sesuai
-            const diff = formattedValue.length - value.length;
-            input.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
-          }
-        }
-
-        // Buat objek data baru
-        const newReport = {
-          id: Date.now(), // ID unik berdasarkan timestamp
-          name: customerName,
-          order: order,
-          quantity: quantity,
-          total: total,
-          tanggalPemesanan: orderDate,
-          paymentStatus: paymentStatus,
+        const formData = {
+            action: 'create',
+            ...Object.fromEntries(new FormData(this).entries())
         };
 
-        // Tambahkan data baru ke dalam array `orders`
-        orders.push(newReport);
+        // Tampilkan loading indicator
+        const submitBtn = $(this).find('[type="submit"]');
+        submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...');
 
-        // Perbarui tabel
-        const table = $('#orderTable').DataTable();
-        table.row.add(newReport).draw();
-
-        // Tutup modal
-        $('#addMenuModal').modal('hide');
-
-        // Reset form
-        $('#addMenuForm')[0].reset();
-
-        // Tampilkan SweetAlert2
-        Swal.fire({
-          icon: 'success',
-          title: 'Laporan Berhasil Ditambahkan!',
-          text: `Laporan ${newReport.name} telah ditambahkan ke daftar.`,
-          confirmButtonText: "OK"
-        });
-      });
-    });
-
-
-    function resetFilter() {
-      document.getElementById('start-date').value = '';
-      document.getElementById('end-date').value = '';
-
-      const table = $('#orderTable').DataTable();
-      table.clear().rows.add(orders).draw(); // Menampilkan semua data kembali
-    }
-
-
-    function filterByDate() {
-      const startDate = new Date(document.getElementById('start-date').value);
-      const endDate = new Date(document.getElementById('end-date').value);
-
-      // Ambil data dari tabel
-      const table = $('#orderTable').DataTable();
-      const data = table.data();
-
-      // Filter data berdasarkan tanggal
-      const filteredData = data.filter(row => {
-        const orderDate = new Date(row.tanggalPemesanan);
-        return orderDate >= startDate && orderDate <= endDate;
-      });
-
-      // Bersihkan tabel dan tambahkan data yang difilter
-      table.clear();
-      table.rows.add(filteredData).draw();
-    }
-
-
-    const orders = [
-      {
-        id: 1,
-        name: "Rehan",
-        email: "rhn25@example.com",
-        phone: "081234567890",
-        order: "Nasi Goreng",
-        quantity: 2,
-        total: "Rp50.000",
-        tanggalPemesanan: "2024-12-25", // Format tanggal harus sesuai ISO (YYYY-MM-DD)
-        paymentStatus: "dibayar",
-      },
-      {
-        id: 2,
-        name: "Bayu",
-        email: "bay25@example.com",
-        phone: "081234567890",
-        order: "Sate Ayam",
-        quantity: 2,
-        total: "Rp40.000",
-        tanggalPemesanan: "2025-01-02", // Format tanggal harus sesuai ISO (YYYY-MM-DD)
-        paymentStatus: "dibayar",
-      },
-      {
-        id: 3,
-        name: "Ahmad",
-        email: "mad25@example.com",
-        phone: "089534567890",
-        order: "Sate Kambing",
-        quantity: 2,
-        total: "Rp60.000",
-        tanggalPemesanan: "2025-01-03", // Format tanggal harus sesuai ISO (YYYY-MM-DD)
-        paymentStatus: "dibayar",
-      },
-      {
-        id: 4,
-        name: "Zufar",
-        email: "mad25@example.com",
-        phone: "089534567890",
-        order: "Tongseng Ayam",
-        quantity: 2,
-        total: "Rp50.000",
-        tanggalPemesanan: "2025-01-06", // Format tanggal harus sesuai ISO (YYYY-MM-DD)
-        paymentStatus: "dibayar",
-      },
-    ];
-
-    $(document).ready(function () {
-      const table = $("#orderTable").DataTable({
-        data: orders,
-        columns: [
-          { data: null, render: (data, type, row, meta) => meta.row + 1 },
-          { data: "name" },
-          { data: "order" },
-          { data: "quantity" },
-          { data: "total" },
-          { data: "tanggalPemesanan" },
-          {
-            data: "paymentStatus",
-            render: (data) => {
-              const classes = {
-                dibayar: "btn btn-primary btn-small btn-status",
-                belumdibayar: "btn btn-secondary btn-small btn-status",
-              }[data.toLowerCase()];
-              return `<button class="${classes}">${data}</button>`;
-            },
-          },
-          {
-            data: null,
-            render: (data) => `
-                    <button class='btn btn-primary btn-small show-btn' data-id='${data.id}'><i class="bi bi-eye"></i></button>
-                    <button class='btn btn-warning btn-small edit-btn' data-id='${data.id}'><i class="bi bi-pencil"></i></button>
-                    <button class='btn btn-danger btn-small delete-btn' data-id='${data.id}'><i class="bi bi-trash"></i></button>
-                `,
-          },
-        ],
-      });
-
-    });
-    $(document).ready(function () {
-      // Event listener untuk tombol "Simpan"
-      document.getElementById('saveMenu').addEventListener('click', function () {
-        // Kode untuk menambahkan laporan baru
-      });
-    });
-
-    // Fungsi untuk menambahkan menu baru
-    function addNewMenu() {
-      const form = document.getElementById("addMenuForm");
-      if (!form.checkValidity()) {
-        form.reportValidity(); // Tampilkan pesan validasi jika form tidak valid
-        return;
-      }
-
-      // Ambil nilai dari form
-      const menuName = document.getElementById("menuName").value;
-      const menuPrice = parseFloat(document.getElementById("menuPrice").value.replace(/\./g, "")) || 0;
-      const menuCalories = parseInt(document.getElementById("menuCalories").value) || 0;
-      const menuIngredients = document.getElementById("menuIngredients").value;
-      const menuDescription = document.getElementById("menuDescription").value;
-      const menuImage = document.getElementById("menuImage").files[0];
-
-      // Buat objek menu baru
-      const newMenu = {
-        id: Date.now(), // ID unik berdasarkan timestamp
-        name: menuName,
-        price: menuPrice,
-        calories: menuCalories,
-        ingredients: menuIngredients.split(",").map(item => ({ value: item.trim() })), // Konversi string ke array
-        description: menuDescription,
-        image: menuImage ? URL.createObjectURL(menuImage) : "https://via.placeholder.com/150", // Gunakan URL gambar yang diunggah
-      };
-
-      // Tambahkan menu baru ke dalam array `menuData`
-      menuData.push(newMenu);
-
-      // Perbarui tabel
-      const table = $("#menuTable").DataTable();
-      table.row.add(newMenu).draw();
-
-      // Tutup modal
-      $('#addMenuModal').modal('hide');
-
-      // Reset form
-      form.reset();
-      document.getElementById("imagePreview").innerHTML = `<img src="https://via.placeholder.com/150" alt="Image Preview" class="img-fluid rounded">`;
-
-      // Tampilkan notifikasi sukses
-      Swal.fire({
-        icon: "success",
-        title: "Menu Berhasil Ditambahkan!",
-        text: `Menu ${newMenu.name} telah ditambahkan ke daftar.`,
-        confirmButtonText: "OK",
-      });
-    }
-
-    // Event listener untuk tombol Simpan
-    document.getElementById("saveMenu").addEventListener("click", addNewMenu);
-
-    // Event listener untuk tombol Batal (tidak perlu fungsi khusus karena modal akan ditutup otomatis)
-
-
-    function filterByDate() {
-      const startDate = new Date(document.getElementById('start-date').value);
-      const endDate = new Date(document.getElementById('end-date').value);
-
-      const table = $('#orderTable').DataTable();
-      const data = table.data().toArray();
-
-      const filteredData = data.filter(row => {
-        const orderDate = new Date(row.tanggalPemesanan);
-        return orderDate >= startDate && orderDate <= endDate;
-      });
-
-      table.clear();
-      table.rows.add(filteredData).draw();
-    }
-
-    function resetFilter() {
-      // Kosongkan input tanggal
-      document.getElementById('start-date').value = '';
-      document.getElementById('end-date').value = '';
-
-      // Ambil instance DataTable
-      const table = $('#orderTable').DataTable();
-
-      // Bersihkan tabel dan tambahkan data awal
-      table.clear();
-      table.rows.add(orders).draw();
-    }
-
-    $(document).ready(function () {
-      const orders = [
-        {
-          id: 1,
-          name: "Rehan",
-          email: "rhn25@example.com",
-          phone: "081234567890",
-          order: "Nasi Goreng",
-          quantity: 2,
-          total: "Rp50.000",
-          tanggalPemesanan: "2024-12-25",
-          paymentStatus: "dibayar",
-        },
-
-        {
-          id: 2,
-          name: "Bayu",
-          email: "bay25@example.com",
-          phone: "081234567890",
-          order: "Sate Ayam",
-          quantity: 2,
-          total: "Rp40.000",
-          tanggalPemesanan: "2025-01-02",
-          paymentStatus: "dibayar",
-        },
-        {
-          id: 3,
-          name: "Ahmad",
-          email: "mad25@example.com",
-          phone: "089534567890",
-          order: "Sate Kambing",
-          quantity: 2,
-          total: "Rp60.000",
-          tanggalPemesanan: "2025-01-03", // Format tanggal harus sesuai ISO (YYYY-MM-DD)
-          paymentStatus: "dibayar",
-        },
-        {
-          id: 4,
-          name: "Zufar",
-          email: "mad25@example.com",
-          phone: "089534567890",
-          order: "Tongseng Ayam",
-          quantity: 2,
-          total: "Rp50.000",
-          tanggalPemesanan: "2025-01-06", // Format tanggal harus sesuai ISO (YYYY-MM-DD)
-          paymentStatus: "dibayar",
-        },
-      ];
-
-
-      const table = $("#orderTable").DataTable({
-        data: orders,
-        columns: [
-          { data: null, render: (data, type, row, meta) => meta.row + 1 },
-          { data: "name" },
-          { data: "order" },
-          { data: "quantity" },
-          { data: "total" },
-          {
-            data: "tanggalPemesanan",
-            render: (data) => {
-              const classes = {
-                1: "12/25/2024",
-                2: "01/02/2025",
-                3: "01/05/2025",
-              }[data.toLowerCase()];
-              return `<button class="${classes}">${data}</button>`;
-            },
-          },
-          {
-            data: "paymentStatus",
-            render: (data) => {
-              const classes = {
-                dibayar: "btn btn-primary btn-small btn-status",
-                belumdibayar: "btn btn-secondary btn-small btn-status",
-              }[data.toLowerCase()];
-              return `<button class="${classes}">${data}</button>`;
-            },
-          },
-          {
-            data: null,
-            render: (data) => `
-                <button class='btn btn-primary btn-small show-btn' data-id='${data.id}'><i class="bi bi-eye"></i></button>
-                <button class='btn btn-warning btn-small edit-btn' data-id='${data.id}'><i class="bi bi-pencil"></i></button>
-                <button class='btn btn-danger btn-small delete-btn' data-id='${data.id}'><i class="bi bi-trash"></i></button>
-              `,
-          },
-        ],
-      });
-
-      // Event listener untuk tombol show
-      $("#orderTable").on("click", ".show-btn", function () {
-        const id = $(this).data("id"); // Ambil ID dari tombol yang diklik
-        const order = orders.find((o) => o.id === id); // Cari data berdasarkan ID
-
-        if (order) {
-          // Isi data ke dalam modal show
-          $("#showCustomerName").val(order.name);
-          $("#showEmail").val(order.email);
-          $("#showPhone").val(order.phone);
-          $("#showOrder").val(order.order);
-          $("#showQuantity").val(order.quantity);
-          $("#showTotal").val(order.total);
-          $("#showOrderStatus").val(order.tanggalPemesanan);
-          $("#showPaymentStatus").val(order.paymentStatus);
-
-          // Tampilkan modal
-          $("#showModal").modal("show");
-        } else {
-          console.error(`Order dengan ID ${id} tidak ditemukan.`);
-        }
-      });
-
-      // Event listener untuk tombol edit
-      $("#orderTable").on("click", ".edit-btn", function () {
-        const id = $(this).data("id"); // Ambil ID dari tombol yang diklik
-        const order = orders.find((o) => o.id === id); // Cari data berdasarkan ID
-
-        if (order) {
-          // Isi data ke dalam modal edit
-          $("#editCustomerName").val(order.name);
-          $("#editEmail").val(order.email);
-          $("#editPhone").val(order.phone);
-          $("#editOrder").val(order.order);
-          $("#editQuantity").val(order.quantity);
-          $("#editTotal").val(order.total);
-          $("#editOrderDate").val(order.tanggalPemesanan);
-          $("#editPaymentStatus").val(order.paymentStatus);
-
-          // Simpan ID di modal untuk referensi saat update
-          $("#editModal").data("id", id);
-
-          // Tampilkan modal edit
-          $("#editModal").modal("show");
-        } else {
-          console.error(`Order dengan ID ${id} tidak ditemukan.`);
-        }
-      });
-
-      // Event listener untuk tombol update di modal edit
-      $("#updateMenu").on("click", function () {
-        const id = $("#editModal").data("id"); // Ambil ID dari modal
-        const order = orders.find((o) => o.id === id); // Cari data berdasarkan ID
-
-        if (order) {
-          // Update data dengan nilai dari form edit
-          order.name = $("#editCustomerName").val();
-          order.email = $("#editEmail").val();
-          order.phone = $("#editPhone").val();
-          order.order = $("#editOrder").val();
-          order.quantity = $("#editQuantity").val();
-          order.total = $("#editTotal").val();
-          order.tanggalPemesanan = $("#editOrderDate").val();
-          order.paymentStatus = $("#editPaymentStatus").val();
-
-          // Perbarui tabel
-          const table = $('#orderTable').DataTable();
-          table.clear().rows.add(orders).draw();
-
-          // Tutup modal
-          $("#editModal").modal("hide");
-
-          // Tampilkan notifikasi sukses
-          Swal.fire({
-            icon: "success",
-            title: "Data Berhasil Diperbarui!",
-            text: `Data ${order.name} telah diperbarui.`,
-            confirmButtonText: "OK",
-          });
-        } else {
-          console.error(`Order dengan ID ${id} tidak ditemukan.`);
-        }
-      });
-
-      // Event listener untuk tombol delete
-      $("#orderTable").on("click", ".delete-btn", function () {
-        const id = $(this).data("id"); // Ambil ID dari tombol yang diklik
-        const index = orders.findIndex((o) => o.id === id); // Cari index item berdasarkan ID
-
-        if (index !== -1) {
-          Swal.fire({
-            title: "Yakin ingin menghapus?",
-            text: "Data yang dihapus tidak dapat dikembalikan!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Ya, hapus!",
-            cancelButtonText: "Batal",
-          }).then((result) => {
-            if (result.isConfirmed) {
-              orders.splice(index, 1); // Hapus item dari array berdasarkan index
-              table.clear().rows.add(orders).draw(); // Perbarui tabel
-              Swal.fire("Dihapus!", "Data berhasil dihapus.", "success");
+        $.post('report.php', formData, function(response) {
+            alert(response.message);
+            $('#createTransactionModal').modal('hide');
+            location.reload();
+        }, 'json').fail(function(xhr) {
+            let errorMsg = 'Error: ' + (xhr.responseJSON?.message || 'Server Error');
+            if (xhr.status === 500 && xhr.responseJSON?.message) {
+                errorMsg = xhr.responseJSON.message;
             }
-          });
-        }
-      });
+            alert(errorMsg);
+        }).always(function() {
+            submitBtn.prop('disabled', false).html('<i class="bi bi-save"></i> Simpan Transaksi');
+        });
     });
 
-    document.addEventListener("DOMContentLoaded", function () {
-      const menuItems = document.querySelectorAll(".menu-item a");
-      const currentUrl = window.location.href;
-
-      menuItems.forEach((menuItem) => {
-        if (currentUrl.includes(menuItem.getAttribute("href"))) {
-          menuItem.parentElement.classList.add("active-menu-item");
-        } else {
-          menuItem.parentElement.classList.remove("active-menu-item");
+    // Handle View Detail
+    $(document).on('click', '.view-btn', function() {
+        const row = $(this).closest('tr');
+        const pesanan = row.data('pesanan');
+        
+        try {
+            const pesananArray = JSON.parse(pesanan);
+            let html = '<ul>';
+            pesananArray.forEach(item => {
+                html += `<li>${item}</li>`;
+            });
+            html += '</ul>';
+            $('#detailPesanan').html(html);
+        } catch (e) {
+            $('#detailPesanan').text(pesanan);
         }
-      });
+        
+        $('#detailId').text(row.find('td:eq(1) span.badge').text());
+        $('#detailNama').text(row.find('td:eq(2)').text());
+        $('#detailEmail').text(row.find('td:eq(3)').text());
+        $('#detailTanggal').text(row.find('td:eq(4)').text());
+        $('#detailTotal').text(row.find('td:eq(6) strong').text());
+        $('#detailMetode').html(row.find('td:eq(7) span').clone().wrap('<div>').parent().html());
+        
+        $('#detailTransactionModal').modal('show');
     });
 
-    const ingredientColors = {
-      "air": "#87CEEB",
-      "es batu": "#B0C4DE",
-      "gula": "#E65100",
-      "gula pasir": "#FFF8E1",
-      "jeruk peras": "#FF8C00",
-      "teh": "#6B4226",
-      "susu kental manis": "#F0E68C",
-      "sirup": "#FF4C4C",
-      "mangga": "#F5A623",
-      "alpukat": "#336633",
-      "semangka": "#FF0000",
-      "melon": "#93C572",
-      "nanas": "#FFD700",
-      "jambu biji": "#F2545B"
-    };
-
-    function isColorDark(hex) {
-      // Hapus tanda #
-      hex = hex.replace("#", "");
-
-      // Pisahkan warna menjadi RGB
-      const r = parseInt(hex.substring(0, 2), 16);
-      const g = parseInt(hex.substring(2, 4), 16);
-      const b = parseInt(hex.substring(4, 6), 16);
-
-      // Hitung luminance (perceptual brightness)
-      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-
-      // Return true jika warna gelap
-      return luminance < 0.5;
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-      // Sample data
-      let menuData = [
-        {
-          id: 1,
-          image: "../img/drinks/es-teh.jpg",
-          name: "Es Teh",
-          price: 5000,
-          calories: 100,
-          ingredients: [
-            { value: "Teh" },
-            { value: "gula" },
-            { value: "air" },
-            { value: "es batu" },
-          ],
-          description: "Kesegaran teh manis dingin yang sempurna untuk menemani makanan Anda. Manisnya pas, segarnya luar biasa.",
-        },
-        {
-          id: 2,
-          image: "../img/drinks/es-jeruk.jpg",
-          name: "Es Jeruk",
-          price: 6000,
-          calories: 120,
-          ingredients: [
-            { value: "Jeruk peras" },
-            { value: "gula" },
-            { value: "air" },
-            { value: "es batu" },
-          ],
-          description: "Minuman jeruk segar dengan sentuhan manis alami. Sempurna untuk menghilangkan dahaga di hari panas!",
-        },
-        {
-          id: 3,
-          image: "../img/drinks/es-campur.webp",
-          name: "Es campur",
-          price: 10000,
-          calories: 250,
-          ingredients: [
-            { value: "Sirup" },
-            { value: "es batu" },
-            { value: "susu kental manis" },
-            { value: "gula pasir" },
-            { value: "mangga" },
-            { value: "alpukat" },
-            { value: "semangka" },
-            { value: "melon" },
-            { value: "nanas" },
-          ],
-          description: "Perpaduan sempurna antara es batu yang dingin dan segar, susu kental manis, serta sirup manis yang menggoda, disajikan dengan berbagai potongan buah segar.",
-        },
-
-      ];
-
-      const input = document.querySelector('#menuIngredients');
-      const tagify = new Tagify(input, {
-        whitelist: ["Air", "Es Batu", "Gula", "Gula Pasir", "Jeruk Peras", "Teh", "Susu Kental Manis", "Sirup", "Mangga", "Alpukat", "Semangka", "Melon", "Nanas", "Jambu Biji"],
-        dropdown: {
-          maxItems: 10,           // jumlah maksimum saran dropdown
-          classname: "suggestion-list", // nama kelas CSS untuk dropdown
-          enabled: 0,              // akan muncul setelah mengetikkan minimal 0 karakter
-          closeOnSelect: false     // tetap terbuka setelah memilih
-        }
-      });
-
-      // Format currency
-      const formatCurrency = (amount) => {
-        return new Intl.NumberFormat("id-ID", {
-          style: "currency",
-          currency: "IDR",
-        }).format(amount);
-      };
-      // Fungsi untuk memformat angka dengan titik
-      // Fungsi untuk memformat angka dengan titik
-      function formatPrice(input) {
-        let cursorPosition = input.selectionStart; // Simpan posisi kursor
-        let value = input.value.replace(/\./g, ''); // Hapus semua titik
-
-        if (!isNaN(value)) {
-          // Format ulang angka dengan titik
-          const formattedValue = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-          input.value = formattedValue;
-
-          // Kembalikan posisi kursor ke tempat yang sesuai
-          const diff = formattedValue.length - value.length;
-          input.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
-        }
-      }
-
-      // Tambahkan event listener pada input harga
-      const priceInputs = document.querySelectorAll("#editMenuPrice, #menuPrice");
-
-      priceInputs.forEach(input => {
-        // Format angka hanya saat pengguna selesai mengetik (blur)
-        input.addEventListener("blur", function () {
-          formatPrice(this);
-        });
-
-        // Cegah karakter non-angka saat mengetik
-        input.addEventListener("input", function () {
-          this.value = this.value.replace(/[^\d]/g, '');
-        });
-      });
-
-
-      // Menambahkan event listener pada input harga
-      document.getElementById("editMenuPrice").addEventListener("input", function () {
-        formatPrice(this);
-      });
-      document.getElementById("menuPrice").addEventListener("input", function () {
-        formatPrice(this);
-      });
-
-      // Initialize DataTable
-      const table = $("#menuTable").DataTable({
-        data: menuData,
-        columns: [
-          {
-            data: null,
-            render: function (data, type, row, meta) {
-              return parseInt(meta.row, 10) + 1; // Paksa menjadi angka
-            },
-            className: "text-center", // Tambahkan styling jika perlu
-          },
-          {
-            data: "image",
-            render: function (data, type, row) {
-              return `<img src="${data}" class="menu-image" alt="${row.name}">`;
-            },
-          },
-          { data: "name" },
-          {
-            data: "price",
-            render: function (data) {
-              return formatCurrency(data);
-            },
-          },
-          {
-            data: null,
-            render: function (data, type, row) {
-              return row.calories ? `${row.calories} kkal` : '-';
-            }
-          },
-          {
-            data: "ingredients",
-            render: function (data, type, row) {
-              if (typeof data === "string") {
-                data = data.split(", ").map((item) => ({ value: item }));
-              }
-
-              if (Array.isArray(data)) {
-                return data
-                  .map((ingredient) => {
-                    const color = ingredientColors[ingredient.value.toLowerCase()] || "#9E9E9E"; // Warna default abu-abu
-                    const textColor = isColorDark(color) ? "white" : "black"; // Tentukan warna teks
-                    return `<span class="badge me-1" style="
-                        background-color: ${color}; 
-                        color: ${textColor}; 
-                        font-size: 0.75rem; 
-                        padding: 0.4em 0.6em; 
-                        border-radius: 12px; 
-                        margin-right: 0.5rem; 
-                        margin-bottom: 0.5rem; 
-                        display: inline-block;
-                    ">
-                        ${ingredient.value}
-                    </span>`;
-                  })
-                  .join("");
-              }
-
-              return "-";
-            },
-          },
-
-          {
-            data: null,
-            render: function (data, type, row) {
-              return row.description || '-';
-            }
-          },
-          {
-            data: null,
-            render: function (data, type, row) {
-              return `
-                    <div class="action-buttons">
-                      <button class="btn btn-sm btn-outline-warning show-btn" data-id="${row.id}">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-success edit-btn" data-id="${row.id}">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${row.id}">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
-                `;
-            },
-          }
-        ],
-        responsive: true,
-        dom: '<"d-flex justify-content-between align-items-center mb-3"<"d-flex gap-3"l><"ms-auto"f>>rt<"d-flex justify-content-between align-items-center"<"text-muted"i><"ms-auto"p>>',
-        language: {
-          lengthMenu: "Tampilkan _MENU_ entries",
-          search: "Cari menu:",
-          paginate: {
-            next: "Next",
-            previous: "Previous",
-          },
-        },
-      });
-
-      // Fungsi untuk membuka modal Show Menu
-      function showMenu(id) {
-        const menu = menuData.find((item) => item.id === id);
-        if (menu) {
-          // Isi data ke dalam modal
-          document.getElementById("showMenuId").value = menu.id || "";
-          document.getElementById("showMenuName").value = menu.name || "";
-          document.getElementById("showMenuPrice").value = menu.price || "";
-          document.getElementById("showMenuCalories").value = menu.calories || "";
-          document.getElementById("showMenuDescription").value = menu.description || "";
-
-          // Inisialisasi Tagify untuk ingredients pada modal show
-          const showIngredientsInput = document.getElementById("showMenuIngredients");
-
-          // Hapus instance Tagify sebelumnya jika ada
-          if (showIngredientsInput.tagify) {
-            showIngredientsInput.tagify.destroy();
-          }
-
-          const tagifyShow = new Tagify(showIngredientsInput, {
-            whitelist: ["Daging Ayam", "Daging Kambing", "Daging Sapi", "Nasi", "Bumbu Kacang", "Kecap", "Lada Bubuk", "Santan", "Rempah", "Cabai", "Bawang", "Sayuran", "Jeroan"],
-            dropdown: {
-              maxItems: 10,
-              classname: "suggestion-list",
-              enabled: 0,
-              closeOnSelect: false
-            },
-            // Jadikan read-only
-            readOnly: true
-          });
-
-          // Bersihkan tag sebelumnya dan tambahkan tag sesuai data menu
-          tagifyShow.removeAllTags();
-
-          // Pastikan menu.ingredients adalah array yang valid
-          if (Array.isArray(menu.ingredients)) {
-            tagifyShow.addTags(menu.ingredients);
-          } else if (typeof menu.ingredients === 'string') {
-            // Jika ingredients adalah string, pisahkan dengan koma
-            tagifyShow.addTags(menu.ingredients.split(',').map(i => i.trim()));
-          }
-
-          const imagePreview = document.getElementById("showImagePreview");
-          imagePreview.innerHTML = menu.image
-            ? `<img src="${menu.image}" alt="${menu.name}" class="img-fluid" style="max-width: 200px;">`
-            : "<p>Tidak ada gambar tersedia</p>";
-
-          // Tampilkan modal
-          const modal = new bootstrap.Modal(document.getElementById("showMenuModal"));
-          modal.show();
-        } else {
-          console.error(`Menu dengan ID ${id} tidak ditemukan.`);
-        }
-      }
-
-      // Contoh event listener untuk tombol Show
-      document.querySelectorAll(".show-btn").forEach((button) => {
-        button.addEventListener("click", (e) => {
-          const id = parseInt(e.target.closest("button").dataset.id);
-          showMenu(id);
-        });
-      });
-
-
-      // Delegasi event untuk tombol edit
-      $('#menuTable').on('click', '.edit-btn', function () {
+    // Handle Print Individual Transaction
+    $(document).on('click', '.print-btn', function() {
         const id = $(this).data('id');
-        editMenu(id);
-      });
+        window.open('print_transaksi.php?id=' + id, '_blank');
+    });
 
+    // Handle Print from Detail Modal
+    $('#printDetailBtn').click(function() {
+        const id = $('#detailId').text();
+        window.open('print_transaksi.php?id=' + id, '_blank');
+    });
 
-      // Delegasi event untuk tombol delete 
-      $('#menuTable').on('click', '.delete-btn', function () {
-        const id = $(this).data('id');
-        deleteMenu(id);
-      });
-
-
-      // Sidebar toggle functionality
-      const toggleSidebarBtn = document.getElementById("toggleSidebar");
-      toggleSidebarBtn.addEventListener("click", () => {
-        const sidebar = document.getElementById("sidebar");
-        const content = document.getElementById("content");
-        sidebar.classList.toggle("collapsed");
-        content.classList.toggle("collapsed");
-        table.columns.adjust().responsive.recalc();
-      });
-
-      // Save menu function
-      window.saveMenu = () => {
-        const form = document.getElementById("addMenuForm");
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-
-        // Pastikan semua ID input sesuai dengan form
-        const newMenu = {
-          id: Date.now(), // ID unik
-          image: URL.createObjectURL(
-            document.getElementById("menuImage").files[0]
-          ),
-          name: document.getElementById("menuName").value,
-          price: parseFloat(document.getElementById("menuPrice").value.replace(/\./g, "")) || 0,            // Ubah dari menuPrice ke editMenuPrice
-          calories: parseInt(document.getElementById("menuCalories").value), // Ubah dari menuCalories ke editMenuCalories
-          ingredients: JSON.parse(document.getElementById("menuIngredients").value), // Parse JSON dari Tagify
-          description: document.getElementById("menuDescription").value,
-        };
-
-        menuData.push(newMenu);
-        table.clear().rows.add(menuData).draw(); // Perbarui tabel
-
-        // Tutup modal Bootstrap
-        bootstrap.Modal.getInstance(document.getElementById("addMenuModal")).hide();
-        form.reset();
-        document.getElementById("imagePreview").innerHTML = "";
-
-        // Tambahkan SweetAlert
-        Swal.fire({
-          icon: 'success',
-          title: 'Menu Berhasil Ditambahkan!',
-          text: `Menu ${newMenu.name} telah ditambahkan ke daftar.`,
-          confirmButtonText: "OK"
-        });
-
-        // Reset form
-        form.reset();
-        document.getElementById("imagePreview").innerHTML = "";
-      };
-
-      // Edit menu function
-      window.editMenu = (id) => {
-        const menu = menuData.find((item) => item.id === id);
-        if (menu) {
-          document.getElementById("editMenuId").value = menu.id;
-          document.getElementById("editMenuName").value = menu.name || "";
-          document.getElementById("editMenuPrice").value = menu.price || "";
-          document.getElementById("editMenuCalories").value = menu.calories || "";
-          document.getElementById("editMenuDescription").value = menu.description || "";
-
-          // Inisialisasi Tagify untuk edit menu
-          const editIngredientsInput = document.getElementById("editMenuIngredients");
-          const tagifyEdit = new Tagify(editIngredientsInput, {
-            whitelist: ["Air", "Es Batu", "Gula", "Gula Pasir", "Jeruk Peras", "Teh", "Susu Kental Manis", "Sirup", "Mangga", "Alpukat", "Semangka", "Melon", "Nanas", "Jambu Biji"],
-            dropdown: {
-              maxItems: 10,
-              classname: "suggestion-list",
-              enabled: 0, // Tidak langsung terbuka
-              closeOnSelect: false,
-            },
-          });
-
-          // Bersihkan tag sebelumnya dan tambahkan tag sesuai data menu
-          tagifyEdit.removeAllTags();
-          tagifyEdit.addTags(menu.ingredients.map((i) => i.value));
-
-          // Gambar preview
-          const editImagePreview = document.getElementById("editImagePreview");
-          editImagePreview.innerHTML = menu.image
-            ? `<img src="${menu.image}" alt="Preview" style="max-width: 200px; max-height: 200px;">`
-            : "<p>No image available</p>";
-
-          // Tampilkan modal edit
-          $('#editMenuModal').modal('show');
+    // Handle Date Range Filter Change
+    function applyDateFilter() {
+        const startDate = $('#startDate').val();
+        const endDate = $('#endDate').val();
+        const url = new URL(window.location);
+        
+        if (startDate) {
+            url.searchParams.set('start_date', startDate);
         } else {
-          console.error(`Menu with ID ${id} not found`);
+            url.searchParams.delete('start_date');
         }
-      };
-
-      // Tambahkan fungsi untuk menghapus backdrop yang tersisa
-      function removeBackdrops() {
-        document.querySelectorAll('.modal-backdrop').forEach((backdrop) => {
-          backdrop.remove();
-        });
-      }
-
-      // Tambahkan event listener untuk modal edit
-      document.getElementById("editMenuModal").addEventListener("hidden.bs.modal", () => {
-        removeBackdrops(); // Hapus backdrop ketika modal ditutup
-      });
-
-
-      // Update menu function
-      window.updateMenu = () => {
-        const form = document.getElementById("editMenuForm");
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-
-        const id = parseInt(document.getElementById("editMenuId").value);
-        const index = menuData.findIndex((item) => item.id === id);
-
-        if (index !== -1) {
-          const imageFile = document.getElementById("editMenuImage").files[0];
-          const editIngredientsInput = document.getElementById("editMenuIngredients");
-          const tagifyEdit = new Tagify(editIngredientsInput);
-
-          const updatedMenu = {
-            id: id,
-            name: document.getElementById("editMenuName").value || "",
-            price: parseFloat(document.getElementById("editMenuPrice").value.replace(/\./g, "")) || 0,
-            calories: parseInt(document.getElementById("editMenuCalories").value) || 0,
-            ingredients: tagifyEdit.value, // Ambil nilai Tagify
-            description: document.getElementById("editMenuDescription").value || "",
-            image: imageFile ? URL.createObjectURL(imageFile) : menuData[index].image,
-          };
-
-          menuData[index] = updatedMenu;
-
-          // Update DataTable
-          table.row((idx, data) => data.id === id).data(updatedMenu).draw();
-
-          // Tutup modal dan reset form
-          bootstrap.Modal.getInstance(document.getElementById("editMenuModal")).hide();
-          form.reset();
-          document.getElementById("editImagePreview").innerHTML = "";
-
-          // Notifikasi berhasil
-          Swal.fire({
-            icon: "success",
-            title: "Menu Berhasil Diperbarui",
-            text: `Menu ${updatedMenu.name} berhasil diperbarui`,
-            confirmButtonText: "OK",
-          });
+        
+        if (endDate) {
+            url.searchParams.set('end_date', endDate);
         } else {
-          console.error(`Menu with ID ${id} not found`);
+            url.searchParams.delete('end_date');
         }
-      };
-
-
-      // Delete menu function
-      window.deleteMenu = (id) => {
-        Swal.fire({
-          title: "Apakah Anda yakin?",
-          text: "Menu ini akan terhapus secara permanen. Anda tidak akan bisa mengembalikan aksi ini.",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#d33",
-          cancelButtonColor: "#3085d6",
-          confirmButtonText: "Ya, hapus!",
-          cancelButtonText: "Batal",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            menuData = menuData.filter((item) => item.id !== id);
-            table.clear().rows.add(menuData).draw(); // Perbarui tabel
-
-            Swal.fire(
-              "Terhapus!",
-              "Menus berhasil terhapus!",
-              "success"
-            );
-          }
-        });
-      };
-
-      // Initialize event listeners for modal buttons
-      document.getElementById("saveMenu").addEventListener("click", saveMenu);
-      document
-        .getElementById("updateMenu")
-        .addEventListener("click", updateMenu);
-
-      // Image preview handlers
-      document.getElementById("menuImage").addEventListener("change", (e) => {
-        const preview = document.getElementById("imagePreview");
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-
-      document
-        .getElementById("editMenuImage")
-        .addEventListener("change", (e) => {
-          const preview = document.getElementById("editImagePreview");
-          const file = e.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-            };
-            reader.readAsDataURL(file);
-          }
-        });
-    });
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const editButton = document.getElementById("editButton");
-      const saveButton = document.getElementById("saveButton");
-      const editPictureButton = document.getElementById("editPictureButton");
-      const profilePictureInput = document.getElementById(
-        "profilePictureInput"
-      );
-      const profilePicturePreview = document.getElementById(
-        "profilePicturePreview"
-      );
-      const formFields = document.querySelectorAll(
-        "#profileForm input, #profileForm select"
-      );
-
-      // Enable Editing
-      editButton.addEventListener("click", () => {
-        formFields.forEach((field) => field.removeAttribute("disabled"));
-        editButton.style.display = "none";
-        saveButton.style.display = "inline-block";
-        editPictureButton.style.display = "inline-block"; // Show Change Picture button
-      });
-
-      // Save Changes
-      saveButton.addEventListener("click", () => {
-        formFields.forEach((field) => field.setAttribute("disabled", "true"));
-        editButton.style.display = "inline-block";
-        saveButton.style.display = "none";
-        editPictureButton.style.display = "none"; // Hide Change Picture button
-
-        // SweetAlert2 Confirmation
-        Swal.fire({
-          icon: "success",
-          title: "Profil Diperbarui",
-          text: "Profil Anda telah sukses diperbarui.",
-          confirmButtonText: "OK",
-        });
-      });
-
-      // Change Profile Picture
-      editPictureButton.addEventListener("click", () => {
-        profilePictureInput.click();
-      });
-
-      profilePictureInput.addEventListener("change", () => {
-        const file = profilePictureInput.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            profilePicturePreview.src = e.target.result;
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-    });
-
-    document.getElementById("toggleSidebarMobile").addEventListener("click", () => {
-      document.getElementById("sidebar").classList.toggle("collapsed");
-    });
-
-    document.addEventListener("DOMContentLoaded", function () {
-      const menuItems = document.querySelectorAll(".menu-item a");
-      const currentUrl = window.location.href;
-
-      menuItems.forEach((menuItem) => {
-        if (currentUrl.includes(menuItem.getAttribute("href"))) {
-          menuItem.parentElement.classList.add("active-menu-item");
-        } else {
-          menuItem.parentElement.classList.remove("active-menu-item");
-        }
-      });
-    });
-
-
-    function isColorDark(hex) {
-      // Hapus tanda #
-      hex = hex.replace("#", "");
-
-      // Pisahkan warna menjadi RGB
-      const r = parseInt(hex.substring(0, 2), 16);
-      const g = parseInt(hex.substring(2, 4), 16);
-      const b = parseInt(hex.substring(4, 6), 16);
-
-      // Hitung luminance (perceptual brightness)
-      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-
-      // Return true jika warna gelap
-      return luminance < 0.5;
+        
+        // Reset ke halaman 1
+        url.searchParams.set('page', '1');
+        window.location.href = url.toString();
     }
 
+    // Terapkan filter ketika tanggal diubah
+    $('#startDate, #endDate').change(applyDateFilter);
 
-    document.addEventListener("DOMContentLoaded", function () {
-      // Sample data
-      let menuData = [
-        {
-          id: 1,
-          image: "../img/side-dish/sosis-solo.webp",
-          name: "Sosis Solo",
-          price: 3000,
-          calories: 120,
-          ingredients: [
-            { value: "Daging ayam" },
-            { value: "bumbu" },
-            { value: "adonan telur" },
-          ],
-          description: "Camilan khas Jawa Tengah yang menghadirkan cita rasa autentik Indonesia. Terbuat dari kulit dadar lembut yang membungkus isian daging ayam yang gurih.",
-        },
-        {
-          id: 2,
-          image: "../img/side-dish/tahu.jpg",
-          name: "Tahu",
-          price: 2500,
-          calories: 100,
-          ingredients: [
-            { value: "Kedelai" },
-          ],
-          description: "Tahu Goreng kami dibuat dari tahu berkualitas tinggi. Renyah di luar, lembut di dalam.",
-        },
-        {
-          id: 3,
-          image: "../img/side-dish/tempe.jpg",
-          name: "Tempe",
-          price: 2500,
-          calories: 100,
-          ingredients: [
-            { value: "Kedelai" },
-          ],
-          description: "Terbuat dari tempe pilihan yang digoreng hingga renyah dengan aroma khas yang menggugah selera.",
-        },
-      ];
-
-      const input = document.querySelector('#menuIngredients');
-      const tagify = new Tagify(input, {
-        whitelist: ["Daging Ayam", "Bumbu", "Adonan Telur", "Kedelai"],
-        dropdown: {
-          maxItems: 10,           // jumlah maksimum saran dropdown
-          classname: "suggestion-list", // nama kelas CSS untuk dropdown
-          enabled: 0,              // akan muncul setelah mengetikkan minimal 0 karakter
-          closeOnSelect: false     // tetap terbuka setelah memilih
-        }
-      });
-
-      // Format currency
-      const formatCurrency = (amount) => {
-        return new Intl.NumberFormat("id-ID", {
-          style: "currency",
-          currency: "IDR",
-        }).format(amount);
-      };
-      // Fungsi untuk memformat angka dengan titik
-      // Fungsi untuk memformat angka dengan titik
-      function formatPrice(input) {
-        let cursorPosition = input.selectionStart; // Simpan posisi kursor
-        let value = input.value.replace(/\./g, ''); // Hapus semua titik
-
-        if (!isNaN(value)) {
-          // Format ulang angka dengan titik
-          const formattedValue = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-          input.value = formattedValue;
-
-          // Kembalikan posisi kursor ke tempat yang sesuai
-          const diff = formattedValue.length - value.length;
-          input.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
-        }
-      }
-
-      // Tambahkan event listener pada input harga
-      const priceInputs = document.querySelectorAll("#editMenuPrice, #menuPrice");
-
-      priceInputs.forEach(input => {
-        // Format angka hanya saat pengguna selesai mengetik (blur)
-        input.addEventListener("blur", function () {
-          formatPrice(this);
-        });
-
-        // Cegah karakter non-angka saat mengetik
-        input.addEventListener("input", function () {
-          this.value = this.value.replace(/[^\d]/g, '');
-        });
-      });
-
-
-      // Menambahkan event listener pada input harga
-      document.getElementById("editMenuPrice").addEventListener("input", function () {
-        formatPrice(this);
-      });
-      document.getElementById("menuPrice").addEventListener("input", function () {
-        formatPrice(this);
-      });
-
-      // Initialize DataTable
-      const table = $("#menuTable").DataTable({
-        data: menuData,
-        columns: [
-          {
-            data: null,
-            render: function (data, type, row, meta) {
-              return parseInt(meta.row, 10) + 1; // Paksa menjadi angka
-            },
-            className: "text-center", // Tambahkan styling jika perlu
-          },
-          {
-            data: "image",
-            render: function (data, type, row) {
-              return `<img src="${data}" class="menu-image" alt="${row.name}">`;
-            },
-          },
-          { data: "name" },
-          {
-            data: "price",
-            render: function (data) {
-              return formatCurrency(data);
-            },
-          },
-          {
-            data: null,
-            render: function (data, type, row) {
-              return row.calories ? `${row.calories} kkal` : '-';
-            }
-          },
-          {
-            data: "ingredients",
-            render: function (data, type, row) {
-              if (typeof data === "string") {
-                data = data.split(", ").map((item) => ({ value: item }));
-              }
-
-              if (Array.isArray(data)) {
-                return data
-                  .map((ingredient) => {
-                    const color = ingredientColors[ingredient.value.toLowerCase()] || "#9E9E9E"; // Warna default abu-abu
-                    const textColor = isColorDark(color) ? "white" : "black"; // Tentukan warna teks
-                    return `<span class="badge me-1" style="
-                        background-color: ${color}; 
-                        color: ${textColor}; 
-                        font-size: 0.75rem; 
-                        padding: 0.4em 0.6em; 
-                        border-radius: 12px; 
-                        margin-right: 0.5rem; 
-                        margin-bottom: 0.5rem; 
-                        display: inline-block;
-                    ">
-                        ${ingredient.value}
-                    </span>`;
-                  })
-                  .join("");
-              }
-
-              return "-";
-            },
-          },
-
-          {
-            data: null,
-            render: function (data, type, row) {
-              return row.description || '-';
-            }
-          },
-          {
-            data: null,
-            render: function (data, type, row) {
-              return `
-                    <div class="action-buttons">
-                        <button class="btn btn-sm btn-outline-success edit-btn" data-id="${row.id}">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${row.id}">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
-                `;
-            },
-          }
-        ],
-        responsive: true,
-        dom: '<"d-flex justify-content-between align-items-center mb-3"<"d-flex gap-3"l><"ms-auto"f>>rt<"d-flex justify-content-between align-items-center"<"text-muted"i><"ms-auto"p>>',
-        language: {
-          lengthMenu: "Tampilkan _MENU_ entries",
-          search: "Cari menu:",
-          paginate: {
-            next: "Next",
-            previous: "Previous",
-          },
-        },
-      });
-
-      // Delegasi event untuk tombol edit
-      $('#menuTable').on('click', '.edit-btn', function () {
-        const id = $(this).data('id');
-        editMenu(id);
-      });
-
-      // Delegasi event untuk tombol delete 
-      $('#menuTable').on('click', '.delete-btn', function () {
-        const id = $(this).data('id');
-        deleteMenu(id);
-      });
-
-      // Sidebar toggle functionality
-      const toggleSidebarBtn = document.getElementById("toggleSidebar");
-      toggleSidebarBtn.addEventListener("click", () => {
-        const sidebar = document.getElementById("sidebar");
-        const content = document.getElementById("content");
-        sidebar.classList.toggle("collapsed");
-        content.classList.toggle("collapsed");
-        table.columns.adjust().responsive.recalc();
-      });
-
-      // Save menu function
-      window.saveMenu = () => {
-        const form = document.getElementById("addMenuForm");
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-
-        // Pastikan semua ID input sesuai dengan form
-        const newMenu = {
-          id: Date.now(), // ID unik
-          image: URL.createObjectURL(
-            document.getElementById("menuImage").files[0]
-          ),
-          name: document.getElementById("menuName").value,
-          price: parseFloat(document.getElementById("menuPrice").value.replace(/\./g, "")) || 0,            // Ubah dari menuPrice ke editMenuPrice
-          calories: parseInt(document.getElementById("menuCalories").value), // Ubah dari menuCalories ke editMenuCalories
-          ingredients: JSON.parse(document.getElementById("menuIngredients").value), // Parse JSON dari Tagify
-          description: document.getElementById("menuDescription").value,
-        };
-
-        menuData.push(newMenu);
-        table.clear().rows.add(menuData).draw(); // Perbarui tabel
-
-        // Tutup modal Bootstrap
-        bootstrap.Modal.getInstance(document.getElementById("addMenuModal")).hide();
-        form.reset();
-        document.getElementById("imagePreview").innerHTML = "";
-
-        // Tambahkan SweetAlert
-        Swal.fire({
-          icon: 'success',
-          title: 'Menu Berhasil Ditambahkan!',
-          text: `Menu ${newMenu.name} telah ditambahkan ke daftar.`,
-          confirmButtonText: "OK"
-        });
-
-        // Reset form
-        form.reset();
-        document.getElementById("imagePreview").innerHTML = "";
-      };
-
-      // Edit menu function
-      window.editMenu = (id) => {
-        const menu = menuData.find((item) => item.id === id);
-        if (menu) {
-          document.getElementById("editMenuId").value = menu.id;
-          document.getElementById("editMenuName").value = menu.name || "";
-          document.getElementById("editMenuPrice").value = menu.price || "";
-          document.getElementById("editMenuCalories").value = menu.calories || "";
-          document.getElementById("editMenuDescription").value = menu.description || "";
-
-          // Inisialisasi Tagify untuk edit menu
-          const editIngredientsInput = document.getElementById("editMenuIngredients");
-          const tagifyEdit = new Tagify(editIngredientsInput, {
-            whitelist: ["Daging Ayam", "Bumbu", "Adonan Telur", "Kedelai"],
-            dropdown: {
-              maxItems: 10,
-              classname: "suggestion-list",
-              enabled: 0, // Tidak langsung terbuka
-              closeOnSelect: false,
-            },
-          });
-
-          // Bersihkan tag sebelumnya dan tambahkan tag sesuai data menu
-          tagifyEdit.removeAllTags();
-          tagifyEdit.addTags(menu.ingredients.map((i) => i.value));
-
-          // Gambar preview
-          const editImagePreview = document.getElementById("editImagePreview");
-          editImagePreview.innerHTML = menu.image
-            ? `<img src="${menu.image}" alt="Preview" style="max-width: 200px; max-height: 200px;">`
-            : "<p>No image available</p>";
-
-          // Tampilkan modal edit
-          $('#editMenuModal').modal('show');
-        } else {
-          console.error(`Menu with ID ${id} not found`);
-        }
-      };
-
-      // Tambahkan fungsi untuk menghapus backdrop yang tersisa
-      function removeBackdrops() {
-        document.querySelectorAll('.modal-backdrop').forEach((backdrop) => {
-          backdrop.remove();
-        });
-      }
-
-      // Tambahkan event listener untuk modal edit
-      document.getElementById("editMenuModal").addEventListener("hidden.bs.modal", () => {
-        removeBackdrops(); // Hapus backdrop ketika modal ditutup
-      });
-
-      // Update menu function
-      window.updateMenu = () => {
-        const form = document.getElementById("editMenuForm");
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-
-        const id = parseInt(document.getElementById("editMenuId").value);
-        const index = menuData.findIndex((item) => item.id === id);
-
-        if (index !== -1) {
-          const imageFile = document.getElementById("editMenuImage").files[0];
-          const editIngredientsInput = document.getElementById("editMenuIngredients");
-          const tagifyEdit = new Tagify(editIngredientsInput);
-
-          const updatedMenu = {
-            id: id,
-            name: document.getElementById("editMenuName").value || "",
-            price: parseFloat(document.getElementById("editMenuPrice").value.replace(/\./g, "")) || 0,
-            calories: parseInt(document.getElementById("editMenuCalories").value) || 0,
-            ingredients: tagifyEdit.value, // Ambil nilai Tagify
-            description: document.getElementById("editMenuDescription").value || "",
-            image: imageFile ? URL.createObjectURL(imageFile) : menuData[index].image,
-          };
-
-          menuData[index] = updatedMenu;
-
-          // Update DataTable
-          table.row((idx, data) => data.id === id).data(updatedMenu).draw();
-
-          // Tutup modal dan reset form
-          bootstrap.Modal.getInstance(document.getElementById("editMenuModal")).hide();
-          form.reset();
-          document.getElementById("editImagePreview").innerHTML = "";
-
-          // Notifikasi berhasil
-          Swal.fire({
-            icon: "success",
-            title: "Menu Berhasil Diperbarui",
-            text: `Menu ${updatedMenu.name} berhasil diperbarui`,
-            confirmButtonText: "OK",
-          });
-        } else {
-          console.error(`Menu with ID ${id} not found`);
-        }
-      };
-
-      // Delete menu function
-      window.deleteMenu = (id) => {
-        Swal.fire({
-          title: "Apakah Anda yakin?",
-          text: "Menu ini akan terhapus secara permanen. Anda tidak akan bisa mengembalikan aksi ini.",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#d33",
-          cancelButtonColor: "#3085d6",
-          confirmButtonText: "Ya, hapus!",
-          cancelButtonText: "Batal",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            menuData = menuData.filter((item) => item.id !== id);
-            table.clear().rows.add(menuData).draw(); // Perbarui tabel
-
-            Swal.fire(
-              "Terhapus!",
-              "Menus berhasil terhapus!",
-              "success"
-            );
-          }
-        });
-      };
-
-      // Initialize event listeners for modal buttons
-      document.getElementById("saveMenu").addEventListener("click", saveMenu);
-      document
-        .getElementById("updateMenu")
-        .addEventListener("click", updateMenu);
-
-      // Image preview handlers
-      document.getElementById("menuImage").addEventListener("change", (e) => {
-        const preview = document.getElementById("imagePreview");
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-
-      document
-        .getElementById("editMenuImage")
-        .addEventListener("change", (e) => {
-          const preview = document.getElementById("editImagePreview");
-          const file = e.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-            };
-            reader.readAsDataURL(file);
-          }
-        });
+    // Handle Clear Date Button
+    $('#clearDate').click(function() {
+        $('#startDate').val('');
+        $('#endDate').val('');
+        const url = new URL(window.location);
+        url.searchParams.delete('start_date');
+        url.searchParams.delete('end_date');
+        url.searchParams.set('page', '1');
+        window.location.href = url.toString();
     });
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const editButton = document.getElementById("editButton");
-      const saveButton = document.getElementById("saveButton");
-      const editPictureButton = document.getElementById("editPictureButton");
-      const profilePictureInput = document.getElementById(
-        "profilePictureInput"
-      );
-      const profilePicturePreview = document.getElementById(
-        "profilePicturePreview"
-      );
-      const formFields = document.querySelectorAll(
-        "#profileForm input, #profileForm select"
-      );
+    // Set nilai date picker jika ada parameter
+    <?php if ($start_date): ?>
+        $('#startDate').val('<?= $start_date ?>');
+    <?php endif; ?>
+    <?php if ($end_date): ?>
+        $('#endDate').val('<?= $end_date ?>');
+    <?php endif; ?>
 
-      // Enable Editing
-      editButton.addEventListener("click", () => {
-        formFields.forEach((field) => field.removeAttribute("disabled"));
-        editButton.style.display = "none";
-        saveButton.style.display = "inline-block";
-        editPictureButton.style.display = "inline-block"; // Show Change Picture button
-      });
-
-      // Save Changes
-      saveButton.addEventListener("click", () => {
-        formFields.forEach((field) => field.setAttribute("disabled", "true"));
-        editButton.style.display = "inline-block";
-        saveButton.style.display = "none";
-        editPictureButton.style.display = "none"; // Hide Change Picture button
-
-        // SweetAlert2 Confirmation
-        Swal.fire({
-          icon: "success",
-          title: "Profil Diperbarui",
-          text: "Profil Anda telah sukses diperbarui.",
-          confirmButtonText: "OK",
-        });
-      });
-
-      // Change Profile Picture
-      editPictureButton.addEventListener("click", () => {
-        profilePictureInput.click();
-      });
-
-      profilePictureInput.addEventListener("change", () => {
-        const file = profilePictureInput.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            profilePicturePreview.src = e.target.result;
-          };
-          reader.readAsDataURL(file);
-        }
-      });
+    // Tambah input pesanan
+    $('#add-pesanan').click(function() {
+        $('#pesanan-container').append(`
+            <div class="input-group mb-2">
+                <input type="text" name="pesanan[]" class="form-control" placeholder="Nama menu" required>
+                <button type="button" class="btn btn-outline-danger remove-pesanan"><i class="bi bi-trash"></i></button>
+            </div>
+        `);
     });
 
-  </script>
-</body>
+    // Hapus input pesanan
+    $(document).on('click', '.remove-pesanan', function() {
+        $(this).closest('.input-group').remove();
+    });
+});
+</script>
 
-</html>
+<?php 
+include '../views/footer.php'; 
+$conn->close();
+?>
