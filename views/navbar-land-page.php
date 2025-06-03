@@ -247,9 +247,17 @@ if (isset($conn)) {
       <h3>Mulai Perjalanan Kuliner Anda dengan Satu Klik!</h3>
       <h1>BOLOOO</h1>
       <div class="hero-cta">
+        <?php if(isset($_SESSION['loggedin']) && $_SESSION['loggedin']): ?>
+        <!-- Jika sudah login -->
         <a href="proses/formPemesanan.php">
           <button class="cta-button">Pesan Sekarang</button>
         </a>
+      <?php else: ?>
+        <!-- Jika belum login -->
+        <a href="login-register.php?redirect=order">
+          <button class="cta-button">Pesan Sekarang</button>
+        </a>
+      <?php endif; ?>
 
         <a href="#reservation">
           <button class="cta-button">Reservasi Meja</button>
