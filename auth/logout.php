@@ -2,7 +2,7 @@
 // auth/logout.php
 session_start();
 session_destroy();
-header("Location: login-register.php");
+header("Location: ../index.php");
 exit;
 
 // Hapus semua data session
@@ -19,8 +19,4 @@ if (ini_get("session.use_cookies")) {
 
 // Hancurkan session
 session_destroy();
-
-// Redirect ke halaman login
-header("Location: ../index.php");
-exit;
 ?>
