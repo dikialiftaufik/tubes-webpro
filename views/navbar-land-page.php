@@ -192,50 +192,7 @@ if (isset($conn)) {
           </ul>
         </div>
       </nav>
-        <!-- User -->
-        <?php if(isset($_SESSION['loggedin']) && $_SESSION['loggedin']): ?>
-        <li
-          class="user-dropdown"
-          data-aos="fade-down"
-          data-aos-duration="500"
-          data-aos-delay="900"
-        ><a href="#">
-          <i class="fas fa-user"></i>
-        </a>
-        <div class="dropdown-content-user">
-          <div class="user-info">
-            <img src="<?= file_exists($_SESSION['user']['profile']) ? $_SESSION['user']['profile'] : 'uploads/profiles/default.jpg' ?>" 
- class="profile-pic" 
- alt="<?= htmlspecialchars($_SESSION['user']['username']) ?>">
-            <div class="user-name"><?= htmlspecialchars($_SESSION['user']['username']) ?></div>
-          </div>
-          <div class="dropdown-divider"></div>
-          <a href="account.php" class="dropdown-item">
-            <i class="fas fa-user-cog"></i> <p> Akun Saya</p>
-          </a>
-          <a href="orders.html" class="dropdown-item">
-            <i class="fas fa-box"></i> <p> Pesanan Saya</p>
-          </a>
-          <a href="reservations.html" class="dropdown-item">
-            <i class="fas fa-calendar-alt"></i> <p> Reservasi Saya</p>
-          </a>
-          <div class="dropdown-divider"></div>
-          <a href="auth/logout.php" class="dropdown-item logout">
-            <i class="fas fa-sign-out-alt"></i> <p> Sign Out</p>
-          </a>
-        </div>
-      </li>
-      <?php else: ?>
-      <li data-aos="fade-down" data-aos-duration="500" data-aos-delay="900">
-        <a href="login-register.php" class="login-link">
-            <i class="fas fa-sign-in-alt"></i>
-            <span class="login-text">Login</span>
-        </a>
-      </li>
-      <?php endif; ?>
-      </ul>
-    </div>
-  </nav>
+       
 
   <nav id="nav-mobile">
     <div class="nav-mobile">
