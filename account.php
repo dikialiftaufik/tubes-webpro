@@ -18,9 +18,9 @@ $user = $_SESSION['user'] ?? [
 $profileImage = "uploads/profile/default.jpg"; // default
 
 // Periksa username dan atur foto profil yang sesuai
-if ($user['username'] === 'diki') {
+if ($user['username'] === 'dikialift') {
     $profileImage = "uploads/profiles/1746731699_fotodiki.jpg";
-} elseif ($user['username'] === 'ega') {
+} elseif ($user['username'] === 'egafiandra') {
     $profileImage = "uploads/profiles/1746347113_fotoega.jpg";
 }
 ?>
