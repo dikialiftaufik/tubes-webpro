@@ -1,6 +1,9 @@
 <?php
 // auth/logout.php
 session_start();
+session_destroy();
+header("Location: login-register.php");
+exit;
 
 // Hapus semua data session
 $_SESSION = array();

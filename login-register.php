@@ -8,6 +8,8 @@ $error_message = isset($_SESSION['error']) ? $_SESSION['error'] : '';
 if (isset($_SESSION['success'])) unset($_SESSION['success']);
 if (isset($_SESSION['error'])) unset($_SESSION['error']);
 
+
+
 // Determine if the last action was a registration attempt that requires the register panel to be active
 $activate_register_panel = isset($_SESSION['register_form']) ? $_SESSION['register_form'] : false;
 if (isset($_SESSION['register_form'])) unset($_SESSION['register_form']);
