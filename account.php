@@ -232,13 +232,13 @@ if ($user['username'] === 'dikialift') {
 </div>
     <ul class="sidebar-menu">
       <li>
-        <a href="account.php">
+        <a href="account.php" class="active">
           <i class="fas fa-user"></i>
           <span>Akun Saya</span>
         </a>
       </li>
       <li>
-        <a href="orders.php" class="active">
+        <a href="orders.php">
           <i class="fas fa-box"></i>
           <span>Pesanan Saya</span>
         </a>
@@ -255,15 +255,15 @@ if ($user['username'] === 'dikialift') {
   <!-- Main Content -->
   <main class="main-content">
     <div class="content-header">
-        <h1>My Account</h1>
+        <h1>Akun Saya</h1>
     </div>
 
     <!-- Personal Information Section -->
     <section class="account-section">
         <div class="section-header">
-            <h2>Personal Information</h2>
+            <h2>Informasi Pribadi</h2>
             <button class="btn edit-info-btn" id="editPersonalInfo">
-                <i class="fas fa-edit"></i> Edit Information
+                <i class="fas fa-edit"></i> Edit Informasi
             </button>
         </div>
         
@@ -273,16 +273,15 @@ if ($user['username'] === 'dikialift') {
                 <div class="image-upload-overlay" style="display: none;">
                     <label for="profileImageInput" class="upload-label">
                         <i class="fas fa-camera"></i>
-                        <span>Change Photo</span>
+                        <span>Ubah Foto</span>
                     </label>
                     <input type="file" id="profileImageInput" accept="image/*" style="display: none;">
                 </div>
             </div>
 
             <form class="personal-info-form" id="personalInfoForm">
-                <<form class="personal-info-form" id="personalInfoForm">
                 <div class="form-group">
-                  <label for="fullName">Full Name</label>
+                  <label for="fullName">Nama Lengkap</label>
                   <input type="text" id="fullName" name="fullName" disabled 
                         value="<?= htmlspecialchars($user['full_name']) ?>">
                 </div>
@@ -294,41 +293,41 @@ if ($user['username'] === 'dikialift') {
                 </div>
 
                 <div class="form-group">
-                  <label for="email">Email Address</label>
+                  <label for="email">Email</label>
                   <input type="email" id="email" name="email" disabled 
                         value="<?= htmlspecialchars($user['email']) ?>">
                 </div>
 
                 <div class="form-group">
-                    <label for="phone">Phone Number</label>
+                    <label for="phone">Nomor Telepon</label>
                     <input type="tel" id="phone" name="phone" disabled value="+1234567890">
                 </div>
 
                 <div class="form-group">
-                    <label>Gender</label>
+                    <label>Jenis Kelamin</label>
                     <div class="radio-group">
                         <label class="radio-label">
                             <input type="radio" name="gender" value="male" disabled checked>
-                            <span>Male</span>
+                            <span>Laki-laki</span>
                         </label>
                         <label class="radio-label">
                             <input type="radio" name="gender" value="female" disabled>
-                            <span>Female</span>
+                            <span>Perempuan</span>
                         </label>
                         <label class="radio-label">
                             <input type="radio" name="gender" value="other" disabled>
-                            <span>Other</span>
+                            <span>Lainnya</span>
                         </label>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="address">Address</label>
-                    <textarea id="address" name="address" disabled>123 Main Street, Apt 4B, City, Country</textarea>
+                    <label for="address">Alamat</label>
+                    <textarea id="address" name="address" disabled>Jl. Contoh No. 123, Kota Bandung</textarea>
                 </div>
 
                 <button type="submit" class="btn save-btn" style="display: none;">
-                    <i class="fas fa-save"></i> Save Changes
+                    <i class="fas fa-save"></i> Simpan Perubahan
                 </button>
             </form>
         </div>
@@ -337,20 +336,30 @@ if ($user['username'] === 'dikialift') {
     <!-- Security Settings Section -->
     <section class="account-section">
         <div class="section-header">
-            <h2>Security Settings</h2>
+            <h2>Pengaturan Keamanan</h2>
             <button class="btn edit-info-btn" id="editSecurityInfo">
-                <i class="fas fa-edit"></i> Edit Security
+                <i class="fas fa-edit"></i> Edit Keamanan
             </button>
         </div>
 
         <form class="security-form" id="securityForm">
             <div class="form-group">
-                <label for="currentPassword">Password</label>
+                <label for="currentPassword">Password Saat Ini</label>
                 <input type="password" id="currentPassword" name="currentPassword" disabled placeholder="••••••••">
+            </div>
+            
+            <div class="form-group">
+                <label for="newPassword">Password Baru</label>
+                <input type="password" id="newPassword" name="newPassword" disabled placeholder="••••••••">
+            </div>
+            
+            <div class="form-group">
+                <label for="confirmPassword">Konfirmasi Password Baru</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" disabled placeholder="••••••••">
             </div>
 
             <button type="submit" class="btn save-btn" style="display: none;">
-                <i class="fas fa-save"></i> Save Changes
+                <i class="fas fa-save"></i> Simpan Perubahan
             </button>
         </form>
     </section>
@@ -434,15 +443,15 @@ if ($user['username'] === 'dikialift') {
     <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/js/iziToast.min.js"></script>
     <script>
+// Fungsi untuk memuat data user
 function loadUserData() {
-    // Ini contoh static, di real app harus fetch dari server
     const userData = {
         username: "<?= $user['username'] ?>",
         email: "<?= $user['email'] ?>",
         full_name: "<?= $user['full_name'] ?>",
         phone: "+1234567890",
         gender: "male",
-        address: "123 Main Street, Apt 4B, City, Country"
+        address: "Jl. Contoh No. 123, Kota Bandung"
     };
     
     document.getElementById('fullName').value = userData.full_name;
@@ -453,113 +462,101 @@ function loadUserData() {
     document.getElementById('address').value = userData.address;
 }
 
-// Panggil saat halaman dimuat
+// Event listener utama
 document.addEventListener('DOMContentLoaded', function() {
+    // Inisialisasi komponen
     loadUserData();
+    AOS.init();
     
-      AOS.init();
-
-      // Wait for the DOM to be fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Update active sidebar menu item
-    updateActiveSidebarMenu();
-
-    // Initialize Personal Information editing functionality
+    // Panggil fungsi inisialisasi
     initializePersonalInfoEditing();
-
-    // Initialize Security Settings editing functionality
     initializeSecurityEditing();
-
-    // Initialize Notification Settings functionality
-    initializeNotificationSettings();
+    updateActiveSidebarMenu();
 });
 
-// Function to update the active sidebar menu item
+// Fungsi untuk memperbarui menu sidebar aktif
 function updateActiveSidebarMenu() {
-    // Remove active class from all menu items
+    const currentPage = window.location.pathname.split('/').pop();
+    
     document.querySelectorAll('.sidebar-menu a').forEach(item => {
+        const itemPage = item.getAttribute('href');
         item.classList.remove('active');
+        
+        if (itemPage === currentPage) {
+            item.classList.add('active');
+        }
     });
-
-    // Add active class to the Account menu item
-    const accountMenuItem = document.querySelector('.sidebar-menu a[href="account.php"]');
-    if (accountMenuItem) {
-        accountMenuItem.classList.add('active');
-    }
 }
 
-// Function to initialize Personal Information editing
+// Fungsi untuk inisialisasi edit informasi pribadi
 function initializePersonalInfoEditing() {
     const editBtn = document.getElementById('editPersonalInfo');
     const form = document.getElementById('personalInfoForm');
     const saveBtn = form.querySelector('.save-btn');
-    const inputs = form.querySelectorAll('input:not([type="file"]), textarea');
+    const inputs = form.querySelectorAll('input:not([type="file"]), textarea, select');
+    const radios = form.querySelectorAll('input[type="radio"]');
     const profileImageInput = document.getElementById('profileImageInput');
     const imageOverlay = document.querySelector('.image-upload-overlay');
     let isEditing = false;
 
-    // Handle Edit button click
     editBtn.addEventListener('click', () => {
         isEditing = !isEditing;
         
-        // Toggle input fields
         inputs.forEach(input => {
             input.disabled = !isEditing;
         });
+        
+        radios.forEach(radio => {
+            radio.disabled = !isEditing;
+        });
 
-        // Toggle buttons and overlay
         saveBtn.style.display = isEditing ? 'flex' : 'none';
         imageOverlay.style.display = isEditing ? 'flex' : 'none';
+        
         editBtn.innerHTML = isEditing ? 
-            '<i class="fas fa-times"></i> Cancel' : 
-            '<i class="fas fa-edit"></i> Edit Information';
+            '<i class="fas fa-times"></i> Batal' : 
+            '<i class="fas fa-edit"></i> Edit Informasi';
 
-        // Show notification
         if (isEditing) {
             iziToast.info({
-                title: 'Edit Mode',
-                message: 'You can now edit your personal information',
+                title: 'Mode Edit',
+                message: 'Anda dapat mengedit informasi pribadi',
                 position: 'topRight'
             });
         }
     });
 
-    // Handle form submission
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        // Here you would typically send the data to your server
-        // For demonstration, we'll just show a success message
-        
-        // Reset form state
+        // Simulasi penyimpanan data
         isEditing = false;
         inputs.forEach(input => {
             input.disabled = true;
         });
+        radios.forEach(radio => {
+            radio.disabled = true;
+        });
         saveBtn.style.display = 'none';
         imageOverlay.style.display = 'none';
-        editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit Information';
+        editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit Informasi';
 
-        // Show success notification
         iziToast.success({
-            title: 'Success',
-            message: 'Personal information updated successfully',
+            title: 'Berhasil',
+            message: 'Informasi pribadi berhasil diperbarui',
             position: 'topRight'
         });
     });
 
-    // Handle profile image upload
     profileImageInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 document.querySelector('.account-profile-image').src = e.target.result;
-                
-                // Show success notification
                 iziToast.success({
-                    title: 'Success',
-                    message: 'Profile picture updated successfully',
+                    title: 'Berhasil',
+                    message: 'Foto profil berhasil diperbarui',
                     position: 'topRight'
                 });
             };
@@ -568,7 +565,7 @@ function initializePersonalInfoEditing() {
     });
 }
 
-// Function to initialize Security Settings editing
+// Fungsi untuk inisialisasi edit keamanan
 function initializeSecurityEditing() {
     const editBtn = document.getElementById('editSecurityInfo');
     const form = document.getElementById('securityForm');
@@ -576,165 +573,85 @@ function initializeSecurityEditing() {
     const inputs = form.querySelectorAll('input');
     let isEditing = false;
 
-    // Handle Edit button click
     editBtn.addEventListener('click', () => {
         isEditing = !isEditing;
         
-        // Toggle input fields
         inputs.forEach(input => {
             input.disabled = !isEditing;
             if (isEditing) {
-                input.value = ''; // Clear password fields when editing
+                input.value = '';
+                input.placeholder = 'Masukkan password';
             } else {
-                input.value = '••••••••'; // Reset to placeholder when not editing
+                input.value = '';
+                input.placeholder = '••••••••';
             }
         });
 
-        // Toggle buttons
         saveBtn.style.display = isEditing ? 'flex' : 'none';
         editBtn.innerHTML = isEditing ? 
-            '<i class="fas fa-times"></i> Cancel' : 
-            '<i class="fas fa-edit"></i> Edit Security';
+            '<i class="fas fa-times"></i> Batal' : 
+            '<i class="fas fa-edit"></i> Edit Keamanan';
 
-        // Show notification
         if (isEditing) {
             iziToast.info({
-                title: 'Edit Mode',
-                message: 'You can now change your password',
+                title: 'Mode Edit',
+                message: 'Anda dapat mengubah password',
                 position: 'topRight'
             });
         }
     });
 
-    // Handle form submission
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        // Validate password fields
+        const currentPass = form.querySelector('#currentPassword').value;
         const newPass = form.querySelector('#newPassword').value;
         const confirmPass = form.querySelector('#confirmPassword').value;
 
-        if (newPass !== confirmPass) {
+        if (!currentPass || !newPass || !confirmPass) {
             iziToast.error({
                 title: 'Error',
-                message: 'New passwords do not match',
+                message: 'Semua field harus diisi',
                 position: 'topRight'
             });
             return;
         }
 
-        // Here you would typically send the data to your server
-        // For demonstration, we'll just show a success message
-        
-        // Reset form state
+        if (newPass !== confirmPass) {
+            iziToast.error({
+                title: 'Error',
+                message: 'Password baru tidak cocok',
+                position: 'topRight'
+            });
+            return;
+        }
+
         isEditing = false;
         inputs.forEach(input => {
             input.disabled = true;
-            input.value = '••••••••';
+            input.value = '';
+            input.placeholder = '••••••••';
         });
         saveBtn.style.display = 'none';
-        editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit Security';
+        editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit Keamanan';
 
-        // Show success notification
         iziToast.success({
-            title: 'Success',
-            message: 'Password updated successfully',
+            title: 'Berhasil',
+            message: 'Password berhasil diperbarui',
             position: 'topRight'
         });
     });
 }
 
-// Function to initialize Notification Settings
-function initializeNotificationSettings() {
-    const form = document.querySelector('.notification-form');
-    const toggleInputs = form.querySelectorAll('input[type="checkbox"]');
-
-    // Handle toggle changes
-    toggleInputs.forEach(input => {
-        input.addEventListener('change', () => {
-            const settingName = input.nextElementSibling.nextElementSibling.textContent;
-            const state = input.checked ? 'enabled' : 'disabled';
-            
-            // Show notification
-            iziToast.info({
-                title: 'Notification Setting',
-                message: `${settingName} has been ${state}`,
-                position: 'topRight'
-            });
-        });
-    });
-
-    // Handle form submission
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        // Here you would typically send the data to your server
-        // For demonstration, we'll just show a success message
-        
-        // Show success notification
-        iziToast.success({
-            title: 'Success',
-            message: 'Notification preferences saved successfully',
-            position: 'topRight'
-        });
-    });
-}
-
-      document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("reservation-item-form");
-
-    form.addEventListener("submit", function (event) {
-        event.preventDefault();
-
-        const isLoggedIn = sessionStorage.getItem("loggedIn");
-
-        if (isLoggedIn) {
-            iziToast.success({
-                title: "Berhasil!",
-                message: "Reservasi Anda sedang diproses.",
-                position: "topRight",
-                timeout: 3000,
-                onClosing: function () {
-                    // Simulasi pengiriman data reservasi ke halaman admin
-                    const reservasiData = {
-                        nama: document.getElementById("table_name").value,
-                        jumlahOrang: document.getElementById("table_capacity").value,
-                        tanggalWaktu: document.getElementById("order_date").value,
-                        pesanan: document.getElementById("order").value,
-                    };
-
-                    // Simpan data ke localStorage sementara (simulasi)
-                    localStorage.setItem("reservasiData", JSON.stringify(reservasiData));
-                    window.location.href = "admin/reservation.php";
-                }
-            });
-        } else {
-            iziToast.warning({
-                title: "Perhatian!",
-                message: "Anda harus login terlebih dahulu untuk melakukan reservasi.",
-                position: "topRight",
-                timeout: 3000,
-                onClosing: function () {
-                    window.location.href = "login-register.php";
-                }
-            });
-        }
-    });
-
-    // Fungsi logout otomatis setelah 2 menit
-    setTimeout(() => {
-        sessionStorage.removeItem("loggedIn");
-    }, 120000); // 2 menit dalam milidetik
-});
-
+// Fungsi untuk tombol lihat password
 document.querySelectorAll('.toggle-password').forEach(toggle => {
-  toggle.addEventListener('click', function() {
-    const input = this.previousElementSibling;
-    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-    input.setAttribute('type', type);
-    this.classList.toggle('fa-eye');
-    this.classList.toggle('fa-eye-slash');
-  });
+    toggle.addEventListener('click', function() {
+        const input = this.previousElementSibling;
+        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+        input.setAttribute('type', type);
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
 });
     </script>
   </body>
