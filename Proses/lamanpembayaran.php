@@ -1,73 +1,37 @@
 <?php
 session_start();
 
-// 1. Sertakan koneksi ke database (ubah path jika perlu)
-require_once __DIR__ . '/../configdb.php';
+// Ambil data user dari session (dari account.php/login)
+$user = $_SESSION['user'] ?? null;
 
-
-// 1.a. Pastikan user sudah login (harus ada user_id di session)
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../login.php");
-    exit();
-}
-
-
-$user_id = $_SESSION['user_id'];
-
-// 2. Ambil data pengguna (full_name, email, phone_number, address) dari tabel users
-$full_name   = "";
-$email       = "";
-$phone_number = "";
-$address     = "";
-
-$stmt = $conn->prepare("SELECT full_name, email, phone_number, address FROM users WHERE id = ?");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$stmt->bind_result($full_name, $email, $phone_number, $address);
-$stmt->fetch();
-$stmt->close();
-
-// 3. Proses POST pesanan_data (dari localStorage)
+// Cek apakah ada data pesanan dari localStorage yang dikirim via POST
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['pesanan_data'])) {
     $_SESSION['pesanan'] = json_decode($_POST['pesanan_data'], true);
     $_SESSION['data_loaded'] = true;
 }
 
-// 4. Buat CSRF token (jika belum ada)
+// Buat CSRF token
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-// 5. Fungsi tampil error
+// Fungsi tampil error
 function display_error($message) {
     echo "<div class='error-message'>$message</div>";
 }
 
-// 6. Validasi input
+// Validasi input
 function validate_input($data) {
     $errors = [];
 
-    // Nama (sudah pasti huruf/spasi karena diambil dari database)
-    if (empty($data['nama']) || !preg_match("/^[a-zA-Z ]+$/", $data['nama'])) {
-        $errors[] = "Nama harus diisi dan hanya boleh huruf dan spasi.";
+    if (!isset($_SESSION['user'])) {
+        $errors[] = "Data pengguna tidak ditemukan. Silakan login ulang.";
     }
 
-    // Email
-    if (empty($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "Email harus diisi dan valid.";
-    }
-
-    // Telepon
-    if (empty($data['telepon']) || !preg_match("/^[0-9]{10,15}$/", $data['telepon'])) {
-        $errors[] = "Nomor telepon harus 10–15 digit angka.";
-    }
-
-    // Pesanan
     if (!isset($_SESSION['pesanan']) || empty($_SESSION['pesanan'])) {
         $errors[] = "Pesanan tidak ditemukan.";
     }
 
-    // CSRF
     if (empty($data['csrf_token']) || $data['csrf_token'] !== $_SESSION['csrf_token']) {
         $errors[] = "Token tidak valid.";
     }
@@ -75,20 +39,18 @@ function validate_input($data) {
     return $errors;
 }
 
-// 7. Proses form submit untuk pembayaran (bukan untuk loading data)
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['nama']) && !isset($_POST['pesanan_data'])) {
-    // Karena kita menggunakan data dari DB, kita set manual ke dalam array $formData
+// Jika form disubmit untuk pembayaran
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['csrf_token']) && !isset($_POST['pesanan_data'])) {
     $formData = [
-        'nama'       => trim($_POST['nama'] ?? ''),
-        'email'      => trim($_POST['email'] ?? ''),
-        'telepon'    => trim($_POST['telepon'] ?? ''),
+        'nama' => $user['full_name'] ?? '',
+        'email' => $user['email'] ?? '',
         'csrf_token' => $_POST['csrf_token'] ?? ''
     ];
 
     $errors = validate_input($formData);
 
     if (empty($errors)) {
-        // Hitung totalQuantity & totalPrice jika belum dihitung
+        // Hitung total jika belum ada
         if (!isset($_SESSION['totalQuantity']) || !isset($_SESSION['totalPrice'])) {
             $totalQuantity = 0;
             $totalPrice = 0;
@@ -102,15 +64,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['nama']) && !isset($_P
             }
         }
 
-        // Simpan data pembayaran ke session, termasuk alamat
         $_SESSION['data_pembayaran'] = [
-            'nama'          => $formData['nama'],
-            'email'         => $formData['email'],
-            'telepon'       => $formData['telepon'],
-            'alamat'        => $address,                  // Alamat diambil langsung dari DB
+            'nama' => $formData['nama'],
+            'email' => $formData['email'],
+            'telepon' => $formData['telepon'],
             'totalQuantity' => $_SESSION['totalQuantity'],
-            'totalPrice'    => $_SESSION['totalPrice'],
-            'metode'        => 'QRIS'
+            'totalPrice' => $_SESSION['totalPrice'],
+            'metode' => 'QRIS'
         ];
 
         header("Location: konfirmasi.php");
@@ -118,18 +78,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['nama']) && !isset($_P
     }
 }
 
-// 8. Hitung total pesanan jika ada (bagian tetap sama)
+// Hitung total pesanan jika ada
 $totalQuantity = 0;
-$totalPrice    = 0;
+$totalPrice = 0;
 if (isset($_SESSION['pesanan']) && !empty($_SESSION['pesanan'])) {
     foreach ($_SESSION['pesanan'] as $item) {
         $totalQuantity += $item['quantity'];
-        $totalPrice    += $item['price'] * $item['quantity'];
+        $totalPrice += $item['price'] * $item['quantity'];
     }
     $_SESSION['totalQuantity'] = $totalQuantity;
-    $_SESSION['totalPrice']    = $totalPrice;
+    $_SESSION['totalPrice'] = $totalPrice;
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -212,6 +173,12 @@ if (isset($_SESSION['pesanan']) && !empty($_SESSION['pesanan'])) {
             border-color: #ff4500;
             background-color: #3a3a3a;
             box-shadow: 0 0 15px rgba(255, 69, 0, 0.3);
+        }
+
+        input[readonly] {
+            background-color: #555 !important;
+            cursor: not-allowed;
+            color: #ccc;
         }
 
         .submit-btn {
@@ -374,6 +341,18 @@ if (isset($_SESSION['pesanan']) && !empty($_SESSION['pesanan'])) {
             margin-bottom: 30px;
         }
 
+        .order-summary-section h3 {
+            color: #ff4500; 
+            margin-bottom: 20px; 
+            font-size: 18px;
+        }
+
+        .form-section h3 {
+            color: #ff4500; 
+            margin-bottom: 20px; 
+            font-size: 18px;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .main-container {
@@ -405,9 +384,9 @@ if (isset($_SESSION['pesanan']) && !empty($_SESSION['pesanan'])) {
             <div class="payment-container">
                 <h1 class="section-title">Pembayaran</h1>
                 
-                <!-- Rincian Pesanan Section (TIDAK DIUBAH) -->
+                <!-- Rincian Pesanan Section -->
                 <div class="order-summary-section">
-                    <h3 style="color: #ff4500; margin-bottom: 20px; font-size: 18px;">Rincian Pesanan</h3>
+                    <h3>Rincian Pesanan</h3>
                     <div id="order-items">
                         <?php if (isset($_SESSION['pesanan']) && !empty($_SESSION['pesanan'])): ?>
                             <?php foreach ($_SESSION['pesanan'] as $item): ?>
@@ -443,9 +422,9 @@ if (isset($_SESSION['pesanan']) && !empty($_SESSION['pesanan'])) {
 
                 <hr class="section-divider">
 
-                <!-- Form Pembayaran Section (ubah hanya bagian Data Pembeli) -->
+                <!-- Form Pembayaran Section -->
                 <div class="form-section">
-                    <h3 style="color: #ff4500; margin-bottom: 20px; font-size: 18px;">Data Pembeli</h3>
+                    <h3>Data Pembeli</h3>
                     
                     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" id="payment-form">
                         <?php
@@ -459,38 +438,25 @@ if (isset($_SESSION['pesanan']) && !empty($_SESSION['pesanan'])) {
                         <!-- CSRF token -->
                         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
-                        <!-- Nama Pelanggan (readonly, ambil dari DB) -->
+                        <!-- Nama Pelanggan (readonly, ambil dari session) -->
                         <div class="form-group">
                             <label for="nama">Nama Pelanggan</label>
                             <input type="text" name="nama" id="nama" readonly
-                                   value="<?php echo htmlspecialchars($full_name); ?>" />
+                                   value="<?php echo htmlspecialchars($user['full_name'] ?? ''); ?>" />
                         </div>
 
-                        <!-- Email Pelanggan (readonly, ambil dari DB) -->
+                        <!-- Email Pelanggan (readonly, ambil dari session) -->
                         <div class="form-group">
                             <label for="email">Email Pelanggan</label>
                             <input type="email" name="email" id="email" readonly
-                                   value="<?php echo htmlspecialchars($email); ?>" />
+                                   value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" />
                         </div>
 
-                        <!-- Nomor Telepon (readonly, ambil dari DB) -->
-                        <div class="form-group">
-                            <label for="telepon">Nomor Telepon</label>
-                            <input type="tel" name="telepon" id="telepon" readonly
-                                   value="<?php echo htmlspecialchars($phone_number); ?>" />
-                        </div>
 
-                        <!-- Alamat Pelanggan (readonly, ambil dari DB) -->
-                        <div class="form-group">
-                            <label for="alamat">Alamat Pelanggan</label>
-                            <input type="text" name="alamat" id="alamat" readonly
-                                   value="<?php echo htmlspecialchars($address); ?>" />
-                        </div>
 
                         <div class="form-group">
                             <label for="metode">Metode Pembayaran</label>
-                            <input type="text" id="metode" name="metode" value="QRIS" readonly 
-                                   style="background-color: #555; cursor: not-allowed;" />
+                            <input type="text" id="metode" name="metode" value="QRIS" readonly />
                         </div>
 
                         <button type="submit" class="submit-btn" id="submit-btn">Lanjutkan Pembayaran</button>

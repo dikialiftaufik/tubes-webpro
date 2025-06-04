@@ -1,5 +1,5 @@
 <?php
-<?php
+
 require_once __DIR__ . '/../configdb.php';
 
 include '../views/header.php';
