@@ -225,11 +225,7 @@ if ($user['username'] === 'dikialift') {
 <div class="container">
   <!-- Sidebar -->
   <aside class="sidebar">
-    <div class="user-profile">
-  <img src="<?= $profileImage ?>" alt="User Profile" class="profile-image">
-  <h3><?= htmlspecialchars($user['full_name']) ?></h3>
-  <p>Member since 2024</p>
-</div>
+    
     <ul class="sidebar-menu">
       <li>
         <a href="account.php" class="active">
