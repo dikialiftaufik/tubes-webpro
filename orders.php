@@ -24,6 +24,21 @@ while ($row = $result->fetch_assoc()) {
     $orders[$row['order_id']]['status'] = $row['status'];
     $orders[$row['order_id']]['created_at'] = $row['created_at'];
 }
+
+// Function to translate status to Indonesian
+function translateStatus($status) {
+    $statusTranslations = [
+        'pending' => 'Diproses',
+        'processing' => 'Sedang Diproses',
+        'preparing' => 'Sedang Disiapkan',
+        'ready' => 'Siap Diambil',
+        'completed' => 'Selesai',
+        'cancelled' => 'Dibatalkan',
+        'delivered' => 'Terkirim'
+    ];
+    
+    return $statusTranslations[$status] ?? ucwords(str_replace('_', ' ', $status));
+}
 ?>
 
 <!doctype html>
@@ -142,46 +157,116 @@ while ($row = $result->fetch_assoc()) {
 
   <main class="main-content">
     <div class="orders-list">
-      <?php foreach ($orders as $orderId => $orderData): ?>
-      <div class="order-card <?= $orderData['status'] === 'completed' ? 'completed' : '' ?>">
-        <div class="order-header">
-          <div class="order-info">
-            <span class="order-id">#<?= htmlspecialchars($orderId) ?></span>
-            <span class="order-date"><?= date('j F Y, H:i', strtotime($orderData['created_at'])) ?></span>
-          </div>
-          <span class="order-status <?= htmlspecialchars($orderData['status']) ?>">
-            <?= ucwords(str_replace('_', ' ', $orderData['status'])) ?>
-          </span>
+      <?php if (empty($orders)): ?>
+        <div class="no-orders">
+          <h3>Belum ada pesanan</h3>
+          <p>Anda belum memiliki pesanan apapun. Silakan pesan menu favorit Anda!</p>
+          <a href="Makanan.php" class="btn btn-primary">Lihat Menu</a>
         </div>
+      <?php else: ?>
+        <?php foreach ($orders as $orderId => $orderData): ?>
+        <div class="order-card <?= $orderData['status'] === 'completed' ? 'completed' : '' ?>">
+          <div class="order-header">
+            <div class="order-info">
+              <span class="order-id">#<?= htmlspecialchars($orderId) ?></span>
+              <span class="order-date"><?= date('j F Y, H:i', strtotime($orderData['created_at'])) ?></span>
+            </div>
+            <span class="order-status <?= htmlspecialchars($orderData['status']) ?>">
+              <?= translateStatus($orderData['status']) ?>
+            </span>
+          </div>
 
-        <div class="order-items">
-          <?php foreach ($orderData['items'] as $item): ?>
-          <div class="order-item">
-            <img src="uploads/menu/<?= htmlspecialchars($item['image_url']) ?>" alt="<?= htmlspecialchars($item['nama_makanan']) ?>" class="item-image">
-            <div class="item-details">
-              <h4><?= htmlspecialchars($item['nama_makanan']) ?></h4>
-              <p class="item-quantity"><?= $item['quantity'] ?>x</p>
-              <p class="item-price">Rp <?= number_format($item['price_at_order'], 0, ',', '.') ?>/porsi</p>
+          <div class="order-items">
+            <?php foreach ($orderData['items'] as $item): ?>
+            <div class="order-item">
+              <img src="uploads/menu/<?= htmlspecialchars($item['image_url']) ?>" alt="<?= htmlspecialchars($item['nama_makanan']) ?>" class="item-image">
+              <div class="item-details">
+                <h4><?= htmlspecialchars($item['nama_makanan']) ?></h4>
+                <p class="item-quantity"><?= $item['quantity'] ?>x</p>
+                <p class="item-price">Rp <?= number_format($item['price_at_order'], 0, ',', '.') ?>/porsi</p>
+              </div>
+            </div>
+            <?php endforeach; ?>
+          </div>
+
+          <div class="order-footer">
+            <div class="order-total">
+              <span>Total Pesanan:</span>
+              <h3>
+                Rp <?= number_format(array_sum(array_map(function($i){ return $i['price_at_order'] * $i['quantity']; }, $orderData['items'])), 0, ',', '.') ?>
+              </h3>
             </div>
           </div>
-          <?php endforeach; ?>
         </div>
-
-        <div class="order-footer">
-          <div class="order-total">
-            <span>Total Pesanan:</span>
-            <h3>
-              Rp <?= number_format(array_sum(array_map(function($i){ return $i['price_at_order'] * $i['quantity']; }, $orderData['items'])), 0, ',', '.') ?>
-            </h3>
-          </div>
-        </div>
-      </div>
-      <?php endforeach; ?>
+        <?php endforeach; ?>
+      <?php endif; ?>
     </div>
   </main>
 </div>
 
-<?php include 'footer.php'; ?>
+<!-- Footer Section -->
+<footer style="background-color: #2c2c2c; color: white; padding: 40px 0; margin-top: 50px;">
+  <div class="large-container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
+      <div>
+        <img src="img/logo/logo2.png" alt="Logo" style="width: 120px; margin-bottom: 15px;">
+        <p style="line-height: 1.6; margin-bottom: 15px;">
+          Restoran terbaik dengan cita rasa autentik dan pelayanan terpercaya. 
+          Nikmati pengalaman kuliner yang tak terlupakan bersama kami.
+        </p>
+        <div style="display: flex; gap: 10px;">
+          <a href="#" style="color: #ffd700; font-size: 20px;"><i class="fab fa-facebook"></i></a>
+          <a href="#" style="color: #ffd700; font-size: 20px;"><i class="fab fa-instagram"></i></a>
+          <a href="#" style="color: #ffd700; font-size: 20px;"><i class="fab fa-twitter"></i></a>
+        </div>
+      </div>
+      
+      <div>
+        <h4 style="color: #ffd700; margin-bottom: 15px;">Menu Utama</h4>
+        <ul style="list-style: none; padding: 0;">
+          <li style="margin-bottom: 8px;"><a href="index.php" style="color: white; text-decoration: none;">Home</a></li>
+          <li style="margin-bottom: 8px;"><a href="AboutUs.php" style="color: white; text-decoration: none;">About</a></li>
+          <li style="margin-bottom: 8px;"><a href="Makanan.php" style="color: white; text-decoration: none;">Menu</a></li>
+          <li style="margin-bottom: 8px;"><a href="#reservation" style="color: white; text-decoration: none;">Reservasi</a></li>
+        </ul>
+      </div>
+      
+      <div>
+        <h4 style="color: #ffd700; margin-bottom: 15px;">Kontak</h4>
+        <div style="margin-bottom: 10px;">
+          <i class="fas fa-map-marker-alt" style="color: #ffd700; margin-right: 10px;"></i>
+          <span>Jl. Kuliner No. 123, Bandung, Jawa Barat</span>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <i class="fas fa-phone" style="color: #ffd700; margin-right: 10px;"></i>
+          <span>+62 22 1234 5678</span>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <i class="fas fa-envelope" style="color: #ffd700; margin-right: 10px;"></i>
+          <span>info@restaurant.com</span>
+        </div>
+      </div>
+      
+      <div>
+        <h4 style="color: #ffd700; margin-bottom: 15px;">Jam Operasional</h4>
+        <div style="margin-bottom: 8px;">
+          <strong>Senin - Jumat:</strong><br>
+          <span>10:00 - 21:00</span>
+        </div>
+        <div style="margin-bottom: 8px;">
+          <strong>Sabtu - Minggu:</strong><br>
+          <span>09:00 - 22:00</span>
+        </div>
+      </div>
+    </div>
+    
+    <hr style="border: none; border-top: 1px solid #555; margin: 30px 0;">
+    
+    <div style="text-align: center;">
+      <p>&copy; 2025 Restaurant. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
 
 <script src="js/script.js" type="text/javascript"></script>
 <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
