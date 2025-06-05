@@ -163,7 +163,6 @@ $dataPembayaran = $_SESSION['data_pembayaran'];
         <table>
             <tr><th>Nama</th><td><?= htmlspecialchars($dataPembayaran['nama']) ?></td></tr>
             <tr><th>Email</th><td><?= htmlspecialchars($dataPembayaran['email']) ?></td></tr>
-            <tr><th>Telepon</th><td><?= htmlspecialchars($dataPembayaran['telepon']) ?></td></tr>
             <tr><th>Total Makanan</th><td><?= $dataPembayaran['totalQuantity'] ?></td></tr>
             <tr><th>Total Harga</th><td>Rp <?= number_format($dataPembayaran['totalPrice'], 0, ',', '.') ?></td></tr>
             <tr><th>Metode Pembayaran</th><td><?= htmlspecialchars($dataPembayaran['metode']) ?></td></tr>
