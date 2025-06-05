@@ -40,6 +40,7 @@ $new_stock = $current_stock - 1;
 $stmt2 = $conn->prepare("UPDATE menu SET quantity = ? WHERE id = ?");
 $stmt2->bind_param('ii', $new_stock, $menu_id);
 
+
 if ($stmt2->execute()) {
     // Berhasil mengurangi stok
     echo json_encode([
