@@ -2,8 +2,9 @@
 session_start(); // HARUS menjadi baris pertama sebelum output apapun
 
 // Periksa apakah pengguna sudah login dan memiliki peran 'admin'
-if (!isset($_SESSION['user']) || !isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'admin') {
-    header("Location: login.php"); // Mengarahkan ke pages/login.php
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    // Jika tidak, tendang user ke halaman login customer atau halaman utama
+    header('Location: ../login-register.php?error=unauthorized');
     exit();
 }
 
