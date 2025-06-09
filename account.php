@@ -20,7 +20,10 @@ $stmt->execute();
 $result = $stmt->get_result();
 $user_db = $result->fetch_assoc();
 $stmt->close();
-$conn->close(); // Tutup koneksi setelah mendapatkan data
+// Tidak menutup koneksi di sini agar bisa digunakan di navbar jika diperlukan,
+// atau pastikan koneksi ditutup di akhir skrip utama atau melalui mekanisme lain.
+// Untuk saat ini, koneksi akan ditutup di process_customer_profile_update.php setelah proses.
+// Jika account.php tidak memicu update, koneksi akan tetap terbuka sampai skrip selesai.
 
 // Fallback jika data tidak ditemukan (seharusnya tidak terjadi jika user sudah login)
 if (!$user_db) {
@@ -32,131 +35,132 @@ if (!$user_db) {
 
 // Gunakan data dari database, jika ada. Ini akan memastikan data di session paling up-to-date
 // array_merge akan menimpa nilai dari $_SESSION['user'] dengan nilai dari $user_db jika ada kunci yang sama
-$user = array_merge($_SESSION['user'], $user_db);
+$_SESSION['user'] = array_merge($_SESSION['user'], $user_db); // Pastikan $_SESSION['user'] selalu sinkron
+$user = $_SESSION['user']; // Gunakan variabel $user yang sudah diperbarui dari session
 
 // Tentukan foto profil berdasarkan data dari database. Pastikan path benar.
 $profileImage = $user['profile_picture'] ?? 'uploads/profile/default.jpg'; // Path relatif dari root proyek
-// Logika penyesuaian path untuk tampilan di browser jika diperlukan
-// Perhatikan bahwa di sini kita hanya menggunakan path yang sudah ada di DB.
-// Path default di DB adalah 'uploads/profile/default.jpg'
-// Path upload baru adalah 'uploads/profiles/nama_file_unik.jpg'
-// Keduanya relatif dari root aplikasi, jadi langsung bisa digunakan.
 
+// Pastikan file gambar benar-benar ada di server, jika tidak, gunakan default
+// Ini untuk mengatasi kasus di mana path ada di DB tapi file tidak ada di server
+if ($profileImage !== 'uploads/profile/default.jpg' && !file_exists($profileImage)) {
+    $profileImage = 'uploads/profile/default.jpg';
+}
 
 require_once 'views/header-account.php';
-require_once 'views/navbar-account.php';
+require_once 'views/navbar-account.php'; // Ini harusnya 'views/navbar-land-page.php' jika Anda ingin navbar utama
 require_once 'views/sidebar-account.php';
 require_once 'views/alerts-land-page.php';
 ?>
 
-  <main class="main-content">
-    <div class="content-header">
-        <h1>Akun Saya</h1>
-    </div>
-
-    <section class="account-section">
-        <div class="section-header">
-            <h2>Informasi Pribadi</h2>
-            <button class="btn edit-info-btn" id="editPersonalInfo">
-                <i class="fas fa-edit"></i> Edit Informasi
-            </button>
+    <main class="main-content">
+        <div class="content-header">
+            <h1>Akun Saya</h1>
         </div>
-        
-        <div class="account-info-container">
-            <div class="profile-image-container">
-                <img src="<?= htmlspecialchars($profileImage) ?>" alt="Profile Picture" class="account-profile-image">
-                <div class="image-upload-overlay" style="display: none;">
-                    <label for="profileImageInput" class="upload-label">
-                        <i class="fas fa-camera"></i>
-                        <span>Ubah Foto</span>
-                    </label>
-                    <input type="file" id="profileImageInput" name="profile_picture" accept="image/*" style="display: none;">
-                </div>
+
+        <section class="account-section">
+            <div class="section-header">
+                <h2>Informasi Pribadi</h2>
+                <button class="btn edit-info-btn" id="editPersonalInfo">
+                    <i class="fas fa-edit"></i> Edit Informasi
+                </button>
             </div>
-
-            <form class="personal-info-form" id="personalInfoForm" action="Proses/process_customer_profile_update.php" method="POST" enctype="multipart/form-data">
-                <div class="form-group">
-                  <label for="fullName">Nama Lengkap</label>
-                  <input type="text" id="fullName" name="full_name" disabled 
-                        value="<?= htmlspecialchars($user['full_name']) ?>">
-                </div>
-
-                <div class="form-group">
-                  <label for="username">Username</label>
-                  <input type="text" id="username" name="username" disabled 
-                        value="<?= htmlspecialchars($user['username']) ?>">
-                </div>
-
-                <div class="form-group">
-                  <label for="email">Email</label>
-                  <input type="email" id="email" name="email" disabled 
-                        value="<?= htmlspecialchars($user['email']) ?>">
-                </div>
-
-                <div class="form-group">
-                    <label for="phone">Nomor Telepon</label>
-                    <input type="tel" id="phone" name="phone_number" disabled 
-                           value="<?= htmlspecialchars($user['phone_number'] ?? '') ?>">
-                </div>
-
-                <div class="form-group">
-                    <label>Jenis Kelamin</label>
-                    <div class="radio-group">
-                        <label class="radio-label">
-                            <input type="radio" name="gender" value="male" disabled 
-                                <?= ($user['gender'] ?? '') === 'male' ? 'checked' : '' ?>>
-                            <span>Laki-laki</span>
+            
+            <div class="account-info-container">
+                <div class="profile-image-container">
+                    <img src="<?= htmlspecialchars($profileImage) ?>" alt="Profile Picture" class="account-profile-image">
+                    <div class="image-upload-overlay" style="display: none;">
+                        <label for="profileImageInput" class="upload-label">
+                            <i class="fas fa-camera"></i>
+                            <span>Ubah Foto</span>
                         </label>
-                        <label class="radio-label">
-                            <input type="radio" name="gender" value="female" disabled
-                                <?= ($user['gender'] ?? '') === 'female' ? 'checked' : '' ?>>
-                            <span>Perempuan</span>
-                        </label>
+                        <input type="file" id="profileImageInput" name="profile_picture" accept="image/*" style="display: none;">
                     </div>
                 </div>
 
+                <form class="personal-info-form" id="personalInfoForm" action="Proses/process_customer_profile_update.php" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                      <label for="fullName">Nama Lengkap</label>
+                      <input type="text" id="fullName" name="full_name" disabled 
+                              value="<?= htmlspecialchars($user['full_name']) ?>">
+                    </div>
+
+                    <div class="form-group">
+                      <label for="username">Username</label>
+                      <input type="text" id="username" name="username" disabled 
+                              value="<?= htmlspecialchars($user['username']) ?>">
+                    </div>
+
+                    <div class="form-group">
+                      <label for="email">Email</label>
+                      <input type="email" id="email" name="email" disabled 
+                              value="<?= htmlspecialchars($user['email']) ?>">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Nomor Telepon</label>
+                        <input type="tel" id="phone" name="phone_number" disabled 
+                               value="<?= htmlspecialchars($user['phone_number'] ?? '') ?>">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Jenis Kelamin</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="gender" value="male" disabled 
+                                    <?= ($user['gender'] ?? '') === 'male' ? 'checked' : '' ?>>
+                                <span>Laki-laki</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="gender" value="female" disabled
+                                    <?= ($user['gender'] ?? '') === 'female' ? 'checked' : '' ?>>
+                                <span>Perempuan</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Alamat</label>
+                        <textarea id="address" name="address" disabled><?= htmlspecialchars($user['address'] ?? '') ?></textarea>
+                    </div>
+
+                    <button type="submit" name="update_profile" class="btn save-btn" style="display: none;">
+                        <i class="fas fa-save"></i> Simpan Perubahan
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <section class="account-section">
+            <div class="section-header">
+                <h2>Pengaturan Keamanan</h2>
+                <button class="btn edit-info-btn" id="editSecurityInfo">
+                    <i class="fas fa-edit"></i> Edit Keamanan
+                </button>
+            </div>
+
+            <form class="security-form" id="securityForm" action="pages/update_pass.php" method="POST">
                 <div class="form-group">
-                    <label for="address">Alamat</label>
-                    <textarea id="address" name="address" disabled><?= htmlspecialchars($user['address'] ?? '') ?></textarea>
+                    <label for="currentPassword">Password Saat Ini</label>
+                    <input type="password" id="currentPassword" name="current_password" disabled placeholder="••••••••">
+                </div>
+                
+                <div class="form-group">
+                    <label for="newPassword">Password Baru</label>
+                    <input type="password" id="newPassword" name="new_password" disabled placeholder="••••••••">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Konfirmasi Password Baru</label>
+                    <input type="password" id="confirmPassword" name="confirm_password" disabled placeholder="••••••••">
                 </div>
 
                 <button type="submit" class="btn save-btn" style="display: none;">
                     <i class="fas fa-save"></i> Simpan Perubahan
                 </button>
             </form>
-        </div>
-    </section>
-
-    <section class="account-section">
-        <div class="section-header">
-            <h2>Pengaturan Keamanan</h2>
-            <button class="btn edit-info-btn" id="editSecurityInfo">
-                <i class="fas fa-edit"></i> Edit Keamanan
-            </button>
-        </div>
-
-        <form class="security-form" id="securityForm" action="pages/update_pass.php" method="POST">
-            <div class="form-group">
-                <label for="currentPassword">Password Saat Ini</label>
-                <input type="password" id="currentPassword" name="current_password" disabled placeholder="••••••••">
-            </div>
-            
-            <div class="form-group">
-                <label for="newPassword">Password Baru</label>
-                <input type="password" id="newPassword" name="new_password" disabled placeholder="••••••••">
-            </div>
-            
-            <div class="form-group">
-                <label for="confirmPassword">Konfirmasi Password Baru</label>
-                <input type="password" id="confirmPassword" name="confirm_password" disabled placeholder="••••••••">
-            </div>
-
-            <button type="submit" class="btn save-btn" style="display: none;">
-                <i class="fas fa-save"></i> Simpan Perubahan
-            </button>
-        </form>
-    </section>
-</main>
+        </section>
+    </main>
 </div>
 
     <script src="js/script.js" type="text/javascript"></script>

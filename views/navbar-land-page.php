@@ -17,6 +17,11 @@ if (file_exists($config_path)) {
 $notifications = [];
 $notification_count = 0;
 
+// Re-establish connection if it was closed in account.php or not available
+// This ensures $conn is available for this script.
+// It's generally better to pass $conn or manage connection lifecycle carefully.
+// For a quick fix, ensure $conn is available or re-initialize if needed.
+// Given that configdb.php usually has a persistent connection, this might not be an issue.
 if (isset($conn)) { // Pastikan $conn sudah terdefinisi dan terkoneksi
     $sql = "SELECT * FROM notifications WHERE is_active = 1 ORDER BY created_at DESC LIMIT 3";
     $result = $conn->query($sql);
@@ -25,14 +30,19 @@ if (isset($conn)) { // Pastikan $conn sudah terdefinisi dan terkoneksi
         $notifications = $result->fetch_all(MYSQLI_ASSOC);
         $notification_count = count($notifications);
     }
+    // Tidak menutup koneksi di sini agar bisa digunakan di index.php atau halaman lain yang meng-include navbar ini
 }
 
-// Definisikan jalur gambar profil default jika tidak ada di sesi
+// Definisikan jalur gambar profil default
 $profile_picture_src = 'uploads/profile/default.jpg';
 
-// Periksa apakah pengguna telah login dan memiliki foto profil di sesi
-if (isset($_SESSION['user_id']) && isset($_SESSION['profile_picture'])) {
-    $profile_picture_src = $_SESSION['profile_picture'];
+// Ambil foto profil dari sesi. account.php sudah memastikan ini up-to-date.
+if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] && isset($_SESSION['user']['profile_picture'])) {
+    $session_profile_picture = $_SESSION['user']['profile_picture'];
+    // Validasi apakah file ada di server
+    if (file_exists($session_profile_picture)) { // Cek langsung karena path sudah relatif dari root
+        $profile_picture_src = $session_profile_picture;
+    }
 }
 ?>
 
@@ -161,7 +171,7 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['profile_picture'])) {
   <div class="dropdown-content-user">
     <div class="user-info">
 
-      <img src="<?php echo $profile_picture_src; ?>" 
+      <img src="<?php echo htmlspecialchars($profile_picture_src); ?>" 
            class="profile-pic" 
            alt="<?= htmlspecialchars($_SESSION['user']['username'] ?? '') ?>">
       <div class="user-name"><?= htmlspecialchars($_SESSION['user']['full_name'] ?? '') ?></div>
@@ -198,7 +208,7 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['profile_picture'])) {
           </ul>
         </div>
       </nav>
-       
+        
 
   <nav id="nav-mobile">
     <div class="nav-mobile">
