@@ -2,27 +2,46 @@
 session_start();
 
 // Redirect jika belum login
-if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin']) {
+if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin'] || !isset($_SESSION['user']['id'])) {
     header("Location: login-register.php");
     exit;
 }
 
-// Ambil data user dari session
-$user = $_SESSION['user'] ?? [
-    'username' => 'dikialift13',
-    'email' => 'dikia@example.com',
-    'full_name' => 'John Doe'
-];
+// Sertakan file koneksi database
+require_once 'configdb.php';
 
-// Tentukan foto profil berdasarkan username
-$profileImage = "uploads/profile/default.jpg"; // default
+// Ambil ID user dari session
+$user_id = $_SESSION['user']['id'];
 
-// Periksa username dan atur foto profil yang sesuai
-if ($user['username'] === 'dikialift') {
-    $profileImage = "uploads/profiles/1746731699_fotodiki.jpg";
-} elseif ($user['username'] === 'egafiandra') {
-    $profileImage = "uploads/profiles/1746347113_fotoega.jpg";
+// Ambil data user dari database
+$stmt = $conn->prepare("SELECT username, full_name, email, phone_number, gender, address, profile_picture, role FROM users WHERE id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$user_db = $result->fetch_assoc();
+$stmt->close();
+$conn->close(); // Tutup koneksi setelah mendapatkan data
+
+// Fallback jika data tidak ditemukan (seharusnya tidak terjadi jika user sudah login)
+if (!$user_db) {
+    session_unset();
+    session_destroy();
+    header("Location: login-register.php");
+    exit;
 }
+
+// Gunakan data dari database, jika ada. Ini akan memastikan data di session paling up-to-date
+// array_merge akan menimpa nilai dari $_SESSION['user'] dengan nilai dari $user_db jika ada kunci yang sama
+$user = array_merge($_SESSION['user'], $user_db);
+
+// Tentukan foto profil berdasarkan data dari database. Pastikan path benar.
+$profileImage = $user['profile_picture'] ?? 'uploads/profile/default.jpg'; // Path relatif dari root proyek
+// Logika penyesuaian path untuk tampilan di browser jika diperlukan
+// Perhatikan bahwa di sini kita hanya menggunakan path yang sudah ada di DB.
+// Path default di DB adalah 'uploads/profile/default.jpg'
+// Path upload baru adalah 'uploads/profiles/nama_file_unik.jpg'
+// Keduanya relatif dari root aplikasi, jadi langsung bisa digunakan.
+
 
 require_once 'views/header-account.php';
 require_once 'views/navbar-account.php';
@@ -30,13 +49,11 @@ require_once 'views/sidebar-account.php';
 require_once 'views/alerts-land-page.php';
 ?>
 
-  <!-- Main Content -->
   <main class="main-content">
     <div class="content-header">
         <h1>Akun Saya</h1>
     </div>
 
-    <!-- Personal Information Section -->
     <section class="account-section">
         <div class="section-header">
             <h2>Informasi Pribadi</h2>
@@ -47,20 +64,20 @@ require_once 'views/alerts-land-page.php';
         
         <div class="account-info-container">
             <div class="profile-image-container">
-                <img src="<?= $profileImage ?>" alt="Profile Picture" class="account-profile-image">
+                <img src="<?= htmlspecialchars($profileImage) ?>" alt="Profile Picture" class="account-profile-image">
                 <div class="image-upload-overlay" style="display: none;">
                     <label for="profileImageInput" class="upload-label">
                         <i class="fas fa-camera"></i>
                         <span>Ubah Foto</span>
                     </label>
-                    <input type="file" id="profileImageInput" accept="image/*" style="display: none;">
+                    <input type="file" id="profileImageInput" name="profile_picture" accept="image/*" style="display: none;">
                 </div>
             </div>
 
-            <form class="personal-info-form" id="personalInfoForm">
+            <form class="personal-info-form" id="personalInfoForm" action="Proses/process_customer_profile_update.php" method="POST" enctype="multipart/form-data">
                 <div class="form-group">
                   <label for="fullName">Nama Lengkap</label>
-                  <input type="text" id="fullName" name="fullName" disabled 
+                  <input type="text" id="fullName" name="full_name" disabled 
                         value="<?= htmlspecialchars($user['full_name']) ?>">
                 </div>
 
@@ -78,30 +95,29 @@ require_once 'views/alerts-land-page.php';
 
                 <div class="form-group">
                     <label for="phone">Nomor Telepon</label>
-                    <input type="tel" id="phone" name="phone" disabled value="+1234567890">
+                    <input type="tel" id="phone" name="phone_number" disabled 
+                           value="<?= htmlspecialchars($user['phone_number'] ?? '') ?>">
                 </div>
 
                 <div class="form-group">
                     <label>Jenis Kelamin</label>
                     <div class="radio-group">
                         <label class="radio-label">
-                            <input type="radio" name="gender" value="male" disabled checked>
+                            <input type="radio" name="gender" value="male" disabled 
+                                <?= ($user['gender'] ?? '') === 'male' ? 'checked' : '' ?>>
                             <span>Laki-laki</span>
                         </label>
                         <label class="radio-label">
-                            <input type="radio" name="gender" value="female" disabled>
+                            <input type="radio" name="gender" value="female" disabled
+                                <?= ($user['gender'] ?? '') === 'female' ? 'checked' : '' ?>>
                             <span>Perempuan</span>
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="gender" value="other" disabled>
-                            <span>Lainnya</span>
                         </label>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="address">Alamat</label>
-                    <textarea id="address" name="address" disabled>Jl. Contoh No. 123, Kota Bandung</textarea>
+                    <textarea id="address" name="address" disabled><?= htmlspecialchars($user['address'] ?? '') ?></textarea>
                 </div>
 
                 <button type="submit" class="btn save-btn" style="display: none;">
@@ -111,7 +127,6 @@ require_once 'views/alerts-land-page.php';
         </div>
     </section>
 
-    <!-- Security Settings Section -->
     <section class="account-section">
         <div class="section-header">
             <h2>Pengaturan Keamanan</h2>
@@ -120,20 +135,20 @@ require_once 'views/alerts-land-page.php';
             </button>
         </div>
 
-        <form class="security-form" id="securityForm">
+        <form class="security-form" id="securityForm" action="pages/update_pass.php" method="POST">
             <div class="form-group">
                 <label for="currentPassword">Password Saat Ini</label>
-                <input type="password" id="currentPassword" name="currentPassword" disabled placeholder="••••••••">
+                <input type="password" id="currentPassword" name="current_password" disabled placeholder="••••••••">
             </div>
             
             <div class="form-group">
                 <label for="newPassword">Password Baru</label>
-                <input type="password" id="newPassword" name="newPassword" disabled placeholder="••••••••">
+                <input type="password" id="newPassword" name="new_password" disabled placeholder="••••••••">
             </div>
             
             <div class="form-group">
                 <label for="confirmPassword">Konfirmasi Password Baru</label>
-                <input type="password" id="confirmPassword" name="confirmPassword" disabled placeholder="••••••••">
+                <input type="password" id="confirmPassword" name="confirm_password" disabled placeholder="••••••••">
             </div>
 
             <button type="submit" class="btn save-btn" style="display: none;">
@@ -151,23 +166,21 @@ require_once 'views/alerts-land-page.php';
     <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/js/iziToast.min.js"></script>
     <script>
-// Fungsi untuk memuat data user
+// Fungsi untuk memuat data user (data sudah di-render oleh PHP)
 function loadUserData() {
-    const userData = {
-        username: "<?= $user['username'] ?>",
-        email: "<?= $user['email'] ?>",
-        full_name: "<?= $user['full_name'] ?>",
-        phone: "+1234567890",
-        gender: "male",
-        address: "Jl. Contoh No. 123, Kota Bandung"
-    };
-    
-    document.getElementById('fullName').value = userData.full_name;
-    document.getElementById('username').value = userData.username;
-    document.getElementById('email').value = userData.email;
-    document.getElementById('phone').value = userData.phone;
-    document.querySelector(`input[name="gender"][value="${userData.gender}"]`).checked = true;
-    document.getElementById('address').value = userData.address;
+    // Data sudah di-render oleh PHP di atribut `value` input
+    // Fungsi ini hanya memastikan elemen-elemen form terisi dengan nilai awal yang benar dari PHP
+    const form = document.getElementById('personalInfoForm');
+    const inputs = form.querySelectorAll('input:not([type="file"]), textarea, select');
+    const radios = form.querySelectorAll('input[type="radio"]');
+
+    // Cukup pastikan semua input dalam keadaan disabled secara default
+    inputs.forEach(input => {
+        input.disabled = true;
+    });
+    radios.forEach(radio => {
+        radio.disabled = true;
+    });
 }
 
 // Event listener utama
@@ -180,6 +193,25 @@ document.addEventListener('DOMContentLoaded', function() {
     initializePersonalInfoEditing();
     initializeSecurityEditing();
     updateActiveSidebarMenu();
+
+    // Check for success or error messages from PHP
+    <?php if (isset($_SESSION['success_message'])): ?>
+        iziToast.success({
+            title: 'Berhasil',
+            message: '<?= $_SESSION['success_message'] ?>',
+            position: 'topRight'
+        });
+        <?php unset($_SESSION['success_message']); // Hapus pesan setelah ditampilkan ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['error_message'])): ?>
+        iziToast.error({
+            title: 'Error',
+            message: '<?= $_SESSION['error_message'] ?>',
+            position: 'topRight'
+        });
+        <?php unset($_SESSION['error_message']); // Hapus pesan setelah ditampilkan ?>
+    <?php endif; ?>
 });
 
 // Fungsi untuk memperbarui menu sidebar aktif
@@ -190,7 +222,8 @@ function updateActiveSidebarMenu() {
         const itemPage = item.getAttribute('href');
         item.classList.remove('active');
         
-        if (itemPage === currentPage) {
+        // Memeriksa jika href item cocok dengan halaman saat ini atau jika itemPage adalah 'account.php'
+        if (itemPage === currentPage || (itemPage.includes('account.php') && currentPage === 'account.php')) {
             item.classList.add('active');
         }
     });
@@ -218,6 +251,9 @@ function initializePersonalInfoEditing() {
             radio.disabled = !isEditing;
         });
 
+        // Username input should always be disabled for security reasons
+        document.getElementById('username').disabled = true;
+
         saveBtn.style.display = isEditing ? 'flex' : 'none';
         imageOverlay.style.display = isEditing ? 'flex' : 'none';
         
@@ -234,24 +270,12 @@ function initializePersonalInfoEditing() {
         }
     });
 
+    // Form submission is now handled by PHP via action attribute
     form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        // Simulasi penyimpanan data
-        isEditing = false;
-        inputs.forEach(input => {
-            input.disabled = true;
-        });
-        radios.forEach(radio => {
-            radio.disabled = true;
-        });
-        saveBtn.style.display = 'none';
-        imageOverlay.style.display = 'none';
-        editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit Informasi';
-
-        iziToast.success({
-            title: 'Berhasil',
-            message: 'Informasi pribadi berhasil diperbarui',
+        // Show loading message when submitting
+        iziToast.info({
+            title: 'Memproses',
+            message: 'Menyimpan perubahan...',
             position: 'topRight'
         });
     });
@@ -264,7 +288,7 @@ function initializePersonalInfoEditing() {
                 document.querySelector('.account-profile-image').src = e.target.result;
                 iziToast.success({
                     title: 'Berhasil',
-                    message: 'Foto profil berhasil diperbarui',
+                    message: 'Foto profil berhasil diperbarui (akan tersimpan setelah Anda menekan "Simpan Perubahan")',
                     position: 'topRight'
                 });
             };
@@ -309,9 +333,9 @@ function initializeSecurityEditing() {
         }
     });
 
+    // Form submission is now handled by PHP via action attribute
     form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
+        // Client-side validation
         const currentPass = form.querySelector('#currentPassword').value;
         const newPass = form.querySelector('#newPassword').value;
         const confirmPass = form.querySelector('#confirmPassword').value;
@@ -319,9 +343,10 @@ function initializeSecurityEditing() {
         if (!currentPass || !newPass || !confirmPass) {
             iziToast.error({
                 title: 'Error',
-                message: 'Semua field harus diisi',
+                message: 'Semua field password harus diisi',
                 position: 'topRight'
             });
+            e.preventDefault(); // Prevent form submission
             return;
         }
 
@@ -331,21 +356,14 @@ function initializeSecurityEditing() {
                 message: 'Password baru tidak cocok',
                 position: 'topRight'
             });
+            e.preventDefault(); // Prevent form submission
             return;
         }
 
-        isEditing = false;
-        inputs.forEach(input => {
-            input.disabled = true;
-            input.value = '';
-            input.placeholder = '••••••••';
-        });
-        saveBtn.style.display = 'none';
-        editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit Keamanan';
-
-        iziToast.success({
-            title: 'Berhasil',
-            message: 'Password berhasil diperbarui',
+        // If validation passes, let the form submit
+        iziToast.info({
+            title: 'Memproses',
+            message: 'Mengubah password...',
             position: 'topRight'
         });
     });
@@ -364,7 +382,6 @@ document.querySelectorAll('.toggle-password').forEach(toggle => {
     </script>
   </body>
 </html>
-    <!-- Footer -->
     <?php
     require_once 'views/footer-land-page.php';
     ?>

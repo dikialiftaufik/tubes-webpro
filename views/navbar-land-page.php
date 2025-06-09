@@ -10,14 +10,14 @@ $config_path = dirname(dirname(__FILE__)) . '/configdb.php';
 if (file_exists($config_path)) {
     require_once $config_path;
 } else {
-    die("Database configuration file not found");
+    error_log("Database configuration file not found at: " . $config_path);
 }
 
 // Fetch active notifications from database
 $notifications = [];
 $notification_count = 0;
 
-if (isset($conn)) {
+if (isset($conn)) { // Pastikan $conn sudah terdefinisi dan terkoneksi
     $sql = "SELECT * FROM notifications WHERE is_active = 1 ORDER BY created_at DESC LIMIT 3";
     $result = $conn->query($sql);
     
@@ -26,6 +26,29 @@ if (isset($conn)) {
         $notification_count = count($notifications);
     }
 }
+
+// Tentukan jalur foto profil pengguna untuk ditampilkan di navbar
+// Ambil jalur dari session, yang seharusnya sudah diperbarui oleh proses_customer_profile_update.php
+$profileImageNavbar = 'uploads/profile/default.jpg'; // Default path jika tidak ada di session atau belum login
+if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] && isset($_SESSION['user']['profile_picture'])) {
+    $profileImageNavbar = $_SESSION['user']['profile_picture'];
+}
+
+// PERHATIKAN BAGIAN INI: Penyesuaian jalur agar benar dari lokasi 'views/' ke 'uploads/'
+// 'navbar-land-page.php' ada di 'views/'
+// Folder gambar 'uploads/' ada di root
+// Jadi, kita perlu 'naik' satu level direktori ('../') untuk mencapai 'uploads/'
+$adjustedProfileImagePath = $profileImageNavbar;
+// Jika jalur dimulai dengan 'uploads/' DAN belum memiliki '../' di depannya
+if (strpos($adjustedProfileImagePath, 'uploads/') === 0 && !str_starts_with($adjustedProfileImagePath, '../')) {
+    $adjustedProfileImagePath = '../' . $adjustedProfileImagePath;
+}
+
+// Jika $conn ada dan koneksi berhasil, tutup koneksi setelah selesai mengambil notifikasi
+if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
+    $conn->close();
+}
+
 ?>
 
 <header>
@@ -93,7 +116,6 @@ if (isset($conn)) {
           </a>
         </li>
 
-        <!-- Notification -->
         <li
           class="notification-dropdown"
           data-aos="fade-down"
@@ -141,7 +163,6 @@ if (isset($conn)) {
     </div>
 </li>
 
-<!-- User -->
 <?php if(isset($_SESSION['loggedin']) && $_SESSION['loggedin']): ?>
   <li
   class="user-dropdown"
@@ -154,14 +175,13 @@ if (isset($conn)) {
   </a>
   <div class="dropdown-content-user">
     <div class="user-info">
-      <img src="<?= $_SESSION['user']['profile'] ?>" 
+      <img src="<?= htmlspecialchars($adjustedProfileImagePath) ?>" 
            class="profile-pic" 
-           alt="<?= htmlspecialchars($_SESSION['user']['username']) ?>">
-      <div class="user-name"><?= htmlspecialchars($_SESSION['user']['full_name']) ?></div>
+           alt="<?= htmlspecialchars($_SESSION['user']['username'] ?? '') ?>">
+      <div class="user-name"><?= htmlspecialchars($_SESSION['user']['full_name'] ?? '') ?></div>
     </div>
     <div class="dropdown-divider"></div>
     
-    <!-- Tambahkan class khusus untuk setiap item -->
     <a href="account.php" class="dropdown-item account-item">
       <i class="fas fa-user-cog"></i> <p> Akun Saya</p>
     </a>
@@ -236,7 +256,6 @@ if (isset($conn)) {
     </div>
   </nav>
 
-  <!-- Hero -->
   <section id="hero">
     <div
       class="hero main-container"
@@ -248,12 +267,10 @@ if (isset($conn)) {
       <h1>BOLOOO</h1>
       <div class="hero-cta">
         <?php if(isset($_SESSION['loggedin']) && $_SESSION['loggedin']): ?>
-        <!-- Jika sudah login -->
-        <a href="proses/formPemesanan.php">
+        <a href="Proses/formPemesanan.php">
           <button class="cta-button">Pesan Sekarang</button>
         </a>
       <?php else: ?>
-        <!-- Jika belum login -->
         <a href="login-register.php?redirect=order">
           <button class="cta-button">Pesan Sekarang</button>
         </a>
