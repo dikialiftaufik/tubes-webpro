@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../configdb.php'; // Sesuaikan path jika perlu
+require_once '../configdb.php';
 
 // Pastikan user sudah login dan memiliki peran 'customer'
 if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin'] || !isset($_SESSION['user']['id']) || ($_SESSION['user']['role'] ?? 'customer') !== 'customer') {
@@ -10,98 +10,129 @@ if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin'] || !isset($_SESSION[
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $user_id = $_SESSION['user']['id']; // Ambil ID user dari session
+    $user_id = $_SESSION['user']['id'];
     
-    // Ambil data yang dikirimkan dari form, gunakan operator null coalescing untuk default value
-    $full_name = $_POST['full_name'] ?? ''; 
-    $email = $_POST['email'] ?? '';
-    $phone_number = $_POST['phone_number'] ?? NULL;
-    $address = $_POST['address'] ?? NULL;
-    $gender = $_POST['gender'] ?? NULL;
+    // Ambil dan validasi data input
+    $full_name = trim($_POST['full_name'] ?? ''); 
+    $email = trim($_POST['email'] ?? '');
+    $phone_number = !empty($_POST['phone_number']) ? trim($_POST['phone_number']) : NULL;
+    $address = !empty($_POST['address']) ? trim($_POST['address']) : NULL;
+    $gender = !empty($_POST['gender']) ? $_POST['gender'] : NULL;
     
-    // Inisialisasi profile_picture dengan nilai saat ini dari session/database
-    // Ini penting agar jika tidak ada upload foto baru, path yang lama tetap digunakan
-    $profile_picture = $_SESSION['user']['profile_picture'] ?? 'uploads/profile/default.jpg'; 
+    // Validasi input wajib
+    if (empty($full_name)) {
+        $_SESSION['error_message'] = "Nama lengkap tidak boleh kosong.";
+        header("Location: ../account.php");
+        exit();
+    }
+
+    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $_SESSION['error_message'] = "Email tidak valid.";
+        header("Location: ../account.php");
+        exit();
+    }
+
+    // Validasi phone number jika diisi
+    if (!empty($phone_number) && !preg_match('/^[0-9+\-\s()]+$/', $phone_number)) {
+        $_SESSION['error_message'] = "Format nomor telepon tidak valid.";
+        header("Location: ../account.php");
+        exit();
+    }
+
+    // Validasi gender jika diisi
+    if (!empty($gender) && !in_array($gender, ['male', 'female'])) {
+        $_SESSION['error_message'] = "Jenis kelamin tidak valid.";
+        header("Location: ../account.php");
+        exit();
+    }
+
+    // Cek email duplikat
+    $email_check = $conn->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
+    $email_check->bind_param("si", $email, $user_id);
+    $email_check->execute();
+    $email_result = $email_check->get_result();
+
+    if ($email_result->num_rows > 0) {
+        $_SESSION['error_message'] = "Email sudah digunakan oleh pengguna lain.";
+        $email_check->close();
+        header("Location: ../account.php");
+        exit();
+    }
+    $email_check->close();
+    
+    // Inisialisasi profile_picture dengan nilai saat ini - PERBAIKAN PATH
+    $profile_picture = $_SESSION['user']['profile_picture'] ?? 'uploads/profiles/default.jpg'; 
 
     // Handle file upload untuk foto profil
-    // Pastikan bahwa ada file yang diunggah dan tidak ada error
     if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] == UPLOAD_ERR_OK) {
-        $upload_dir = '../uploads/profiles/'; // Path relatif dari Proses/ (misal: 'Proses/' ada di root, maka '../uploads/profiles/' menunjuk ke 'uploads/profiles/' di root)
+        $upload_dir = '../uploads/profiles/';
         
         // Buat direktori jika belum ada
         if (!is_dir($upload_dir)) {
-            // Coba buat dengan izin penuh (0777) - PERHATIKAN KEAMANAN: di lingkungan produksi, pertimbangkan 0755
-            if (!mkdir($upload_dir, 0777, true)) { 
-                $_SESSION['error_message'] = "Gagal membuat direktori upload. Periksa izin server pada folder 'uploads/'.";
+            if (!mkdir($upload_dir, 0755, true)) { // PERBAIKAN: gunakan 0755 untuk keamanan
+                $_SESSION['error_message'] = "Gagal membuat direktori upload.";
                 header("Location: ../account.php");
                 exit();
             }
         }
         
+        // Validasi ukuran file - TAMBAHAN
+        $max_file_size = 5 * 1024 * 1024; // 5MB
+        if ($_FILES['profile_picture']['size'] > $max_file_size) {
+            $_SESSION['error_message'] = "Ukuran file terlalu besar. Maksimal 5MB.";
+            header("Location: ../account.php");
+            exit();
+        }
+        
         $file_tmp_name = $_FILES['profile_picture']['tmp_name'];
         $file_name_original = basename($_FILES['profile_picture']['name']);
         $file_ext = strtolower(pathinfo($file_name_original, PATHINFO_EXTENSION));
-        // Buat nama file unik untuk menghindari konflik nama dan caching
         $unique_file_name = time() . '_' . uniqid() . '.' . $file_ext; 
         $target_path = $upload_dir . $unique_file_name;
         
-        // Periksa tipe file yang diizinkan (misal: gambar)
+        // Periksa tipe file yang diizinkan
         $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
+        $allowed_mime = ['image/jpeg', 'image/png', 'image/gif']; // TAMBAHAN: validasi MIME type
+        
         if (!in_array($file_ext, $allowed_ext)) {
             $_SESSION['error_message'] = "Format file tidak didukung. Hanya JPG, JPEG, PNG, GIF yang diizinkan.";
             header("Location: ../account.php");
             exit();
         }
 
-        // Pindahkan file yang diunggah dari direktori temporer ke direktori tujuan
-        if (move_uploaded_file($file_tmp_name, $target_path)) {
-            // Jika berhasil dipindahkan, update path foto profil ke path baru
-            $profile_picture = 'uploads/profiles/' . $unique_file_name; // Simpan path relatif dari root aplikasi untuk database
-            
-            // Hapus foto profil lama jika bukan default dan ada di path yang benar
-            // Penting: Pastikan path lama yang akan dihapus juga relatif terhadap lokasi file ini (Proses/)
-            $old_profile_picture_db_path = $_SESSION['user']['profile_picture'] ?? ''; // Ambil path lama dari session
-            if ($old_profile_picture_db_path !== 'uploads/profile/default.jpg' && !empty($old_profile_picture_db_path)) {
-                $old_file_to_delete = '../' . $old_profile_picture_db_path; // Menyesuaikan path untuk penghapusan dari Proses/
-                if (file_exists($old_file_to_delete) && is_file($old_file_to_delete)) {
-                    unlink($old_file_to_delete); // Hapus file lama
-                }
-            }
-        } else {
-            // Jika move_uploaded_file gagal, berikan pesan error yang lebih spesifik
-            $error_code = $_FILES['profile_picture']['error'];
-            $error_message = "Gagal mengunggah foto profil. Kode error: " . $error_code;
-            switch ($error_code) {
-                case UPLOAD_ERR_INI_SIZE:
-                case UPLOAD_ERR_FORM_SIZE:
-                    $error_message .= " (Ukuran file terlalu besar dari batas PHP atau form).";
-                    break;
-                case UPLOAD_ERR_PARTIAL:
-                    $error_message .= " (File hanya terunggah sebagian).";
-                    break;
-                case UPLOAD_ERR_NO_FILE:
-                    $error_message .= " (Tidak ada file yang diunggah).";
-                    break;
-                case UPLOAD_ERR_NO_TMP_DIR:
-                    $error_message .= " (Direktori temporer tidak ditemukan).";
-                    break;
-                case UPLOAD_ERR_CANT_WRITE:
-                    $error_message .= " (Gagal menulis file ke disk. Periksa izin folder 'uploads/profiles/').";
-                    break;
-                case UPLOAD_ERR_EXTENSION:
-                    $error_message .= " (Ekstensi PHP menghentikan unggahan file).";
-                    break;
-                default:
-                    $error_message .= " (Error tidak diketahui, mungkin izin folder tidak tepat).";
-            }
-            $_SESSION['error_message'] = $error_message;
+        // TAMBAHAN: Validasi MIME type untuk keamanan ekstra
+        $file_mime = mime_content_type($file_tmp_name);
+        if (!in_array($file_mime, $allowed_mime)) {
+            $_SESSION['error_message'] = "Tipe file tidak valid.";
             header("Location: ../account.php");
             exit();
         }
+
+        // Pindahkan file
+        if (move_uploaded_file($file_tmp_name, $target_path)) {
+            $profile_picture = 'uploads/profiles/' . $unique_file_name;
+            
+            // Hapus foto profil lama
+            $old_profile_picture_db_path = $_SESSION['user']['profile_picture'] ?? '';
+            if ($old_profile_picture_db_path !== 'uploads/profiles/default.jpg' && !empty($old_profile_picture_db_path)) {
+                $old_file_to_delete = '../' . $old_profile_picture_db_path;
+                if (file_exists($old_file_to_delete) && is_file($old_file_to_delete)) {
+                    unlink($old_file_to_delete);
+                }
+            }
+        } else {
+            $_SESSION['error_message'] = "Gagal mengunggah foto profil. Periksa izin folder.";
+            header("Location: ../account.php");
+            exit();
+        }
+    } elseif (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] != UPLOAD_ERR_NO_FILE) {
+        // PERBAIKAN: Handle upload errors yang lain
+        $_SESSION['error_message'] = "Error saat upload file. Kode error: " . $_FILES['profile_picture']['error'];
+        header("Location: ../account.php");
+        exit();
     }
     
-    // Perbarui data pengguna di database
-    // Gunakan koneksi dari configdb.php
+    // Update database
     $query = "UPDATE users SET 
         full_name = ?,
         email = ?,
@@ -125,13 +156,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $phone_number,
         $address,
         $gender,
-        $profile_picture, // Variabel ini sudah berisi path baru jika diunggah, atau path yang lama
+        $profile_picture,
         $user_id
     );
     
     if ($stmt->execute()) {
-        // Jika pembaruan database berhasil, perbarui juga data di session
-        // Ambil data terbaru dari database untuk memastikan session up-to-date dan konsisten
+        // Update session dengan data terbaru
         $stmt_select = $conn->prepare("SELECT id, role, username, full_name, email, phone_number, gender, address, profile_picture FROM users WHERE id = ?");
         $stmt_select->bind_param("i", $user_id);
         $stmt_select->execute();
@@ -140,9 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt_select->close();
 
         if ($updated_user_data) {
-            $_SESSION['user'] = $updated_user_data; // Timpa seluruh data user di session
-        } else {
-            $_SESSION['error_message'] = "Profil berhasil diperbarui, tetapi gagal memuat ulang data session.";
+            $_SESSION['user'] = $updated_user_data;
         }
         
         $_SESSION['success_message'] = "Profil berhasil diperbarui!";
@@ -153,12 +181,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->close();
     $conn->close();
 
-    // Redirect kembali ke halaman akun
     header("Location: ../account.php");
     exit();
 
 } else {
-    // Jika diakses langsung tanpa POST request, redirect kembali ke halaman akun
     header("Location: ../account.php");
     exit();
 }
