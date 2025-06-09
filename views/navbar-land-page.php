@@ -27,28 +27,13 @@ if (isset($conn)) { // Pastikan $conn sudah terdefinisi dan terkoneksi
     }
 }
 
-// Tentukan jalur foto profil pengguna untuk ditampilkan di navbar
-// Ambil jalur dari session, yang seharusnya sudah diperbarui oleh proses_customer_profile_update.php
-$profileImageNavbar = 'uploads/profile/default.jpg'; // Default path jika tidak ada di session atau belum login
-if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] && isset($_SESSION['user']['profile_picture'])) {
-    $profileImageNavbar = $_SESSION['user']['profile_picture'];
-}
+// Definisikan jalur gambar profil default jika tidak ada di sesi
+$profile_picture_src = 'uploads/profile/default.jpg';
 
-// PERHATIKAN BAGIAN INI: Penyesuaian jalur agar benar dari lokasi 'views/' ke 'uploads/'
-// 'navbar-land-page.php' ada di 'views/'
-// Folder gambar 'uploads/' ada di root
-// Jadi, kita perlu 'naik' satu level direktori ('../') untuk mencapai 'uploads/'
-$adjustedProfileImagePath = $profileImageNavbar;
-// Jika jalur dimulai dengan 'uploads/' DAN belum memiliki '../' di depannya
-if (strpos($adjustedProfileImagePath, 'uploads/') === 0 && !str_starts_with($adjustedProfileImagePath, '../')) {
-    $adjustedProfileImagePath = '../' . $adjustedProfileImagePath;
+// Periksa apakah pengguna telah login dan memiliki foto profil di sesi
+if (isset($_SESSION['user_id']) && isset($_SESSION['profile_picture'])) {
+    $profile_picture_src = $_SESSION['profile_picture'];
 }
-
-// Jika $conn ada dan koneksi berhasil, tutup koneksi setelah selesai mengambil notifikasi
-if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
-    $conn->close();
-}
-
 ?>
 
 <header>
@@ -175,7 +160,8 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
   </a>
   <div class="dropdown-content-user">
     <div class="user-info">
-      <img src="<?= htmlspecialchars($adjustedProfileImagePath) ?>" 
+
+      <img src="<?php echo $profile_picture_src; ?>" 
            class="profile-pic" 
            alt="<?= htmlspecialchars($_SESSION['user']['username'] ?? '') ?>">
       <div class="user-name"><?= htmlspecialchars($_SESSION['user']['full_name'] ?? '') ?></div>
