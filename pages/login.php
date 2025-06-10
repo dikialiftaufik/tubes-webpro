@@ -8,6 +8,10 @@ if (isset($_SESSION['success_message'])) {
     $success_message = $_SESSION['success_message'];
     unset($_SESSION['success_message']);
 }
+if (isset($_SESSION['error_message'])) { // Tambahkan ini jika error dari redirect
+    $error_message = $_SESSION['error_message'];
+    unset($_SESSION['error_message']);
+}
 
 // --- Nonaktifkan Cache ---
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
@@ -52,17 +56,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         setcookie(
                             'remember_user',
                             $cookieValue,
-                            time() + (30 * 24 * 3600),
-                            "/",
-                            "",
-                            false,
-                            true
+                            time() + (30 * 24 * 3600), // 30 hari
+                            "/", // Path cookie agar tersedia di seluruh domain
+                            "", // Domain (kosongkan untuk domain saat ini)
+                            false, // Secure: true jika menggunakan HTTPS, false jika HTTP. Ganti ke true di produksi jika HTTPS.
+                            true  // HttpOnly: mencegah akses JavaScript
                         );
                     }
 
                     // Redirect berdasarkan role
-                    session_regenerate_id(true);
-                    header("Location: " . ($user['role'] === 'admin' ? 'dashboard.php' : 'cashier.php'));
+                    session_regenerate_id(true); // Regenerasi ID sesi untuk keamanan
+                    if ($user['role'] === 'admin') {
+                        header("Location: dashboard.php");
+                    } elseif ($user['role'] === 'cashier') { // Gunakan 'cashier' sesuai DB
+                        header("Location: cashier.php");
+                    } else {
+                        // Jika ada role lain yang login dari halaman ini, bisa dialihkan ke halaman lain
+                        header("Location: ../index.php"); // Contoh: customer dialihkan ke index.php
+                    }
                     exit();
                 } else {
                     $error_message = "Password salah!";
@@ -102,8 +113,7 @@ include '../views/header-login.php';
                 </div>
             <?php endif; ?>
 
-            <form id="loginForm" method="POST">
-                <div class="mb-3">
+            <form id="loginForm" method="POST" action=""> <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
                     <input
                         name="username"

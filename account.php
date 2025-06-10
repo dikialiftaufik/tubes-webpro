@@ -131,7 +131,7 @@ require_once 'views/alerts-land-page.php';
             </div>
         </section>
 
-        <section class="account-section">
+        <!-- <section class="account-section">
             <div class="section-header">
                 <h2>Pengaturan Keamanan</h2>
                 <button class="btn edit-info-btn" id="editSecurityInfo">
@@ -159,7 +159,7 @@ require_once 'views/alerts-land-page.php';
                     <i class="fas fa-save"></i> Simpan Perubahan
                 </button>
             </form>
-        </section>
+        </section> -->
     </main>
 </div>
 

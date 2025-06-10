@@ -2,9 +2,9 @@
 session_start(); // HARUS menjadi baris pertama sebelum output apapun
 
 // Periksa apakah pengguna sudah login dan memiliki peran 'admin'
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    // Jika tidak, tendang user ke halaman login customer atau halaman utama
-    header('Location: ../login-register.php?error=unauthorized');
+if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
+    // Redirect ke halaman login jika tidak login atau bukan admin
+    header("Location: login.php");
     exit();
 }
 
@@ -82,7 +82,7 @@ $dailyRevenues_14 = [];
 // Menggunakan created_at dari tabel orders sebagai tanggal transaksi
 $sqlDailyRevenue_14 = "SELECT DATE(created_at) AS tanggal, SUM(total_price) AS total_harian 
                        FROM orders 
-                       WHERE payment_status = 'paid' AND created_at >= ? AND created_at < ?
+                       WHERE  created_at >= ? AND created_at < ?
                        GROUP BY DATE(created_at) 
                        ORDER BY tanggal ASC";
 $stmtDailyRevenue_14 = $conn->prepare($sqlDailyRevenue_14);

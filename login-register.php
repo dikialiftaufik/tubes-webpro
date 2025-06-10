@@ -58,9 +58,13 @@ include 'views/header-log-reg.php'; // This file contains session_start()
           <input type="text" name="username" id="registerUsername" placeholder="Masukkan Username" required />
           <input type="email" name="email" id="registerEmail" placeholder="Masukkan Email" required />
           <div class="password-container">
-            <input type="password" name="password" id="registerPassword" placeholder="Masukkan Password" required />
-            <i class="fas fa-eye toggle-password" data-target="registerPassword"></i>
-          </div>
+    <input type="password" name="password" id="registerPassword" placeholder="Masukkan Password" required />
+    <i
+        class="fas fa-eye toggle-password"
+        data-target="#registerPassword"  
+        style="position: absolute; top: 32px; right: 12px; cursor: pointer;"
+    ></i>
+</div>
           <button type="submit" id="registerButton">Daftar</button>
         </form>
       </div>
@@ -69,9 +73,17 @@ include 'views/header-log-reg.php'; // This file contains session_start()
          
           <input type="email" name="email" id="loginEmail" placeholder="Masukkan Email" required />
           <div class="password-container">
-            <input type="password" name="password" id="loginPassword" placeholder="Masukkan Password" required />
-            <i class="fas fa-eye toggle-password" data-target="loginPassword"></i> </div>
-          
+    <input type="password" name="password" id="loginPassword" placeholder="Masukkan Password" required />
+    <i
+        class="fas fa-eye toggle-password"
+        data-target="#loginPassword"  
+        style="position: absolute; top: 32px; right: 12px; cursor: pointer;"
+    ></i>
+</div>
+            <p class="text-center">
+  <a href="#" data-toggle="modal" data-target="#resetPasswordModal">Lupa Password?</a>
+</p>
+
           <button type="submit" id="loginButton">Masuk</button>
         </form>
       </div>
@@ -94,10 +106,60 @@ include 'views/header-log-reg.php'; // This file contains session_start()
         </div>
       </div>
     </div>
+
+    <!-- Modal Reset Password -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="resetPasswordLabel">Reset Password</h5>
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <form action="auth/reset_password.php" method="POST">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="resetEmail">Email terdaftar</label>
+            <input type="email" class="form-control" id="resetEmail" name="email" required>
+          </div>
+          <div class="form-group">
+            <label for="newPass">Password baru</label>
+            <input type="password" class="form-control" id="newPass" name="new_password" minlength="6" required>
+          </div>
+          <div class="form-group">
+            <label for="confirmPass">Konfirmasi password baru</label>
+            <input type="password" class="form-control" id="confirmPass" name="confirm_password" minlength="6" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Reset Password</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/js/iziToast.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css">
 
 <script>
+  document.querySelectorAll('.toggle-password').forEach(icon => {
+        icon.addEventListener('click', function() {
+            const target = this.getAttribute('data-target');
+            const passwordInput = document.querySelector(target);
+            
+            if (passwordInput) {
+                // Toggle tipe input
+                const type = passwordInput.type === 'password' ? 'text' : 'password';
+                passwordInput.type = type;
+                
+                // Toggle ikon mata
+                this.classList.toggle('fa-eye');
+                this.classList.toggle('fa-eye-slash');
+            }
+        });
+    });
+
 document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('container'); // Get container again if needed, or use the one from outer scope if JS is one block
 
