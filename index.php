@@ -150,7 +150,7 @@ require_once 'views/alerts-land-page.php';
             </div>
           </div>
 
-          <form class="reservation-item-form" ... action="process_reservation.php" method="POST">
+          <form class="reservation-item-form" action="process_reservation.php" method="POST">
             <div class="form-row">
               <div class="form-group">
                 <label for="table_name">Nama Lengkap</label>

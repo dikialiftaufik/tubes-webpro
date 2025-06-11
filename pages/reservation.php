@@ -1,5 +1,5 @@
 <?php
-// pages/reservasi.php
+// pages/reservation.php
 session_start();
 require_once '../configdb.php';
 

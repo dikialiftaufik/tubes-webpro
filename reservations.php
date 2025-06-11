@@ -1,3 +1,20 @@
+<?php
+// reservations.php
+session_start();
+require_once 'configdb.php';
+
+if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin']) {
+    header("Location: login-register.php");
+    exit;
+}
+
+$stmt = $conn->prepare("SELECT * FROM reservation WHERE user_id = ? ORDER BY tanggal DESC");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$reservations = $result->fetch_all(MYSQLI_ASSOC);
+?>
+
 <!doctype html>
 <html lang="en">
     <meta charset="UTF-8" />
@@ -258,61 +275,42 @@
 
         <!-- Active Reservations Section -->
         <section class="reservations-section">
-            <h2>Reservasi Aktif</h2>
-            <div class="reservations-grid">
-                <!-- Reservation Card 1 -->
-                <div class="reservation-card active">
-                    <div class="reservation-header">
-                        <span class="reservation-id">#RSV123456</span>
-                        <span class="reservation-status confirmed">Dikonfirmasi</span>
-                    </div>
-                    <div class="reservation-details">
-                        <p><strong>Tanggal:</strong> 8 Januari 2025</p>
-                        <p><strong>Waktu:</strong> 19:00</p>
-                        <p><strong>Jumlah Tamu:</strong> 4 orang</p>
-                        <p><strong>Jenis Meja:</strong> Indoor</p>
-                    </div>
-                    <div class="reservation-menu">
-                        <h3>Menu yang Dipesan:</h3>
-                        <ul>
-                            <li>Nasi Goreng Spesial x2</li>
-                            <li>Sate Ayam x1</li>
-                            <li>Es Teh Manis x4</li>
-                        </ul>
-                    </div>
-                    <div class="reservation-actions">
-                        <button class="btn-secondary" onclick="location.href='orders.html?id=RSV123456'">Lihat Detail</button>
-                        <button class="btn-danger">Batalkan</button>
-                    </div>
-                </div>
-
-                <!-- Reservation Card 2 -->
-                <div class="reservation-card active">
-                    <div class="reservation-header">
-                        <span class="reservation-id">#RSV123457</span>
-                        <span class="reservation-status pending">Menunggu Konfirmasi</span>
-                    </div>
-                    <div class="reservation-details">
-                        <p><strong>Tanggal:</strong> 10 Januari 2025</p>
-                        <p><strong>Waktu:</strong> 12:30</p>
-                        <p><strong>Jumlah Tamu:</strong> 2 orang</p>
-                        <p><strong>Jenis Meja:</strong> Outdoor</p>
-                    </div>
-                    <div class="reservation-menu">
-                        <h3>Menu yang Dipesan:</h3>
-                        <ul>
-                            <li>Sate Ayam x2</li>
-                            <li>Tahu & Tempe x1</li>
-                            <li>Juice Alpukat x2</li>
-                        </ul>
-                    </div>
-                    <div class="reservation-actions">
-                        <button class="btn-secondary" onclick="location.href='orders.html?id=RSV123457'">Lihat Detail</button>
-                        <button class="btn-danger">Batalkan</button>
-                    </div>
-                </div>
+    <h2>Reservasi Aktif</h2>
+    <div class="reservations-grid">
+        <?php foreach ($reservations as $res): 
+            $status_class = strtolower(str_replace(' ', '-', $res['status']));
+        ?>
+        <div class="reservation-card active">
+            <div class="reservation-header">
+                <span class="reservation-id">#RSV<?= $res['id'] ?></span>
+                <span class="reservation-status <?= $status_class ?>"><?= $res['status'] ?></span>
             </div>
-        </section>
+            <div class="reservation-details">
+                <p><strong>Tanggal:</strong> <?= date('d F Y', strtotime($res['tanggal'])) ?></p>
+                <p><strong>Waktu:</strong> <?= substr($res['jam_mulai'], 0, 5) ?></p>
+                <p><strong>Jumlah Tamu:</strong> <?= $res['jumlah_orang'] ?> orang</p>
+            </div>
+            <div class="reservation-menu">
+                <h3>Menu yang Dipesan:</h3>
+                <ul>
+                    <?php 
+                    $menu_items = explode(', ', $res['pesanan']);
+                    foreach ($menu_items as $item): 
+                    ?>
+                    <li><?= $item ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+            <div class="reservation-actions">
+                <button class="btn-secondary">Lihat Detail</button>
+                <?php if ($res['status'] === 'Menunggu Konfirmasi'): ?>
+                <button class="btn-danger" data-id="<?= $res['id'] ?>">Batalkan</button>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</section>
 
         <!-- Past Reservations Section -->
         <section class="reservations-section">
@@ -325,16 +323,15 @@
                         <span class="reservation-status completed">Selesai</span>
                     </div>
                     <div class="reservation-details">
-                        <p><strong>Tanggal:</strong> 1 Januari 2025</p>
-                        <p><strong>Waktu:</strong> 20:00</p>
-                        <p><strong>Jumlah Tamu:</strong> 6 orang</p>
-                        <p><strong>Jenis Meja:</strong> VIP Room</p>
+                        <p><strong>Tanggal:</strong> 12 Mei 2025</p>
+                        <p><strong>Waktu:</strong> 19:00-20:00</p>
+                        <p><strong>Jumlah Tamu:</strong> 4 orang</p>
                     </div>
                     <div class="reservation-menu">
                         <h3>Menu yang Dipesan:</h3>
                         <ul>
-                            <li>Paket Seafood Family x1</li>
-                            <li>Juice Buah Set x6</li>
+                            <li>Sate Ayam x2</li>
+                            <li>Sate Kambing x6</li>
                         </ul>
                     </div>
                     <div class="reservation-actions">
@@ -432,6 +429,30 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
     <script>
+document.querySelectorAll('.btn-danger').forEach(button => {
+    button.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        
+        if (confirm('Batalkan reservasi ini?')) {
+            fetch('cancel_reservation.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `id=${id}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.closest('.reservation-card').remove();
+                } else {
+                    alert('Gagal membatalkan reservasi');
+                }
+            });
+        }
+    });
+});
+    
         AOS.init();
 
         // DOM Elements
