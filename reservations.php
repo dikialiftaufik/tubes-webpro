@@ -1,20 +1,3 @@
-<?php
-// reservations.php
-session_start();
-require_once 'configdb.php';
-
-if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin']) {
-    header("Location: login-register.php");
-    exit;
-}
-
-$stmt = $conn->prepare("SELECT * FROM reservation WHERE user_id = ? ORDER BY tanggal DESC");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
-$reservations = $result->fetch_all(MYSQLI_ASSOC);
-?>
-
 <!doctype html>
 <html lang="en">
     <meta charset="UTF-8" />
@@ -277,39 +260,28 @@ $reservations = $result->fetch_all(MYSQLI_ASSOC);
         <section class="reservations-section">
     <h2>Reservasi Aktif</h2>
     <div class="reservations-grid">
-        <?php foreach ($reservations as $res): 
-            $status_class = strtolower(str_replace(' ', '-', $res['status']));
-        ?>
-        <div class="reservation-card active">
-            <div class="reservation-header">
-                <span class="reservation-id">#RSV<?= $res['id'] ?></span>
-                <span class="reservation-status <?= $status_class ?>"><?= $res['status'] ?></span>
+                <!-- Past Reservation Card -->
+                <div class="reservation-card past">
+                    <div class="reservation-header">
+                        <span class="reservation-status completed">Menunggu</span>
+                    </div>
+                    <div class="reservation-details">
+                        <p><strong>Tanggal:</strong> 12 Juni 2025</p>
+                        <p><strong>Waktu:</strong> 19:00-20:00</p>
+                        <p><strong>Jumlah Tamu:</strong> 2 orang</p>
+                    </div>
+                    <div class="reservation-menu">
+                        <h3>Menu yang Dipesan:</h3>
+                        <ul>
+                            <li>Sate Ayam x2</li>
+                            <li>Nasi x2</li>
+                        </ul>
+                    </div>
+                    <div class="reservation-actions">
+                        <button class="btn-secondary" onclick="location.href='orders.html?id=RSV123455'">Lihat Detail</button>
+                    </div>
+                </div>
             </div>
-            <div class="reservation-details">
-                <p><strong>Tanggal:</strong> <?= date('d F Y', strtotime($res['tanggal'])) ?></p>
-                <p><strong>Waktu:</strong> <?= substr($res['jam_mulai'], 0, 5) ?></p>
-                <p><strong>Jumlah Tamu:</strong> <?= $res['jumlah_orang'] ?> orang</p>
-            </div>
-            <div class="reservation-menu">
-                <h3>Menu yang Dipesan:</h3>
-                <ul>
-                    <?php 
-                    $menu_items = explode(', ', $res['pesanan']);
-                    foreach ($menu_items as $item): 
-                    ?>
-                    <li><?= $item ?></li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-            <div class="reservation-actions">
-                <button class="btn-secondary">Lihat Detail</button>
-                <?php if ($res['status'] === 'Menunggu Konfirmasi'): ?>
-                <button class="btn-danger" data-id="<?= $res['id'] ?>">Batalkan</button>
-                <?php endif; ?>
-            </div>
-        </div>
-        <?php endforeach; ?>
-    </div>
 </section>
 
         <!-- Past Reservations Section -->
@@ -319,7 +291,6 @@ $reservations = $result->fetch_all(MYSQLI_ASSOC);
                 <!-- Past Reservation Card -->
                 <div class="reservation-card past">
                     <div class="reservation-header">
-                        <span class="reservation-id">#RSV123455</span>
                         <span class="reservation-status completed">Selesai</span>
                     </div>
                     <div class="reservation-details">
