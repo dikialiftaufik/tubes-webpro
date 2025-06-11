@@ -279,6 +279,7 @@
                     </div>
                     <div class="reservation-actions">
                         <button class="btn-secondary" onclick="location.href='orders.html?id=RSV123455'">Lihat Detail</button>
+                        <button class="btn-primary">Batalkan</button>
                     </div>
                 </div>
             </div>
