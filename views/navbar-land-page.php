@@ -58,7 +58,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] && isset($_SESSION['us
           data-aos-duration="500"
           data-aos-delay="100"
         >
-          <a href="zufar/AboutUs.php">About</a>
+          <a href="tentangkami/AboutUs.php">About</a>
         </li>
         <li
           data-aos="fade-down"
