@@ -1,4 +1,3 @@
-<!-- pages/cashier.php -->
 <?php
 session_start();
 require_once '../configdb.php';
@@ -23,10 +22,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['menu_id'], $_POST['ne
     if ($new_stock < 0) {
         $update_message = "Stok tidak boleh negatif.";
     } else {
+        $stmt = $conn->prepare("SELECT quantity FROM menu WHERE id = ?");
+        $stmt->bind_param('i', $menu_id);
+        $stmt->execute();
+        $stmt->bind_result($current_stock);
+        $stmt->fetch();
+        $stmt->close();
+
+        $updated_stock = $current_stock + $new_stock;
+
         $stmt = $conn->prepare("UPDATE menu SET quantity = ? WHERE id = ?");
-        $stmt->bind_param('ii', $new_stock, $menu_id);
+        $stmt->bind_param('ii', $updated_stock, $menu_id);
         if ($stmt->execute()) {
-            $update_message = "Stok berhasil diperbarui untuk item ID $menu_id.";
+            $update_message = "Stok berhasil ditambahkan. Stok baru: $updated_stock";
         } else {
             $update_message = "Gagal memperbarui stok: " . $stmt->error;
         }

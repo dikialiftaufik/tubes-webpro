@@ -45,6 +45,7 @@
                   height="45px"
               /></a>
             </div>
+            <p><a href="saran.php" style="color: white;">Kritik & Saran</a></p>
           </div>
         </div>
       </div>

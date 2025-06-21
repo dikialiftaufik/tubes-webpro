@@ -224,6 +224,7 @@ require_once 'views/alerts-land-page.php';
       </div>
     </section>
 
+
     <?php if(isset($login_success)): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
