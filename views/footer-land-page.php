@@ -45,7 +45,13 @@
                   height="45px"
               /></a>
             </div>
-            <p><a href="saran.php" style="color: white;">Kritik & Saran</a></p>
+          <div class="hero-cta">
+            <?php if(isset($_SESSION['loggedin']) && $_SESSION['loggedin']): ?>
+            <a href="saran.php" style="color: white;">Kritik & Saran</a>
+          <?php else: ?>
+            <a href="login-register.php?redirect=order"
+              style="color: white;">Kritik & Saran</a>
+          <?php endif; ?>
           </div>
         </div>
       </div>
