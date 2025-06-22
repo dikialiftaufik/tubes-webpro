@@ -1,5 +1,4 @@
 <?php
-// get_reservation.php
 require_once '../configdb.php';
 
 if (!isset($_GET['id'])) {
