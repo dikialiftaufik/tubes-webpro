@@ -330,9 +330,7 @@ $result = $conn->query($sql);
     </div>
   </div>
 
-  <footer>
-    <a href="saran.php">Kritik & Saran</a>
-  </footer>
+  
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {

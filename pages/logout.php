@@ -1,7 +1,4 @@
 <?php
-// File: logout.php
-// Deskripsi: File untuk keluar dari sistem (logout)
-
 // Mulai session jika belum dimulai
 session_start();
 

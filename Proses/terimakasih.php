@@ -182,7 +182,7 @@ bersihkanSession();
         
         <p>Bukti pembayaran telah dikirim ke email Anda. Jika membutuhkan bantuan, silakan hubungi kami.</p>
         
-        <a href="index.php" class="btn">Kembali ke Beranda</a>
+        <a href="../index.php" class="btn">Kembali ke Beranda</a>
     </div>
 </body>
 </html>
