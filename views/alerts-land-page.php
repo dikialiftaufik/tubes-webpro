@@ -12,6 +12,29 @@ document.addEventListener('DOMContentLoaded', function() {
 <?php unset($_SESSION['info']); endif; ?>
 
 <?php
+if (isset($_SESSION['feedback_success'])) {
+    echo '<script>
+        iziToast.success({
+            title: "Sukses!",
+            message: "Masukan berhasil dikirim! Terima kasih atas feedback Anda",
+            position: "topRight"
+        });
+    </script>';
+    unset($_SESSION['feedback_success']);
+}
+if (isset($_SESSION['feedback_error'])) {
+    echo '<script>
+        iziToast.error({
+            title: "Gagal!",
+            message: "' . $_SESSION['reservation_error'] . '",
+            position: "topRight"
+        });
+    </script>';
+    unset($_SESSION['feedback_error']);
+}
+?>
+
+<?php
 if (isset($_SESSION['reservation_success'])) {
     echo '<script>
         iziToast.success({

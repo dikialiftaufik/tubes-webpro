@@ -7,6 +7,20 @@ if (isset($_SESSION['login_success'])) {
   unset($_SESSION['login_success']);
 }
 
+// Debug: Tampilkan informasi session di console
+echo "<script>";
+if (isset($_SESSION['user'])) {
+    echo "console.log('User Session:', " . json_encode($_SESSION['user']) . ");";
+} else {
+    echo "console.log('User Session: Tidak ada data user');";
+}
+if (isset($_SESSION['user_id'])) {
+    echo "console.log('User ID:', " . $_SESSION['user_id'] . ");";
+} else {
+    echo "console.log('User ID: Tidak ada user_id');";
+}
+echo "</script>";
+
 // Periksa jika user belum login tapi mengakses halaman ini
 if (!isset($_SESSION['loggedin'])) {
     $_SESSION['loggedin'] = false;
@@ -39,21 +53,6 @@ require_once 'views/alerts-land-page.php';
             Anda dengan berbagai pilihan masakan yang menggugah selera. Nikmati
             pengalaman kuliner yang tak terlupakan bersama kami!
           </p>
-
-          <!-- <div class="graphic-icons">
-            <img
-              src="https://cdn-icons-png.flaticon.com/128/2941/2941555.png"
-              alt="Fresh Ingredients"
-            />
-            <img
-              src="https://cdn-icons-png.flaticon.com/128/2947/2947124.png"
-              alt="Traditional Cooking"
-            />
-            <img
-              src="https://cdn-icons-png.flaticon.com/128/5231/5231591.png"
-              alt="Family Restaurant"
-            />
-          </div> -->
         </div>
       </div>
     </section>
@@ -89,8 +88,6 @@ require_once 'views/alerts-land-page.php';
             <div class="slides">
               <img src="img/reserv-slider/1.jpg" alt="Suasana Rumah Makan 1">
             </div>
-            <!-- <button class="prev" onclick="plusSlides(-1)">&#10094;</button>
-            <button class="next" onclick="plusSlides(1)">&#10095;</button> -->
           </div>
 <br>
               <h3>Sosial Media Kami</h3>
@@ -237,7 +234,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <?php endif; ?>
-
 
   <style>
   /* Custom styling untuk Select2 agar warnanya hitam-putih */

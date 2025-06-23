@@ -31,7 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($action === 'update') {
-            $nama = $_POST['nama'];
+            // Menggunakan nama kolom yang benar sesuai database
+            $nama_pemesan = $_POST['nama_pemesan'];
             $jumlah_orang = $_POST['jumlah_orang'];
             $tanggal = $_POST['tanggal'];
             $jam_mulai = $_POST['jam_mulai'];
@@ -39,8 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pesanan = $_POST['pesanan'];
             $status = $_POST['status'];
 
-            $stmt = $conn->prepare("UPDATE reservation SET nama = ?, jumlah_orang = ?, tanggal = ?, jam_mulai = ?, jam_selesai = ?, pesanan = ?, status = ? WHERE id = ?");
-            $stmt->bind_param("sisssssi", $nama, $jumlah_orang, $tanggal, $jam_mulai, $jam_selesai, $pesanan, $status, $id);
+            $stmt = $conn->prepare("UPDATE reservation SET nama_pemesan = ?, jumlah_orang = ?, tanggal = ?, jam_mulai = ?, jam_selesai = ?, pesanan = ?, status = ? WHERE id = ?");
+            $stmt->bind_param("sisssssi", $nama_pemesan, $jumlah_orang, $tanggal, $jam_mulai, $jam_selesai, $pesanan, $status, $id);
+            
             if ($stmt->execute()) {
                 echo json_encode(['message' => 'Data berhasil diperbarui']);
             } else {
@@ -58,13 +60,16 @@ $selected_per_page = isset($_GET['per_page']) && in_array($_GET['per_page'], $pe
                     : 10;
 $page = isset($_GET['page']) ? max((int)$_GET['page'], 1) : 1;
 $search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
-$sort_column = in_array($_GET['sort'] ?? '', ['id','nama','jumlah_orang','tanggal','jam_mulai','jam_selesai','status']) ? $_GET['sort'] : 'id';
+$sort_column = in_array($_GET['sort'] ?? '', ['id','user_id','nama_pemesan','jumlah_orang','tanggal','jam_mulai','jam_selesai','status']) 
+                ? $_GET['sort'] 
+                : 'id';
 $sort_order = isset($_GET['order']) && strtoupper($_GET['order']) === 'DESC' ? 'DESC' : 'ASC';
 $search_term = "%$search%";
 $offset = ($page - 1) * $selected_per_page;
 
+// Query dengan nama kolom yang benar
 $query = "SELECT * FROM reservation 
-          WHERE nama LIKE ? 
+          WHERE nama_pemesan LIKE ? 
              OR pesanan LIKE ? 
              OR status LIKE ? 
           ORDER BY $sort_column $sort_order 
@@ -76,7 +81,7 @@ $result = $stmt->get_result();
 $reservations = $result->fetch_all(MYSQLI_ASSOC);
 
 $total_query = "SELECT COUNT(*) AS total FROM reservation 
-                WHERE nama LIKE ? 
+                WHERE nama_pemesan LIKE ? 
                    OR pesanan LIKE ? 
                    OR status LIKE ?";
 $stmt_total = $conn->prepare($total_query);
@@ -143,7 +148,8 @@ include '../views/sidebar.php';
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
-                            <th>Nama</th>
+                            <th>ID User</th>
+                            <th>Nama Pemesan</th>
                             <th>Jumlah Orang</th>
                             <th>Tanggal</th>
                             <th>Jam Mulai</th>
@@ -157,7 +163,8 @@ include '../views/sidebar.php';
                         <?php foreach($reservations as $res): ?>
                         <tr>
                             <td><?= htmlspecialchars($res['id']) ?></td>
-                            <td><?= htmlspecialchars($res['nama']) ?></td>
+                            <td><?= htmlspecialchars($res['user_id']) ?></td>
+                            <td><?= htmlspecialchars($res['nama_pemesan']) ?></td>
                             <td><?= htmlspecialchars($res['jumlah_orang']) ?></td>
                             <td><?= htmlspecialchars($res['tanggal']) ?></td>
                             <td><?= htmlspecialchars($res['jam_mulai']) ?></td>
@@ -188,8 +195,12 @@ include '../views/sidebar.php';
       </div>
       <div class="modal-body">
         <div class="mb-2">
-          <label>Nama:</label>
-          <input type="text" id="showNama" class="form-control">
+          <label>ID User:</label>
+          <input type="text" id="showIdUser" class="form-control" readonly>
+        </div>
+        <div class="mb-2">
+          <label>Nama Pemesan:</label>
+          <input type="text" id="showNamePemesan" class="form-control">
         </div>
         <div class="mb-2">
           <label>Jumlah Orang:</label>
@@ -214,10 +225,11 @@ include '../views/sidebar.php';
         <div class="mb-2">
           <label>Status:</label>
           <input type="text" id="showStatus" class="form-control" readonly>
-          <!-- Dropdown untuk mode edit -->
           <select id="editStatus" class="form-select d-none">
-            <option value="Dikonfirmasi">Dikonfirmasi</option>
-            <option value="Dibatalkan">Dibatalkan</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Dikonfirmasi</option>
+            <option value="completed">Selesai</option>
+            <option value="canceled">Dibatalkan</option>
           </select>
         </div>
         <div class="text-end">
@@ -239,7 +251,8 @@ document.addEventListener('DOMContentLoaded', function () {
         console.error('Data kosong atau bukan object:', data);
         return;
       }
-      $('#showNama').val(data.nama).prop('readonly', true);
+      $('#showIdUser').val(data.user_id);
+      $('#showNamePemesan').val(data.nama_pemesan).prop('readonly', true);
       $('#showJumlahOrang').val(data.jumlah_orang).prop('readonly', true);
       $('#showTanggal').val(data.tanggal).prop('readonly', true);
       $('#showJamMulai').val(data.jam_mulai).prop('readonly', true);
@@ -259,7 +272,8 @@ document.addEventListener('DOMContentLoaded', function () {
         console.error('Data kosong atau bukan object:', data);
         return;
       }
-      $('#showNama').val(data.nama).prop('readonly', false);
+      $('#showIdUser').val(data.user_id);
+      $('#showNamePemesan').val(data.nama_pemesan).prop('readonly', false);
       $('#showJumlahOrang').val(data.jumlah_orang).prop('readonly', false);
       $('#showTanggal').val(data.tanggal).prop('readonly', false);
       $('#showJamMulai').val(data.jam_mulai).prop('readonly', false);
@@ -277,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const updatedData = {
       action: 'update',
       id,
-      nama: $('#showNama').val(),
+      nama_pemesan: $('#showNamePemesan').val(),
       jumlah_orang: $('#showJumlahOrang').val(),
       tanggal: $('#showTanggal').val(),
       jam_mulai: $('#showJamMulai').val(),
@@ -286,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function () {
       status: $('#showStatus').val()
     };
 
-    $.post('update_reservation.php', updatedData, function(response) {
+    $.post('reservation.php', updatedData, function(response) {
       alert(response.message || 'Data berhasil diperbarui');
       location.reload();
     }, 'json');

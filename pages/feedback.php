@@ -13,17 +13,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['id'
     $id = (int)$_POST['id'];
 
     if ($action === 'delete') {
-        $stmt = $conn->prepare("DELETE FROM feedback WHERE id = ?");
+        $stmt = $conn->prepare("DELETE FROM feedback WHERE id_masukan = ?");
         $stmt->bind_param("i", $id);
         echo json_encode(['message' => $stmt->execute() ? 'Feedback dihapus.' : 'Gagal menghapus feedback.']);
         exit();
     }
 
     if ($action === 'update') {
-        $nama = $_POST['nama'];
-        $masukan = $_POST['masukan'];
-        $stmt = $conn->prepare("UPDATE feedback SET nama = ?, masukan = ? WHERE id = ?");
-        $stmt->bind_param("ssi", $nama, $masukan, $id);
+        $judul_masukan = $_POST['judul_masukan'];
+        $pesan_masukan = $_POST['pesan_masukan'];
+        $stmt = $conn->prepare("UPDATE masukan SET judul_masukan = ?, pesan_masukan = ? WHERE id_masukan = ?");
+        $stmt->bind_param("ssi", $judul_masukan, $pesan_masukan, $id);
         echo json_encode(['message' => $stmt->execute() ? 'Feedback diperbarui.' : 'Gagal memperbarui feedback.']);
         exit();
     }
@@ -37,18 +37,18 @@ $search = $conn->real_escape_string($_GET['search'] ?? '');
 $offset = ($page - 1) * $per_page;
 
 $search_term = "%$search%";
-$stmt = $conn->prepare("SELECT * FROM feedback WHERE nama LIKE ? OR masukan LIKE ? ORDER BY id ASC LIMIT ? OFFSET ?");
+$stmt = $conn->prepare("SELECT * FROM feedback WHERE judul_masukan LIKE ? OR pesan_masukan LIKE ? ORDER BY id_masukan ASC LIMIT ? OFFSET ?");
 $stmt->bind_param("ssii", $search_term, $search_term, $per_page, $offset);
 $stmt->execute();
 $feedbacks = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-$stmt_total = $conn->prepare("SELECT COUNT(*) AS total FROM feedback WHERE nama LIKE ? OR masukan LIKE ?");
+$stmt_total = $conn->prepare("SELECT COUNT(*) AS total FROM feedback WHERE judul_masukan LIKE ? OR pesan_masukan LIKE ?");
 $stmt_total->bind_param("ss", $search_term, $search_term);
 $stmt_total->execute();
-$total_rows = isset($total_rows) && $total_rows > 0 ? $total_rows : 1;
+$result_total = $stmt_total->get_result();
+$row_total = $result_total->fetch_assoc();
+$total_rows = $row_total['total'];
 $total_pages = ceil($total_rows / $per_page);
-$stmt_total->free_result();
-
 
 $title = "Data Feedback";
 include '../views/header.php';
@@ -81,17 +81,26 @@ include '../views/sidebar.php';
         <div class="card-body">
             <table class="table table-hover">
                 <thead class="table-light">
-                    <tr><th>ID</th><th>Nama</th><th>Masukan</th><th>Aksi</th></tr>
+                    <tr>
+                        <th>ID</th>
+                        <th>ID User</th>
+                        <th>Tanggal</th>
+                        <th>Judul Masukan</th>
+                        <th>Pesan Masukan</th>
+                        <th>Aksi</th>
+                    </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($feedbacks as $fb): ?>
                     <tr>
-                        <td><?= $fb['id'] ?></td>
-                        <td><?= htmlspecialchars($fb['nama']) ?></td>
-                        <td><?= htmlspecialchars($fb['masukan']) ?></td>
+                        <td><?= $fb['id_masukan'] ?></td>
+                        <td><?= $fb['user_id'] ?></td>
+                        <td><?= $fb['tgl_masukan'] ?></td>
+                        <td><?= htmlspecialchars($fb['judul_masukan']) ?></td>
+                        <td><?= htmlspecialchars($fb['pesan_masukan']) ?></td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-info view-btn" data-id="<?= $fb['id'] ?>"><i class="bi bi-eye"></i></button>
-                            <button type="button" class="btn btn-sm btn-danger delete-btn" data-id="<?= $fb['id'] ?>"><i class="bi bi-trash"></i></button>
+                            <button type="button" class="btn btn-sm btn-info view-btn" data-id="<?= $fb['id_masukan'] ?>"><i class="bi bi-eye"></i></button>
+                            <button type="button" class="btn btn-sm btn-danger delete-btn" data-id="<?= $fb['id_masukan'] ?>"><i class="bi bi-trash"></i></button>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -110,10 +119,18 @@ include '../views/sidebar.php';
         <button class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <label>Nama:</label>
-        <input type="text" id="modalNama" class="form-control mb-2">
-        <label>Masukan:</label>
-        <textarea id="modalMasukan" class="form-control mb-2"></textarea>
+        <label>ID User:</label>
+        <input type="text" id="modalUserId" class="form-control mb-2" readonly>
+        
+        <label>Tanggal:</label>
+        <input type="text" id="modalTanggal" class="form-control mb-2" readonly>
+        
+        <label>Judul Masukan:</label>
+        <input type="text" id="modalJudul" class="form-control mb-2">
+        
+        <label>Pesan Masukan:</label>
+        <textarea id="modalPesan" class="form-control mb-2"></textarea>
+        
         <div class="text-end">
           <button id="saveBtn" class="btn btn-primary d-none">Simpan</button>
         </div>
@@ -127,19 +144,24 @@ document.addEventListener('DOMContentLoaded', function () {
   $('.view-btn').click(function () {
     const id = $(this).data('id');
     $.get('get_feedback.php', { id }, function (data) {
-      $('#modalNama').val(data.nama).prop('readonly', true);
-      $('#modalMasukan').val(data.masukan).prop('readonly', true);
-      $('#saveBtn').addClass('d-none');
+      $('#modalUserId').val(data.user_id);
+      $('#modalTanggal').val(data.tgl_masukan);
+      $('#modalJudul').val(data.judul_masukan);
+      $('#modalPesan').val(data.pesan_masukan);
+      $('#saveBtn').removeClass('d-none').data('id', id);
       new bootstrap.Modal('#feedbackModal').show();
-    }, 'json');
+    }, 'json').fail(function() {
+      alert('Gagal mengambil data feedback.');
+    });
   });
 
   $('#saveBtn').click(function () {
+    const id = $(this).data('id');
     $.post('feedback.php', {
       action: 'update',
-      id: $(this).data('id'),
-      nama: $('#modalNama').val(),
-      masukan: $('#modalMasukan').val()
+      id: id,
+      judul_masukan: $('#modalJudul').val(),
+      pesan_masukan: $('#modalPesan').val()
     }, function (res) {
       alert(res.message);
       location.reload();

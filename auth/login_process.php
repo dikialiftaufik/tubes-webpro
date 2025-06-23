@@ -23,15 +23,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
-        $stmt->close();
-
-        if ($user) {
+        
+        if ($result->num_rows === 1) {
+            $user = $result->fetch_assoc();
+            
             // Verifikasi password
             if (password_verify($password, $user['password'])) {
                 // Set session user
-                $_SESSION['loggedin'] = true; // Tambahkan ini
-                $_SESSION['user'] = [ // Simpan dalam array 'user'
+                $_SESSION['loggedin'] = true;
+                $_SESSION['user'] = [
                     'id' => $user['id'],
                     'username' => $user['username'],
                     'full_name' => $user['full_name'],
@@ -39,6 +39,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     'role' => $user['role'],
                     'profile' => 'uploads/profiles/default.jpg' // Default profile
                 ];
+                
+                // Simpan user_id secara terpisah
+                $_SESSION['user_id'] = $user['id'];
                 
                 // Set session untuk notifikasi
                 $_SESSION['login_success'] = "Berhasil masuk sebagai " . $user['full_name'];
